@@ -46,8 +46,6 @@ classifiers = [
 dependencies = [
     "pydantic>=2.12.3",
     "rich>=14.2.0",
-    "prompt-toolkit>=3.0.52",
-    "textual>=0.60.0",
     "httpx>=0.28.1",
     "crawl4ai>=0.7.6",
     "gitpython>=3.1.45",
@@ -73,7 +71,7 @@ dependencies = [
     # SWE-bench dataset loading
     "datasets>=2.0.0",
     # Web search via DuckDuckGo
-    "duckduckgo-search>=6.0.0",
+    "ddgs>=0.1.0",
     # Excel parsing for send_data tool
     "openpyxl>=3.1.0",
     # Analyze plugin tools
@@ -101,7 +99,7 @@ Repository = "https://github.com/atria-to/atria"
 Changelog = "https://github.com/atria-to/atria/releases"
 
 [project.scripts]
-atria = "atria.cli:main"
+atria = "atria.serve:main"
 
 [tool.setuptools]
 include-package-data = true
@@ -120,7 +118,6 @@ atria = [
     "core/agents/prompts/**/*.md",
     "skills/**/*.md",
     "web/static/**/*",
-    "ui_textual/styles/**/*.tcss",
 ]
 
 [tool.black]

@@ -6,7 +6,6 @@ from atria.core.skill_tools import (
     SkillToolContext,
     SkillToolError,
     SkillToolLoader,
-    ToolSpec,
 )
 
 

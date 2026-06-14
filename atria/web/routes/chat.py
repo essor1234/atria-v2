@@ -202,6 +202,7 @@ async def get_messages() -> List[MessageResponse]:
                 ),
                 thinking_trace=msg.thinking_trace,
                 reasoning_content=msg.reasoning_content,
+                metadata=msg.metadata if msg.metadata else None,
             )
             for msg in messages
         ]

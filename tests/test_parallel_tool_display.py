@@ -5,7 +5,6 @@ import time
 from unittest.mock import MagicMock
 
 
-
 class TestExecuteToolsParallelCallbacks:
     """Verify _execute_tools_parallel fires UI callbacks in real-time."""
 

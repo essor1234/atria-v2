@@ -128,6 +128,56 @@ Persistence (core/context_engineering/history/)
 
 **Web UI**: FastAPI backend with WebSocket for real-time updates. Frontend is React/Vite/Zustand in `web-ui/`, built to `atria/web/static/`. Agent runs in ThreadPoolExecutor, uses `asyncio.run_coroutine_threadsafe` for WS broadcasts.
 
+## Agent Tools
+
+### Artifact Management Tools
+
+The agent has access to two tools for managing uploaded files and images:
+
+**Tool: `list_artifact_images(scope)`**
+- List artifacts available to the agent
+- Parameters:
+  - `scope` (string, required): 'conversation' (current chat only), 'project' (project-level artifacts), or 'both' (all artifacts)
+- Returns: Array of artifacts with fields:
+  - `id` (int): Artifact identifier
+  - `filename` (string): Original filename
+  - `type` (string): Artifact type (image, code, report, etc.)
+  - `size` (int): File size in bytes
+  - `scope` (string): 'conversation' or 'project'
+  - `created_at` (string): ISO timestamp
+- Example:
+  ```
+  Agent: list_artifact_images(scope='conversation')
+  Response: [{id: 1, filename: 'photo.png', type: 'image', size: 102400, scope: 'conversation', created_at: '2026-06-12T...'}]
+  ```
+
+**Tool: `read_artifact_image(artifact_id)`**
+- Read an artifact file and return base64-encoded content
+- Parameters:
+  - `artifact_id` (int, required): ID from list_artifact_images()
+- Returns: Object with:
+  - `id` (int): Artifact ID
+  - `filename` (string): Filename
+  - `base64_content` (string): Base64-encoded file content
+  - `content_type` (string): MIME type (e.g., 'image/png')
+  - OR `error` (string): Error message if file cannot be read
+- Supported formats: PNG, JPG, JPEG, GIF, WebP, SVG
+- Example:
+  ```
+  Agent: read_artifact_image(artifact_id=1)
+  Response: {id: 1, filename: 'photo.png', base64_content: 'iVBORw0KGgo...', content_type: 'image/png'}
+  ```
+
+**Usage Pattern:**
+1. Agent calls `list_artifact_images(scope='conversation')` to discover available artifacts
+2. Agent calls `read_artifact_image(artifact_id)` to retrieve artifact content
+3. Agent analyzes content and responds to user
+
+**Scope Behavior:**
+- `conversation`: Artifacts uploaded to the current conversation only
+- `project`: Artifacts visible to all conversations in the project
+- `both`: All artifacts (conversation + project)
+
 ## Agent Design
 
 **CRITICAL:** Never hard-code if/else branching logic to handle LLM conversation flows. The LLM must decide the next step at each turn — not static conditionals. Design agent loops so the model reasons and chooses actions dynamically; hard-coded control flow defeats the purpose of an agentic system.

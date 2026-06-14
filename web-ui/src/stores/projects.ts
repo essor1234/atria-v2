@@ -6,20 +6,18 @@ import { useChatStore } from './chat';
 interface ProjectsState {
   projects: Project[];
   conversations: Record<string, Conversation[]>;
-  personalConversations: Conversation[];
+  workspaceProjectId: string | null;
   expandedProjects: Set<string>;
   isLoading: boolean;
   error: string | null;
 
   loadProjects: () => Promise<void>;
   loadConversations: (projectId: string) => Promise<void>;
-  loadPersonalConversations: () => Promise<void>;
   createProject: (name: string) => Promise<Project>;
   deleteProject: (projectId: string) => Promise<void>;
   createConversation: (projectId: string, name: string) => Promise<Conversation>;
   deleteConversation: (projectId: string, conversationId: string) => Promise<void>;
-  createPersonalConversation: (name?: string) => Promise<Conversation>;
-  deletePersonalConversation: (conversationId: string) => Promise<void>;
+  createWorkspaceConversation: (name?: string) => Promise<Conversation>;
   toggleProject: (projectId: string) => void;
   expandProject: (projectId: string) => void;
 }
@@ -27,7 +25,7 @@ interface ProjectsState {
 export const useProjectsStore = create<ProjectsState>((set, get) => ({
   projects: [],
   conversations: {},
-  personalConversations: [],
+  workspaceProjectId: null,
   expandedProjects: new Set(),
   isLoading: false,
   error: null,
@@ -35,8 +33,12 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
   loadProjects: async () => {
     set({ isLoading: true, error: null });
     try {
-      const projects = await apiClient.listProjects();
-      set({ projects, isLoading: false });
+      const [projects, me] = await Promise.all([
+        apiClient.listProjects(),
+        apiClient.me() as Promise<{ project_id?: number | null } | null>,
+      ]);
+      const workspaceProjectId = me?.project_id ? String(me.project_id) : null;
+      set({ projects, workspaceProjectId, isLoading: false });
       for (const p of projects) {
         get().loadConversations(p.id);
         set(state => ({ expandedProjects: new Set([...state.expandedProjects, p.id]) }));
@@ -44,14 +46,6 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
     } catch (err) {
       set({ error: (err as Error).message, isLoading: false });
     }
-    get().loadPersonalConversations();
-  },
-
-  loadPersonalConversations: async () => {
-    try {
-      const convs = await apiClient.listPersonalConversations();
-      set({ personalConversations: convs });
-    } catch (_) {}
   },
 
   loadConversations: async (projectId: string) => {
@@ -101,6 +95,14 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
     return conv;
   },
 
+  createWorkspaceConversation: async (name = 'New Chat') => {
+    const { workspaceProjectId, createConversation, expandProject } = get();
+    if (!workspaceProjectId) throw new Error('Workspace project not loaded yet');
+    const conv = await createConversation(workspaceProjectId, name);
+    expandProject(workspaceProjectId);
+    return conv;
+  },
+
   deleteConversation: async (projectId: string, conversationId: string) => {
     await apiClient.deleteConversation(projectId, conversationId);
     set(state => ({
@@ -108,24 +110,6 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
         ...state.conversations,
         [projectId]: (state.conversations[projectId] ?? []).filter(c => c.id !== conversationId),
       },
-    }));
-    const chatStore = useChatStore.getState();
-    if (chatStore.currentSessionId === conversationId) {
-      useChatStore.setState({ currentSessionId: null });
-    }
-  },
-
-  createPersonalConversation: async (name?: string) => {
-    const conv = await apiClient.createPersonalConversation(name || 'New Chat');
-    set(state => ({ personalConversations: [conv, ...state.personalConversations] }));
-    await useChatStore.getState().loadSession(conv.id);
-    return conv;
-  },
-
-  deletePersonalConversation: async (conversationId: string) => {
-    await apiClient.deletePersonalConversation(conversationId);
-    set(state => ({
-      personalConversations: state.personalConversations.filter(c => c.id !== conversationId),
     }));
     const chatStore = useChatStore.getState();
     if (chatStore.currentSessionId === conversationId) {

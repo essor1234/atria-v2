@@ -12,7 +12,7 @@ from typing import Any, Dict, Optional
 from atria.web.logging_config import logger
 from atria.web.protocol import WSMessageType
 from atria.core.utils.tool_result_summarizer import summarize_tool_result
-from atria.ui_textual.utils.tool_display import (
+from atria.core.utils.tool_display import (
     PATH_ARG_KEYS as _PATH_KEYS,
     format_tool_call,
 )
@@ -161,7 +161,10 @@ class WebSocketToolBroadcaster:
         else:
             try:
                 payload = self._make_json_safe(
-                    {"type": etype or "skill_event", "data": {**event, "session_id": self.session_id}}
+                    {
+                        "type": etype or "skill_event",
+                        "data": {**event, "session_id": self.session_id},
+                    }
                 )
                 future = asyncio.run_coroutine_threadsafe(
                     self.ws_manager.broadcast(payload), self.loop

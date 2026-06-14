@@ -1,6 +1,5 @@
 """Unit tests for the task_complete tool."""
 
-
 from atria.core.context_engineering.tools.implementations.task_complete_tool import TaskCompleteTool
 
 

@@ -192,6 +192,12 @@ def create_default_composer(templates_dir: Path) -> PromptComposer:
     composer.register_section("action_safety", "system/main/main-action-safety.md", priority=56)
 
     composer.register_section(
+        "domain_enrichment",
+        "system/main/domain-enrichment.md",
+        priority=57,
+    )
+
+    composer.register_section(
         "read_before_edit",
         "system/main/main-read-before-edit.md",
         priority=58,

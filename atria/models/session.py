@@ -10,7 +10,6 @@ from uuid import uuid4
 from pydantic import BaseModel, ConfigDict, Field
 
 from atria.models.message import ChatMessage
-from atria.models.file_change import FileChange, FileChangeType
 
 logger = logging.getLogger(__name__)
 
@@ -32,11 +31,6 @@ class SessionMetadata(BaseModel):
     working_directory: Optional[str] = None
     has_session_model: bool = False
     owner_id: Optional[str] = None
-
-    # Summary stats (populated from Session computed properties)
-    summary_additions: int = 0
-    summary_deletions: int = 0
-    summary_files: int = 0
 
     # Multi-channel fields
     channel: str = "cli"  # "telegram", "whatsapp", "web", "cli"
@@ -62,9 +56,6 @@ class Session(BaseModel):
     working_directory: Optional[str] = None
     metadata: dict[str, Any] = Field(default_factory=dict)
     playbook: Optional[dict] = Field(default_factory=dict)  # Serialized ACE Playbook
-    file_changes: list[FileChange] = Field(
-        default_factory=list
-    )  # Track file changes in this session
 
     # Multi-channel fields
     channel: str = "cli"  # "telegram", "whatsapp", "web", "cli"
@@ -106,21 +97,6 @@ class Session(BaseModel):
         """
         self.playbook = playbook.to_dict()
         self.updated_at = datetime.now()
-
-    @property
-    def summary_additions(self) -> int:
-        """Total lines added across all file changes."""
-        return sum(fc.lines_added for fc in self.file_changes)
-
-    @property
-    def summary_deletions(self) -> int:
-        """Total lines removed across all file changes."""
-        return sum(fc.lines_removed for fc in self.file_changes)
-
-    @property
-    def summary_files(self) -> int:
-        """Number of unique files changed."""
-        return len(set(fc.file_path for fc in self.file_changes))
 
     def archive(self) -> None:
         """Soft-archive this session."""
@@ -164,52 +140,6 @@ class Session(BaseModel):
         self.updated_at = datetime.now()
         return True
 
-    def add_file_change(self, file_change: FileChange) -> None:
-        """Add a file change to the session."""
-        # Check if this is a modification of an existing file
-        for i, existing_change in enumerate(self.file_changes):
-            if (
-                existing_change.file_path == file_change.file_path
-                and existing_change.type == FileChangeType.MODIFIED
-                and file_change.type == FileChangeType.MODIFIED
-            ):
-                # Merge with existing change
-                self.file_changes[i].lines_added += file_change.lines_added
-                self.file_changes[i].lines_removed += file_change.lines_removed
-                self.file_changes[i].timestamp = file_change.timestamp
-                self.file_changes[i].description = file_change.description
-                return
-
-        # Remove any previous change for the same file (for non-modifications)
-        self.file_changes = [
-            fc for fc in self.file_changes if fc.file_path != file_change.file_path
-        ]
-
-        # Add the new change
-        file_change.session_id = self.id
-        self.file_changes.append(file_change)
-        self.updated_at = datetime.now()
-
-    def get_file_changes_summary(self) -> dict:
-        """Get a summary of file changes in this session."""
-        created = len([fc for fc in self.file_changes if fc.type == FileChangeType.CREATED])
-        modified = len([fc for fc in self.file_changes if fc.type == FileChangeType.MODIFIED])
-        deleted = len([fc for fc in self.file_changes if fc.type == FileChangeType.DELETED])
-        renamed = len([fc for fc in self.file_changes if fc.type == FileChangeType.RENAMED])
-        total_lines_added = sum(fc.lines_added for fc in self.file_changes)
-        total_lines_removed = sum(fc.lines_removed for fc in self.file_changes)
-
-        return {
-            "total": len(self.file_changes),
-            "created": created,
-            "modified": modified,
-            "deleted": deleted,
-            "renamed": renamed,
-            "total_lines_added": total_lines_added,
-            "total_lines_removed": total_lines_removed,
-            "net_lines": total_lines_added - total_lines_removed,
-        }
-
     def total_tokens(self) -> int:
         """Calculate total token count."""
         return sum(msg.token_estimate() for msg in self.messages)
@@ -226,9 +156,6 @@ class Session(BaseModel):
             summary=self.metadata.get("summary"),
             tags=self.metadata.get("tags", []),
             working_directory=self.working_directory,
-            summary_additions=self.summary_additions,
-            summary_deletions=self.summary_deletions,
-            summary_files=self.summary_files,
             channel=self.channel,
             channel_user_id=self.channel_user_id,
             thread_id=self.thread_id,

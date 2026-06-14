@@ -94,6 +94,10 @@ class WebSocketManager:
             await self._handle_plan_approval_response(websocket, data)
         elif msg_type == "deep_research_taxonomy_response":
             await self._handle_taxonomy_response(websocket, data)
+        elif msg_type == "analyze_plan_response":
+            await self._handle_plan_review_response(websocket, data)
+        elif msg_type == "analyze_clarify_response":
+            await self._handle_clarify_response(websocket, data)
         elif msg_type == "ping":
             await self.send_message(websocket, {"type": WSMessageType.PONG})
         else:
@@ -112,6 +116,10 @@ class WebSocketManager:
 
         message = data.get("data", {}).get("message")
         session_id = data.get("data", {}).get("session_id")
+        persona_name = data.get("data", {}).get("persona_name")
+        # Reject persona_name with path traversal sequences
+        if persona_name and (not isinstance(persona_name, str) or "/" in persona_name or ".." in persona_name):
+            persona_name = None
 
         if not message:
             await self.send_message(
@@ -197,9 +205,7 @@ class WebSocketManager:
 
         # Load session without mutating current_session, scoped to the caller.
         try:
-            session = await state.session_manager.get_session_by_id(
-                session_id, owner_id=owner_id
-            )
+            session = await state.session_manager.get_session_by_id(session_id, owner_id=owner_id)
         except FileNotFoundError:
             # Fallback: session may be newly created but not yet on disk
             current = await state.session_manager.get_current_session()
@@ -243,7 +249,9 @@ class WebSocketManager:
             state._agent_executor = AgentExecutor(state)
         executor = state._agent_executor
         asyncio.create_task(
-            executor.execute_query(message, self, session_id=session_id, session=session)
+            executor.execute_query(
+                message, self, session_id=session_id, session=session, persona_name=persona_name
+            )
         )
 
     async def _handle_approval(self, websocket: WebSocket, data: Dict[str, Any]):
@@ -416,6 +424,57 @@ class WebSocketManager:
             return
 
         logger.info(f"✓ Taxonomy review {request_id} resolved: action={action}, depth={depth}")
+
+    async def _handle_plan_review_response(self, websocket: WebSocket, data: Dict[str, Any]):
+        """Handle an analyze plan review response from the web UI."""
+        response_data = data.get("data", {})
+        request_id = response_data.get("requestId")
+        action = response_data.get("action", "accept")
+        instructions = response_data.get("instructions", "")
+
+        if not request_id:
+            await self.send_message(
+                websocket,
+                {"type": WSMessageType.ERROR, "data": {"message": "Missing requestId"}},
+            )
+            return
+
+        state = get_state()
+        success = await state.aresolve_plan_review(request_id, action, instructions or None)
+
+        if not success:
+            await self.send_message(
+                websocket,
+                {"type": WSMessageType.ERROR, "data": {"message": f"Plan review {request_id} not found"}},
+            )
+            return
+
+        logger.info(f"Plan review {request_id} resolved: action={action}")
+
+    async def _handle_clarify_response(self, websocket: WebSocket, data: Dict[str, Any]):
+        """Handle an EXPLORE clarification response from the web UI."""
+        response_data = data.get("data", {})
+        request_id = response_data.get("requestId")
+        answers = response_data.get("answers", [])
+
+        if not request_id:
+            await self.send_message(
+                websocket,
+                {"type": WSMessageType.ERROR, "data": {"message": "Missing requestId"}},
+            )
+            return
+
+        state = get_state()
+        success = await state.aresolve_clarify_review(request_id, answers)
+
+        if not success:
+            await self.send_message(
+                websocket,
+                {"type": WSMessageType.ERROR, "data": {"message": f"Clarify request {request_id} not found"}},
+            )
+            return
+
+        logger.info(f"Clarify {request_id} resolved with {len(answers)} answers")
 
 
 # Global WebSocket manager instance

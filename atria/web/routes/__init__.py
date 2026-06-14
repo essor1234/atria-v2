@@ -7,9 +7,10 @@ from atria.web.routes.commands import router as commands_router
 from atria.web.routes.mcp import router as mcp_router
 from atria.web.routes.auth import router as auth_router
 from atria.web.routes.projects import router as projects_router
-from atria.web.routes.projects import personal_router
 from atria.web.routes.artifacts import router as artifacts_router
 from atria.web.routes.fs import router as fs_router
+from atria.web.routes.personas import router as personas_router
+from atria.web.routes.analyze import router as analyze_router
 
 __all__ = [
     "chat_router",
@@ -19,7 +20,8 @@ __all__ = [
     "mcp_router",
     "auth_router",
     "projects_router",
-    "personal_router",
     "artifacts_router",
     "fs_router",
+    "personas_router",
+    "analyze_router",
 ]

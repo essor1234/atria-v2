@@ -24,6 +24,7 @@ COPY . .
 RUN uv sync --frozen --no-dev
 
 ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8080
 
@@ -33,5 +34,5 @@ ENTRYPOINT ["/bin/sh", "-c", "\
     \"${ATRIA_MODEL:-gpt-4o}\" \
     \"${ATRIA_API_BASE_URL:-https://api.openai.com/v1/chat/completions}\" \
     > /root/.atria/settings.json && \
-  exec atria run ui --ui-host 0.0.0.0 --ui-port 8080\
+  exec atria --host 0.0.0.0 --port 8080\
 "]

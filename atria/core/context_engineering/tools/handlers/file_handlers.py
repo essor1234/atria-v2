@@ -9,7 +9,6 @@ from typing import Union, Any
 
 from atria.core.context_engineering.tools.context import ToolExecutionContext
 from atria.core.context_engineering.tools.path_utils import sanitize_path
-from atria.db.sync import run_sync
 from atria.models.operation import Operation, OperationType
 
 
@@ -63,22 +62,6 @@ class FileToolHandler:
             # Auto-format if formatter is available
             if context.formatter_manager:
                 context.formatter_manager.format_file(file_path)
-
-            # Track file change in session
-            if context.session_manager:
-                from atria.models.file_change import FileChange, FileChangeType
-                from pathlib import Path
-
-                session = run_sync(context.session_manager.get_current_session())
-                if session:
-                    file_change = FileChange(
-                        type=FileChangeType.CREATED,
-                        file_path=file_path,
-                        lines_added=len(content.split("\n")),
-                        description=f"Created {Path(file_path).name}",
-                        session_id=session.id,
-                    )
-                    session.add_file_change(file_change)
 
         output_msg = f"File created: {file_path}" if write_result.success else None
         if write_result.success and self._file_ops and self._file_ops._is_gitignored(file_path):
@@ -163,23 +146,6 @@ class FileToolHandler:
             # Invalidate stale-read record: agent must re-read before next edit
             if context.file_time_tracker:
                 context.file_time_tracker.invalidate(file_path)
-
-            # Track file change in session
-            if context.session_manager:
-                from atria.models.file_change import FileChange, FileChangeType
-                from pathlib import Path
-
-                session = run_sync(context.session_manager.get_current_session())
-                if session:
-                    file_change = FileChange(
-                        type=FileChangeType.MODIFIED,
-                        file_path=file_path,
-                        lines_added=edit_result.lines_added,
-                        lines_removed=edit_result.lines_removed,
-                        description=f"Modified {Path(file_path).name} (+{edit_result.lines_added}/-{edit_result.lines_removed})",
-                        session_id=session.id,
-                    )
-                    session.add_file_change(file_change)
 
         output_msg = (
             f"File edited: {file_path} (+{edit_result.lines_added}/-{edit_result.lines_removed})"

@@ -4,7 +4,6 @@ import json
 from unittest.mock import MagicMock, patch
 
 
-
 class TestMainAgentTaskComplete:
     """Test task_complete handling in MainAgent.run_sync()."""
 

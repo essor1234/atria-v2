@@ -77,7 +77,8 @@ def validate_message(msg: ChatMessage) -> ValidationVerdict:
     elif role == Role.ASSISTANT:
         has_content = bool(msg.content and msg.content.strip())
         has_tools = bool(msg.tool_calls)
-        if not has_content and not has_tools:
+        has_metadata = bool(msg.metadata)
+        if not has_content and not has_tools and not has_metadata:
             return ValidationVerdict(False, "assistant message has no content and no tool_calls")
 
         # Validate each tool call
@@ -150,9 +151,10 @@ def repair_message(msg: ChatMessage) -> Optional[ChatMessage]:
     """
     has_content = bool(msg.content and msg.content.strip())
     has_tools = bool(msg.tool_calls)
+    has_metadata = bool(msg.metadata)
 
-    # Drop completely empty messages
-    if not has_content and not has_tools:
+    # Drop completely empty messages (metadata-only messages are kept)
+    if not has_content and not has_tools and not has_metadata:
         return None
 
     # Repair tool calls

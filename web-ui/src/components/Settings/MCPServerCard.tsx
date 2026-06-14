@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import type { MCPServer } from '../../types/mcp';
 
 interface MCPServerCardProps {
@@ -82,14 +83,7 @@ export function MCPServerCard({
             onClick={() => setExpanded(!expanded)}
             className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded transition-colors"
           >
-            <svg
-              className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+            <ChevronDown className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
           </button>
         </div>
       </div>

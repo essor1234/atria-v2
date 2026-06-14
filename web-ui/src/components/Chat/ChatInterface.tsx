@@ -1,5 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { Upload } from 'lucide-react';
 import { useChatStore } from '../../stores/chat';
+import { useArtifactsStore } from '../../stores/artifacts';
+import { useArtifactUpload } from '../../hooks/useArtifactUpload';
 import { apiClient } from '../../api/client';
 import { MessageList } from './MessageList';
 import { QueueBar } from './QueueBar';
@@ -14,6 +18,11 @@ export function ChatInterface() {
   const currentSessionId = useChatStore(state => state.currentSessionId);
   const loadSession = useChatStore(state => state.loadSession);
   const [bridgeChecked, setBridgeChecked] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { upload, uploading } = useArtifactUpload();
+  const scanArtifacts = useArtifactsStore(state => state.scanArtifacts);
 
   // Auto-join TUI session in bridge mode
   useEffect(() => {
@@ -30,6 +39,36 @@ export function ChatInterface() {
     return () => { cancelled = true; };
   }, [loadSession]);
 
+  const showToast = useCallback((msg: string) => {
+    setToast(msg);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(null), 3000);
+  }, []);
+
+  const { getRootProps, isDragActive } = useDropzone({
+    onDrop: useCallback(async (acceptedFiles: File[]) => {
+      if (!currentSessionId || acceptedFiles.length === 0) return;
+      const convId = parseInt(currentSessionId, 10);
+      if (isNaN(convId)) return;
+      let uploaded = 0;
+      for (const file of acceptedFiles) {
+        const result = await upload(file, 'conversation', convId);
+        if (result) uploaded++;
+      }
+      if (uploaded > 0) {
+        scanArtifacts(currentSessionId).catch(() => {});
+        showToast(
+          uploaded === 1
+            ? `"${acceptedFiles[0].name}" uploaded`
+            : `${uploaded} files uploaded`
+        );
+      }
+    }, [currentSessionId, upload, scanArtifacts, showToast]),
+    noClick: true,
+    noKeyboard: true,
+    disabled: !currentSessionId,
+  });
+
   // Brief null render while checking bridge info (imperceptible)
   if (!bridgeChecked && !currentSessionId) {
     return null;
@@ -40,7 +79,10 @@ export function ChatInterface() {
   }
 
   return (
-    <div className="flex flex-col h-full relative animate-fade-in">
+    <div
+      {...getRootProps()}
+      className="flex flex-col h-full relative animate-fade-in"
+    >
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 mx-6 mt-4 rounded-lg">
           <strong className="font-semibold">Error:</strong> {error}
@@ -50,6 +92,32 @@ export function ChatInterface() {
       <MessageList />
       <QueueBar />
       <InputBox />
+
+      {/* Drag-and-drop overlay */}
+      {isDragActive && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className="absolute inset-0 bg-accent-main-100/10 border-2 border-dashed border-accent-main-100 rounded-lg m-2" />
+          <div className="relative bg-canvas border border-hairline-soft rounded-xl px-6 py-4 shadow-lg flex items-center gap-3">
+            <Upload className="w-6 h-6 text-accent-main-100" />
+            <span className="text-sm font-medium text-ink">Drop files to upload as artifacts</span>
+          </div>
+        </div>
+      )}
+
+      {/* Upload progress indicator */}
+      {uploading && (
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-40 bg-canvas border border-hairline-soft rounded-lg px-4 py-2 shadow-md flex items-center gap-2 text-sm text-ink">
+          <div className="w-3 h-3 border-2 border-accent-main-100 border-t-transparent rounded-full animate-spin" />
+          Uploading…
+        </div>
+      )}
+
+      {/* Toast notification */}
+      {toast && (
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-40 bg-canvas border border-hairline-soft rounded-lg px-4 py-2 shadow-md text-sm text-ink">
+          ✓ {toast}
+        </div>
+      )}
     </div>
   );
 }

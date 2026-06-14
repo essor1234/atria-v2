@@ -20,12 +20,21 @@ class AnalyzeJob:
     status: str = "pending"
     error: Optional[str] = None
     profile: Dict[str, Any] = field(default_factory=dict)
+    profile_rich: Dict[str, Any] = field(default_factory=dict)
     plan: Dict[str, Any] = field(default_factory=dict)
     sub_tables: List[Dict[str, Any]] = field(default_factory=list)
     charts: List[Dict[str, Any]] = field(default_factory=list)
+    sections: List[Dict[str, Any]] = field(default_factory=list)
+    exec_summary: Optional[str] = None
+    key_findings: Optional[str] = None
+    domain_brief: str = ""
+    clarification_qa: List[Dict[str, Any]] = field(default_factory=list)
+    domain_context: str = ""
+    depth: str = "standard"
     report_path: Optional[str] = None
     cancel_event: threading.Event = field(default_factory=threading.Event)
     _done_event: threading.Event = field(default_factory=threading.Event)
+    _profile_ready: threading.Event = field(default_factory=threading.Event)
 
 
 class AnalyzeJobRegistry:

@@ -25,12 +25,15 @@ def _emit(ctx: SkillToolContext, event: Dict[str, Any]) -> None:
 def run_job(job: ResearchJob, ctx: SkillToolContext) -> None:
     try:
         job.status = "running"
-        _emit(ctx, {
-            "type": "deep_research_start",
-            "job_id": job.job_id,
-            "topic": job.topic,
-            "taxonomy": job.taxonomy,
-        })
+        _emit(
+            ctx,
+            {
+                "type": "deep_research_start",
+                "job_id": job.job_id,
+                "topic": job.topic,
+                "taxonomy": job.taxonomy,
+            },
+        )
 
         categories: List[Dict] = job.taxonomy.get("taxonomy", [])
         total = max(sum(len(c.get("sub_topics", [])) for c in categories), 1)
@@ -42,12 +45,15 @@ def run_job(job: ResearchJob, ctx: SkillToolContext) -> None:
                 sub_name = sub.get("name", "")
                 queries: List[str] = sub.get("search_queries", [])
 
-                _emit(ctx, {
-                    "type": "deep_research_section_start",
-                    "job_id": job.job_id,
-                    "category": cat_name,
-                    "subtopic": sub_name,
-                })
+                _emit(
+                    ctx,
+                    {
+                        "type": "deep_research_section_start",
+                        "job_id": job.job_id,
+                        "category": cat_name,
+                        "subtopic": sub_name,
+                    },
+                )
 
                 evidence: List[str] = []
                 if ctx.web_search and queries:
@@ -66,40 +72,51 @@ def run_job(job: ResearchJob, ctx: SkillToolContext) -> None:
                 content = synthesize_section(
                     job.topic, cat_name, sub_name, evidence, chat_fn=ctx.llm_chat
                 )
-                job.report_sections.append({
-                    "category": cat_name,
-                    "subtopic": sub_name,
-                    "content": content,
-                })
+                job.report_sections.append(
+                    {
+                        "category": cat_name,
+                        "subtopic": sub_name,
+                        "content": content,
+                    }
+                )
 
                 done += 1
                 job.progress = done / total
-                _emit(ctx, {
-                    "type": "deep_research_section_done",
-                    "job_id": job.job_id,
-                    "category": cat_name,
-                    "subtopic": sub_name,
-                    "content": content,
-                    "progress": round(job.progress, 3),
-                })
+                _emit(
+                    ctx,
+                    {
+                        "type": "deep_research_section_done",
+                        "job_id": job.job_id,
+                        "category": cat_name,
+                        "subtopic": sub_name,
+                        "content": content,
+                        "progress": round(job.progress, 3),
+                    },
+                )
 
         job.status = "done"
         report_path = save_report(job, ctx.working_dir)
-        _emit(ctx, {
-            "type": "deep_research_done",
-            "job_id": job.job_id,
-            "topic": job.topic,
-            "section_count": len(job.report_sections),
-            "sections": job.report_sections,
-            "report_path": report_path,
-        })
+        _emit(
+            ctx,
+            {
+                "type": "deep_research_done",
+                "job_id": job.job_id,
+                "topic": job.topic,
+                "section_count": len(job.report_sections),
+                "sections": job.report_sections,
+                "report_path": report_path,
+            },
+        )
 
     except Exception as exc:
         logger.exception(f"Deep research job {job.job_id} failed")
         job.status = "error"
         job.error = str(exc)
-        _emit(ctx, {
-            "type": "deep_research_error",
-            "job_id": job.job_id,
-            "error": str(exc),
-        })
+        _emit(
+            ctx,
+            {
+                "type": "deep_research_error",
+                "job_id": job.job_id,
+                "error": str(exc),
+            },
+        )

@@ -9,6 +9,7 @@ import markdown as md_lib
 
 try:
     from weasyprint import HTML, CSS
+
     WEASYPRINT_AVAILABLE = True
     _WEASYPRINT_IMPORT_ERROR: str | None = None
 except (OSError, ImportError) as e:
@@ -121,9 +122,7 @@ class MdToPdfTool:
             src.read_text(encoding="utf-8"),
             extensions=["fenced_code", "tables"],
         )
-        html_doc = (
-            f"<html><head><style>{_CSS}</style></head><body>{html_body}</body></html>"
-        )
+        html_doc = f"<html><head><style>{_CSS}</style></head><body>{html_body}</body></html>"
         try:
             HTML(string=html_doc, base_url=str(src.parent)).write_pdf(pdf_path)
         except Exception as e:

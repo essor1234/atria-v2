@@ -285,6 +285,7 @@ async def get_session_messages(
                 ),
                 thinking_trace=msg.thinking_trace,
                 reasoning_content=msg.reasoning_content,
+                metadata=msg.metadata if msg.metadata else None,
             )
             for msg in visible_messages
         ]
@@ -513,32 +514,6 @@ async def browse_directory(request: BrowseDirectoryRequest) -> Dict[str, Any]:
             "directories": [],
             "error": f"Failed to browse directory: {str(e)}",
         }
-
-
-@router.get("/{session_id}/file-changes")
-async def get_session_file_changes(
-    session_id: str,
-    user=Depends(require_authenticated_user),
-) -> Dict[str, Any]:
-    """Get file change history for a session."""
-    try:
-        state = get_state()
-        try:
-            session = await state.session_manager.get_session_by_id(
-                session_id, owner_id=str(user.id)
-            )
-        except FileNotFoundError:
-            raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
-
-        return {
-            "file_changes": [fc.model_dump() for fc in session.file_changes],
-            "message": "File change history retrieved successfully",
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/files")

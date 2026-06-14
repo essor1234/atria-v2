@@ -4,8 +4,6 @@ from enum import Enum
 from typing import Optional
 
 from rich.console import Console
-from prompt_toolkit import prompt
-
 from atria.models.operation import Operation
 
 
@@ -91,6 +89,7 @@ class ErrorHandler:
             self.console.print(f"  {option}")
 
         try:
+            from prompt_toolkit import prompt
             choice = prompt("Choice: ").lower()
 
             if choice == "r" and allow_retry:
@@ -148,6 +147,7 @@ class ErrorHandler:
         self.console.print(f"[dim]Target: {operation.target}[/dim]")
 
         try:
+            from prompt_toolkit import prompt
             response = prompt("Are you sure you want to proceed? [y/N]: ").lower()
             return response in ["y", "yes"]
         except KeyboardInterrupt:

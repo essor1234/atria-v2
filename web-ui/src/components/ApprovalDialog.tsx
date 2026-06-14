@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { TriangleAlert } from 'lucide-react';
 import { useChatStore } from '../stores/chat';
 
 export function ApprovalDialog() {
@@ -126,9 +127,7 @@ export function ApprovalDialog() {
           {/* Warning */}
           <div className="bg-warning-100/10 border border-warning-100/20 rounded-lg p-4">
             <div className="flex gap-3">
-              <svg className="w-5 h-5 text-warning-100 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
+              <TriangleAlert className="w-5 h-5 text-warning-100 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-text-000">Review carefully before approving</p>
                 <p className="text-xs text-text-300 mt-1">

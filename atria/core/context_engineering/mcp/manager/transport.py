@@ -2,15 +2,59 @@
 
 from typing import Dict, List, Optional
 
-from fastmcp.client.transports import (
-    NpxStdioTransport,
-    NodeStdioTransport,
-    PythonStdioTransport,
-    UvxStdioTransport,
-    StdioTransport,
-    StreamableHttpTransport,
-    SSETransport,
-)
+# Try to import from fastmcp.client (newer versions)
+# Fall back to mcp.client (older versions) if not available
+try:
+    from fastmcp.client.transports import (
+        NpxStdioTransport,
+        NodeStdioTransport,
+        PythonStdioTransport,
+        UvxStdioTransport,
+        StdioTransport,
+        StreamableHttpTransport,
+        SSETransport,
+    )
+except ImportError:
+    try:
+        from mcp.client.stdio import StdioTransport
+        from mcp.client.http import StreamableHttpTransport, SSETransport
+        from mcp.client.stdio import (
+            NpxStdioTransport,
+            NodeStdioTransport,
+            PythonStdioTransport,
+            UvxStdioTransport,
+        )
+    except ImportError:
+        # If neither import works, define placeholder classes
+        # These will cause a runtime error if used, but allows module load
+        class StdioTransport:
+            def __init__(self, *args, **kwargs):
+                raise NotImplementedError("MCP transports not available")
+
+        class StreamableHttpTransport:
+            def __init__(self, *args, **kwargs):
+                raise NotImplementedError("MCP transports not available")
+
+        class SSETransport:
+            def __init__(self, *args, **kwargs):
+                raise NotImplementedError("MCP transports not available")
+
+        class NpxStdioTransport:
+            def __init__(self, *args, **kwargs):
+                raise NotImplementedError("MCP transports not available")
+
+        class NodeStdioTransport:
+            def __init__(self, *args, **kwargs):
+                raise NotImplementedError("MCP transports not available")
+
+        class PythonStdioTransport:
+            def __init__(self, *args, **kwargs):
+                raise NotImplementedError("MCP transports not available")
+
+        class UvxStdioTransport:
+            def __init__(self, *args, **kwargs):
+                raise NotImplementedError("MCP transports not available")
+
 
 from atria.core.context_engineering.mcp.models import MCPServerConfig
 

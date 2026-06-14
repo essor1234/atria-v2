@@ -1,7 +1,5 @@
 """Tests for centralized paths module."""
 
-
-
 from atria.core.paths import (
     APP_DIR_NAME,
     SETTINGS_FILE_NAME,

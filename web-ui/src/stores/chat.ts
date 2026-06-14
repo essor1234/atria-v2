@@ -16,6 +16,7 @@ const DEFAULT_SESSION: PerSessionState = {
   pendingPlanApproval: null,
   progressMessage: null,
   queuedMessages: [],
+  selectedPersona: null,
 };
 
 function getSessionState(states: Record<string, PerSessionState>, id: string): PerSessionState {
@@ -115,6 +116,51 @@ function extractDataPayload(result: unknown): {
 function expandMessages(rawMessages: Message[]): Message[] {
   const expanded: Message[] = [];
   for (const msg of rawMessages) {
+    // Reconstruct deep_analyze block from persisted metadata
+    if (msg.metadata?.type === 'deep_analyze') {
+      const m = msg.metadata;
+      expanded.push({
+        role: 'deep_analyze',
+        content: m.file_name || '',
+        da_job_id: m.job_id,
+        da_status: m.da_status || 'done',
+        da_phases: m.da_phases,
+        da_subtables: m.da_subtables || [],
+        da_plan_subtables: m.da_subtables?.length,
+        da_report_path: m.da_report_path,
+        timestamp: msg.timestamp,
+      });
+      // Reconstruct chart image + insight blocks from saved chart metadata
+      for (const chart of (m.da_charts || [])) {
+        if (!chart.png_path) continue;
+        expanded.push({
+          role: 'data_message',
+          content: chart.title || chart.name || '',
+          data_message_id: `da_chart_${chart.name}`,
+          data_title: chart.title || chart.name || '',
+          data_image_path: chart.png_path,
+          data_sql: chart.sql || undefined,
+          timestamp: msg.timestamp,
+        });
+        if (chart.insight_md) {
+          expanded.push({
+            role: 'assistant',
+            content: `**${chart.title || chart.name}**\n\n${chart.insight_md}`,
+            timestamp: msg.timestamp,
+          });
+        }
+      }
+      // Restore final agent summary message
+      if (m.da_agent_message) {
+        expanded.push({
+          role: 'assistant',
+          content: m.da_agent_message,
+          timestamp: msg.timestamp,
+        });
+      }
+      continue;
+    }
+
     // Emit thinking traces before content (matches TUI hydration order)
     if (msg.thinking_trace && msg.thinking_trace.trim()) {
       expanded.push({
@@ -170,6 +216,7 @@ interface ChatState {
   runningSessions: Set<string>;
   sessionListVersion: number;
   sidebarCollapsed: boolean;
+  settingsModalOpen: boolean;
 
   // Actions
   loadSession: (sessionId: string) => Promise<void>;
@@ -188,6 +235,9 @@ interface ChatState {
   bumpSessionList: () => void;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
+  setSelectedPersona: (personaName: string | null) => void;
+  openSettingsModal: () => void;
+  closeSettingsModal: () => void;
 }
 
 const AUTONOMY_CYCLE: Array<'Manual' | 'Semi-Auto' | 'Auto'> = ['Manual', 'Semi-Auto', 'Auto'];
@@ -203,10 +253,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
   runningSessions: new Set<string>(),
   sessionListVersion: 0,
   sidebarCollapsed: false,
+  settingsModalOpen: false,
 
   bumpSessionList: () => set(state => ({ sessionListVersion: state.sessionListVersion + 1 })),
   toggleSidebar: () => set(state => ({ sidebarCollapsed: !state.sidebarCollapsed })),
   setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
+  setSelectedPersona: (personaName: string | null) => {
+    const sessionId = get().currentSessionId;
+    if (sessionId) {
+      set(state => ({
+        ...patchSession(state, sessionId, { selectedPersona: personaName }),
+      }));
+    }
+  },
+  openSettingsModal: () => set({ settingsModalOpen: true }),
+  closeSettingsModal: () => set({ settingsModalOpen: false }),
 
   loadSession: async (sessionId: string) => {
     console.log(`[Frontend] Loading session ${sessionId}`);
@@ -296,9 +357,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }));
 
     try {
+      const persona = getSessionState(get().sessionStates, sessionId).selectedPersona ?? null;
       wsClient.send({
         type: 'query',
-        data: { message: content, session_id: sessionId },
+        data: {
+          message: content,
+          session_id: sessionId,
+          ...(persona ? { persona_name: persona } : {}),
+        },
       });
     } catch (error) {
       set(state => ({
@@ -1129,7 +1195,7 @@ wsClient.on('thinking_done', (message) => {
 
 // ─── Deep Analyze Events ──────────────────────────────────────────────────────
 
-const DA_PHASES = ['load', 'plan', 'extract', 'render', 'insight', 'report'] as const;
+const DA_PHASES = ['load', 'profile', 'explore', 'plan', 'extract', 'synthesize', 'report'] as const;
 
 /** Find the deep_analyze message for a given job_id (searching backwards). */
 function findDeepAnalyzeIdx(msgs: Message[], jobId: string): number {
@@ -1154,11 +1220,10 @@ function upsertDeepAnalyzeMessage(
         content: '',
         da_job_id: jobId,
         da_status: 'running',
-        da_phases: { load: 'pending', plan: 'pending', extract: 'pending',
-                     render: 'pending', insight: 'pending', report: 'pending' },
+        da_phases: { explore: 'pending', load: 'pending', profile: 'pending',
+                     plan: 'pending', extract: 'pending',
+                     synthesize: 'pending', report: 'pending' },
         da_subtables: [],
-        da_charts: [],
-        da_insights: [],
         timestamp: new Date().toISOString(),
       };
       const created = patch(initial);
@@ -1169,6 +1234,17 @@ function upsertDeepAnalyzeMessage(
     return patchSession(state, sid, { messages: updated });
   });
 }
+
+wsClient.on('analyze.started', (message) => {
+  const sid = resolveSessionId(message.data);
+  if (!sid) return;
+  const { job_id, file_name } = message.data;
+  if (!job_id) return;
+  upsertDeepAnalyzeMessage(sid, job_id, prev => ({
+    ...prev,
+    content: file_name || prev.content || '',
+  }));
+});
 
 wsClient.on('analyze.phase', (message) => {
   const sid = resolveSessionId(message.data);
@@ -1203,27 +1279,126 @@ wsClient.on('analyze.subtable', (message) => {
   });
 });
 
-wsClient.on('analyze.chart', (message) => {
+wsClient.on('analyze.plan_ready', (message) => {
   const sid = resolveSessionId(message.data);
   if (!sid) return;
-  const { job_id, name, png_path, status, error } = message.data;
+  const { job_id, plan, request_id } = message.data;
   if (!job_id) return;
 
-  upsertDeepAnalyzeMessage(sid, job_id, prev => {
-    const charts = [...(prev.da_charts || []), { name, png_path, status, error }];
-    return { ...prev, da_charts: charts };
+  upsertDeepAnalyzeMessage(sid, job_id, prev => ({
+    ...prev,
+    da_status: 'plan_reviewing',
+    da_plan: plan,
+    da_plan_review_request_id: request_id,
+  }));
+});
+
+wsClient.on('analyze.clarify', (message) => {
+  const sid = resolveSessionId(message.data);
+  if (!sid) return;
+  const { job_id, request_id, questions, iteration, domain_brief } = message.data;
+  if (!job_id) return;
+
+  upsertDeepAnalyzeMessage(sid, job_id, prev => ({
+    ...prev,
+    da_status: 'clarifying',
+    da_clarify_request_id: request_id,
+    da_clarify_questions: questions ?? [],
+    da_clarify_iteration: iteration,
+    da_domain_brief: domain_brief,
+  }));
+});
+
+wsClient.on('analyze.chart_image', (message) => {
+  const sid = resolveSessionId(message.data);
+  if (!sid) return;
+  const { name, title, sql, src, columns, rows, suggestions } = message.data;
+
+  useChatStore.setState(state => {
+    const ss = getSessionState(state.sessionStates, sid);
+    const existing = ss.messages.find(m => m.data_message_id === `da_chart_${name}`);
+
+    if (existing) {
+      // Merge image + table data into the existing data_message (preserve what's already there)
+      const messages = ss.messages.map(m =>
+        m.data_message_id === `da_chart_${name}`
+          ? {
+              ...m,
+              data_image_src: src,
+              data_sql: sql || m.data_sql,
+              // Only fill columns/rows if the chart_data event didn't already set them
+              data_columns: m.data_columns?.length ? m.data_columns : (columns ?? []),
+              data_rows: m.data_rows?.length ? m.data_rows : (rows ?? []),
+              data_suggestions: m.data_suggestions?.length ? m.data_suggestions : (suggestions ?? []),
+            }
+          : m
+      );
+      return patchSession(state, sid, { messages });
+    }
+
+    // No prior chart_data message — create a full one now
+    const dataMsg: Message = {
+      role: 'data_message',
+      content: title || name || '',
+      data_message_id: `da_chart_${name}`,
+      data_title: title || name || '',
+      data_image_src: src,
+      data_sql: sql || undefined,
+      data_columns: columns ?? [],
+      data_rows: rows ?? [],
+      data_suggestions: suggestions ?? [],
+      timestamp: new Date().toISOString(),
+    };
+    return patchSession(state, sid, { messages: [...ss.messages, dataMsg] });
   });
 });
 
-wsClient.on('analyze.insight', (message) => {
+wsClient.on('analyze.section_synthesized', (message) => {
   const sid = resolveSessionId(message.data);
   if (!sid) return;
-  const { job_id, name, md, status, error } = message.data;
+  const { job_id, status } = message.data;
   if (!job_id) return;
 
   upsertDeepAnalyzeMessage(sid, job_id, prev => {
-    const insights = [...(prev.da_insights || []), { name, md, status, error }];
-    return { ...prev, da_insights: insights };
+    const phases = { ...(prev.da_phases || {}) };
+    if (status === 'done') phases['synthesize'] = 'done';
+    return { ...prev, da_phases: phases };
+  });
+});
+
+wsClient.on('analyze.chart_insight', (message) => {
+  const sid = resolveSessionId(message.data);
+  if (!sid) return;
+  const { title, insight } = message.data;
+  if (!insight) return;
+
+  const insightMsg: Message = {
+    role: 'assistant',
+    content: `**${title || 'Chart insight'}**\n\n${insight}`,
+    timestamp: new Date().toISOString(),
+  };
+
+  useChatStore.setState(state => {
+    const ss = getSessionState(state.sessionStates, sid);
+    return patchSession(state, sid, { messages: [...ss.messages, insightMsg] });
+  });
+});
+
+wsClient.on('analyze.agent_message', (message) => {
+  const sid = resolveSessionId(message.data);
+  if (!sid) return;
+  const { content } = message.data;
+  if (!content) return;
+
+  const agentMsg: Message = {
+    role: 'assistant',
+    content,
+    timestamp: new Date().toISOString(),
+  };
+
+  useChatStore.setState(state => {
+    const ss = getSessionState(state.sessionStates, sid);
+    return patchSession(state, sid, { messages: [...ss.messages, agentMsg] });
   });
 });
 

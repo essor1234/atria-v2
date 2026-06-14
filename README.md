@@ -63,3 +63,71 @@ docker compose restart atria      # restart app only
 docker compose down               # stop stack (keeps volumes)
 docker compose down -v            # stop + wipe postgres volume
 ```
+
+## File Upload & Artifact Management
+
+Users can upload files and images through the web UI, and the agent can read and analyze them.
+
+### User Features
+
+- **Upload via Web UI**: Click the attachment button in the message input and select files
+- **Scope Selection**: Choose whether the artifact is visible to:
+  - **Conversation** (current chat only)
+  - **Project** (all conversations in the project)
+- **File Limits**:
+  - Maximum file size: 50MB
+  - Supported formats: All (any file type accepted)
+  - Image formats for agent analysis: PNG, JPG, JPEG, GIF, WebP, SVG
+- **Artifact Management**:
+  - View uploaded artifacts in the panel
+  - Filter by scope (Conversation/Project/All)
+  - Search artifacts by filename
+  - Delete artifacts individually
+
+### Agent Capabilities
+
+The agent can list and read uploaded artifacts using dedicated tools:
+
+**Discovery**: `list_artifact_images(scope)` returns all artifacts matching the scope
+**Reading**: `read_artifact_image(artifact_id)` retrieves the file content (base64 for images)
+
+### Technical Overview
+
+**Storage**:
+- Conversation artifacts: `.artifacts/conversations/{conversation_id}/` (in working directory)
+- Project artifacts: `.artifacts/project/` (at project root)
+- Files stored with UUID prefix to prevent collisions
+
+**API Endpoints**:
+- `POST /api/artifacts/upload` - Upload file (multipart/form-data)
+- `DELETE /api/artifacts/{id}` - Delete artifact
+- `GET /api/artifacts` - List artifacts (query: conversation_id or project_id)
+
+**Database**:
+- Artifacts table tracks scope, local_path, and type
+- Hard delete removes both file and database record
+- Soft delete marks as deleted (hidden from agent tools)
+
+### Example Workflow
+
+```
+User: "Analyze this image"
+[User uploads photo.png to conversation scope]
+
+Agent: "I'll analyze the image for you..."
+- Calls: list_artifact_images(scope='conversation')
+- Response: [{id: 123, filename: 'photo.png', type: 'image', scope: 'conversation', ...}]
+- Calls: read_artifact_image(artifact_id=123)
+- Response: {id: 123, base64_content: 'iVBORw0KGgo...', content_type: 'image/png'}
+- Analyzes image and responds with findings
+```
+
+### Implementation Status
+
+- ✅ File upload endpoint (50MB limit, multipart form support)
+- ✅ Artifact storage (conversation and project scopes)
+- ✅ Agent tools (list and read with scope filtering)
+- ✅ Web UI components (upload widget, artifact panel, thumbnails)
+- ✅ Database integration (artifact metadata storage)
+- ✅ Hard delete (file and DB record removed)
+- ✅ Comprehensive testing (58 E2E and integration tests)

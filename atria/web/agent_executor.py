@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import atexit
 import asyncio
+import functools
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -61,6 +62,7 @@ class AgentExecutor:
         *,
         session_id: str,
         session: Any,
+        persona_name: str | None = None,
     ) -> None:
         """Execute query and stream results via WebSocket.
 
@@ -69,6 +71,7 @@ class AgentExecutor:
             ws_manager: WebSocket manager for broadcasting
             session_id: Session ID for scoping this execution
             session: Pre-loaded Session object (avoids mutating current_session)
+            persona_name: Optional persona name to prepend its system prompt
         """
         try:
             # Mark session as running
@@ -98,12 +101,15 @@ class AgentExecutor:
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(
                 self.executor,
-                self._run_agent_sync,
-                message,
-                ws_manager,
-                loop,
-                session_id,
-                session,
+                functools.partial(
+                    self._run_agent_sync,
+                    message,
+                    ws_manager,
+                    loop,
+                    session_id,
+                    session,
+                    persona_name=persona_name,
+                ),
             )
 
             # ReactExecutor handles step-by-step persistence — just log the result
@@ -177,6 +183,8 @@ class AgentExecutor:
         loop: asyncio.AbstractEventLoop,
         session_id: str,
         session: Any,
+        *,
+        persona_name: str | None = None,
     ) -> Dict[str, Any]:
         """Run agent synchronously in thread pool using ReactExecutor.
 
@@ -186,6 +194,7 @@ class AgentExecutor:
             loop: Event loop for async operations
             session_id: Session ID for scoping
             session: Pre-loaded Session object
+            persona_name: Optional persona name to prepend its system prompt
 
         Returns:
             Dict with summary, error, latency_ms
@@ -298,7 +307,57 @@ class AgentExecutor:
         # call time; deep_analyze reads ctx.subagent_dispatcher.
         skill_ctx = getattr(runtime_suite.tool_registry, "skill_ctx", None)
         if skill_ctx is not None:
-            skill_ctx.review_callback = web_ui_callback.request_taxonomy_review
+            skill_ctx.review_callback = web_ui_callback.request_review
+            skill_ctx.clarify_callback = web_ui_callback.request_clarify
+
+            _exec_state = self.state
+            _exec_loop = loop
+
+            def _on_analyze_done(job_data: Dict[str, Any]) -> None:
+                from atria.models.message import ChatMessage, Role  # noqa: PLC0415
+
+                async def _save() -> None:
+                    try:
+                        sess = await _exec_state.session_manager.get_current_session()
+                        if sess is None:
+                            return
+                        msg = ChatMessage(role=Role.ASSISTANT, content="", metadata=job_data)
+                        sess.add_message(msg)
+                        await _exec_state.session_manager.save_session(sess)
+                    except Exception as _e:
+                        logger.warning("Failed to save deep_analyze message: %s", _e)
+
+                asyncio.run_coroutine_threadsafe(_save(), _exec_loop)
+
+            skill_ctx.on_analyze_done = _on_analyze_done
+
+            def _on_clarify_message(payload: Dict[str, Any]) -> None:
+                from atria.models.message import ChatMessage, Role  # noqa: PLC0415
+
+                role_str = payload.get("role", "assistant")
+                try:
+                    role = Role(role_str)
+                except ValueError:
+                    role = Role.ASSISTANT
+
+                async def _save() -> None:
+                    try:
+                        sess = await _exec_state.session_manager.get_current_session()
+                        if sess is None:
+                            return
+                        msg = ChatMessage(
+                            role=role,
+                            content=payload.get("content", ""),
+                            metadata=payload.get("metadata") or {},
+                        )
+                        sess.add_message(msg)
+                        await _exec_state.session_manager.save_session(sess)
+                    except Exception as _e:
+                        logger.warning("Failed to save clarify message: %s", _e)
+
+                asyncio.run_coroutine_threadsafe(_save(), _exec_loop)
+
+            skill_ctx.on_clarify_message = _on_clarify_message
 
             subagent_mgr_for_analyze = runtime_suite.tool_registry.get_subagent_manager()
             if subagent_mgr_for_analyze is not None:
@@ -347,6 +406,15 @@ class AgentExecutor:
         # Inject system prompt (TUI path does this via query_enhancer.prepare_messages)
         # Append working directory context so the agent knows where to write files.
         system_content = agent.system_prompt
+        # Prepend persona system prompt if one was selected for this run
+        if persona_name:
+            from atria.core.personas.manager import PersonaManager
+
+            persona = PersonaManager().get_persona(persona_name)
+            if persona:
+                system_content = persona.system_prompt + "\n\n" + system_content
+            else:
+                logger.warning(f"Persona '{persona_name}' not found, using base system prompt")
         wd_str = str(working_dir)
         if wd_str and wd_str not in system_content:
             system_content += (
@@ -400,8 +468,26 @@ class AgentExecutor:
 
                 hook_manager.run_hooks(HookEvent.SESSION_START, match_value="web_query")
 
+            # Expand @file mentions — TUI path does this via query_enhancer.prepare_messages
+            import re as _re
+            from atria.repl.file_content_injector import FileContentInjector
+
+            _injector = FileContentInjector(file_ops, config, working_dir)
+            _injection = _injector.inject_content(message)
+            if _injection.text_content:
+                # Strip @ prefix from file references so the agent doesn't
+                # construct tool paths with @ (e.g. @.artifacts/... → .artifacts/...)
+                _clean_msg = _re.sub(
+                    r'(?:^|(?<=\s)|(?<=[^\w]))@([a-zA-Z0-9_./\-]+)',
+                    r'\1',
+                    message,
+                )
+                query = _clean_msg + "\n\n" + _injection.text_content
+            else:
+                query = message
+
             summary, error, latency_ms = react_executor.execute(
-                query=message,
+                query=query,
                 messages=message_history,
                 agent=agent,
                 tool_registry=wrapped_registry,

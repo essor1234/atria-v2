@@ -44,6 +44,7 @@ from atria.core.context_engineering.tools.handlers.chart_handler import ChartHan
 from atria.core.context_engineering.tools.handlers.md_to_pdf_handler import MdToPdfHandler
 from atria.core.context_engineering.tools.implementations.chart_tool import ChartTool
 from atria.core.context_engineering.tools.implementations.md_to_pdf_tool import MdToPdfTool
+from atria.core.context_engineering.tools.handlers.artifacts_handler import ArtifactsToolHandler
 
 if TYPE_CHECKING:
     from atria.core.skills import SkillLoader
@@ -116,6 +117,8 @@ def _wire_llm_into_ctx(skill_ctx: SkillToolContext, app_config: Any | None) -> N
     skill_ctx.llm_chat = llm_chat
     skill_ctx.llm_vision = llm_vision
     skill_ctx.llm_model = model
+
+
 from atria.core.context_engineering.tools.implementations.agents_tool import AgentsTool
 from atria.core.context_engineering.tools.implementations.patch_tool import PatchTool
 from atria.core.context_engineering.tools.implementations.pdf_tool import PDFTool
@@ -232,6 +235,7 @@ class ToolRegistry:
         self._markdown_to_pdf_handler = MarkdownToPdfHandler()
         self._memory_handler = MemoryToolHandler()
         self._session_handler = SessionToolHandler()
+        self._artifacts_handler = ArtifactsToolHandler()
         self._batch_handler: Union[BatchToolHandler, None] = None  # Lazy init after registry ready
 
         self.set_mcp_manager(mcp_manager)
@@ -248,8 +252,8 @@ class ToolRegistry:
             "kill_process": self._process_handler.kill_process,
             "fetch_url": self._web_handler.fetch_url,
             "web_search": self._web_search_handler.search,
-            "chart":                self._chart_handler_new.chart,
-            "md_to_pdf":            self._md_to_pdf_handler_new.md_to_pdf,
+            "chart": self._chart_handler_new.chart,
+            "md_to_pdf": self._md_to_pdf_handler_new.md_to_pdf,
             "notebook_edit": self._notebook_edit_handler.edit_cell,
             "ask_user": self._ask_user_handler.ask_questions,
             "open_browser": self._open_browser,
@@ -309,6 +313,9 @@ class ToolRegistry:
             "list_agents": self._handle_list_agents,
             # Apply patch
             "apply_patch": self._handle_apply_patch,
+            # Artifact tools
+            "list_artifact_images": self._artifacts_handler.list_artifact_images,
+            "read_artifact_image": self._artifacts_handler.read_artifact_image,
         }
 
         # Merge skill-owned tool handlers (deep_research, deep_analyze, etc.).
@@ -747,6 +754,8 @@ class ToolRegistry:
                 "get_session_history",
                 "send_image",
                 "send_data",
+                "list_artifact_images",
+                "read_artifact_image",
             }:
                 # Handlers requiring context
                 result = handler(arguments, context)

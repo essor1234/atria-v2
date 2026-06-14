@@ -1,0 +1,112 @@
+<h2>Deep Analyze — Enhanced Report Structure</h2>
+<p class="subtitle">Three approaches to structuring the generated report. Pick the one that feels right.</p>
+
+<div class="cards">
+
+  <!-- Option A: Flat + enriched (current + narrative) -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f1117;padding:16px;font-family:monospace;font-size:11px;color:#e2e8f0;min-height:200px;border-radius:6px;overflow:hidden;">
+      <div style="color:#7c8cf8;font-weight:bold;margin-bottom:6px;">📊 Analyze Report — jobs_2030.csv</div>
+      <div style="color:#94a3b8;font-size:10px;margin-bottom:10px;font-style:italic;">1,200 rows · 14 columns · Salary, Industry, Risk Category</div>
+      <div style="background:#1e2230;border-left:3px solid #7c8cf8;padding:6px 8px;margin-bottom:8px;font-size:10px;">
+        <b style="color:#c0c9e8;">Executive Summary</b><br>
+        <span style="color:#94a3b8;">3-paragraph LLM narrative synthesizing all findings...</span>
+      </div>
+      <div style="margin-bottom:6px;color:#f1a83e;font-size:10px;font-weight:bold;">## salary_by_risk</div>
+      <div style="background:#1a1f2e;height:40px;border-radius:4px;margin-bottom:4px;display:flex;align-items:center;justify-content:center;color:#4b5563;font-size:9px;">[bar chart image]</div>
+      <div style="color:#94a3b8;font-size:9px;margin-bottom:8px;">↳ LLM vision insight: High-risk roles command 34% salary premium...</div>
+      <div style="margin-bottom:6px;color:#f1a83e;font-size:10px;font-weight:bold;">## risk_distribution</div>
+      <div style="background:#1a1f2e;height:40px;border-radius:4px;margin-bottom:4px;display:flex;align-items:center;justify-content:center;color:#4b5563;font-size:9px;">[pie chart image]</div>
+      <div style="color:#94a3b8;font-size:9px;">↳ LLM vision insight: 42% of jobs are high-automation risk...</div>
+    </div>
+    <div class="card-body">
+      <h3>A — Current + Narrative Layer</h3>
+      <p>Keep the flat chart-list structure, but add an LLM-written executive summary at the top and richer per-chart narrative paragraphs. Minimal pipeline changes.</p>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+        <span style="background:#1a2f1a;color:#4ade80;padding:2px 8px;border-radius:12px;font-size:10px;">✓ Low risk</span>
+        <span style="background:#1a2f1a;color:#4ade80;padding:2px 8px;border-radius:12px;font-size:10px;">✓ Easy to build</span>
+        <span style="background:#2f2a1a;color:#facc15;padding:2px 8px;border-radius:12px;font-size:10px;">~ Still chart-centric</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option B: Deep Research style — sections first, charts embedded -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f1117;padding:16px;font-family:monospace;font-size:11px;color:#e2e8f0;min-height:200px;border-radius:6px;overflow:hidden;">
+      <div style="color:#34d399;font-weight:bold;margin-bottom:6px;">📋 Analyze Report — jobs_2030.csv</div>
+      <div style="color:#94a3b8;font-size:10px;margin-bottom:8px;font-style:italic;">1,200 rows · 14 cols</div>
+      <div style="background:#1e2230;border-left:3px solid #34d399;padding:5px 8px;margin-bottom:6px;font-size:10px;">
+        <span style="color:#34d399;font-weight:bold;">## 1. Compensation Landscape</span><br>
+        <span style="color:#94a3b8;font-size:9px;">LLM narrative prose 2-3 paragraphs...<br>key finding: median $87k, high outliers in tech...</span><br>
+        <div style="background:#1a1f2e;height:28px;border-radius:3px;margin-top:4px;display:flex;align-items:center;justify-content:center;color:#4b5563;font-size:8px;">[salary_distribution chart]</div>
+      </div>
+      <div style="background:#1e2230;border-left:3px solid #34d399;padding:5px 8px;margin-bottom:6px;font-size:10px;">
+        <span style="color:#34d399;font-weight:bold;">## 2. Automation Risk</span><br>
+        <span style="color:#94a3b8;font-size:9px;">LLM narrative: 3 risk tiers identified...<br>manual & service roles most exposed...</span><br>
+        <div style="background:#1a1f2e;height:28px;border-radius:3px;margin-top:4px;display:flex;align-items:center;justify-content:center;color:#4b5563;font-size:8px;">[risk_heatmap chart]</div>
+      </div>
+      <div style="background:#1e2230;border-left:3px solid #34d399;padding:5px 8px;font-size:10px;">
+        <span style="color:#34d399;font-weight:bold;">## 3. Key Findings &amp; Recommendations</span><br>
+        <span style="color:#94a3b8;font-size:9px;">Synthesized LLM conclusions...</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Research-Style Sections (like deep_research)</h3>
+      <p>Planning phase generates thematic sections (e.g. Compensation, Risk, Growth). Each section gets LLM prose + embedded charts. Charts serve the narrative, not the reverse.</p>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+        <span style="background:#1a2f1a;color:#4ade80;padding:2px 8px;border-radius:12px;font-size:10px;">✓ Richer narrative</span>
+        <span style="background:#1a2f1a;color:#4ade80;padding:2px 8px;border-radius:12px;font-size:10px;">✓ Like deep_research</span>
+        <span style="background:#2f1a1a;color:#f87171;padding:2px 8px;border-radius:12px;font-size:10px;">✗ More LLM calls</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option C: Full pipeline — profile → sections → charts → synthesis → exec summary -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f1117;padding:16px;font-family:monospace;font-size:11px;color:#e2e8f0;min-height:200px;border-radius:6px;overflow:hidden;">
+      <div style="color:#f472b6;font-weight:bold;margin-bottom:6px;">🔬 Deep Analyze Report</div>
+      <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">
+        <span style="background:#1a1f2e;color:#94a3b8;padding:2px 6px;border-radius:10px;font-size:9px;">📊 Data Profile</span>
+        <span style="background:#1a1f2e;color:#94a3b8;padding:2px 6px;border-radius:10px;font-size:9px;">📝 Executive Summary</span>
+        <span style="background:#1a1f2e;color:#94a3b8;padding:2px 6px;border-radius:10px;font-size:9px;">🔍 Section 1</span>
+        <span style="background:#1a1f2e;color:#94a3b8;padding:2px 6px;border-radius:10px;font-size:9px;">🔍 Section 2</span>
+        <span style="background:#1a1f2e;color:#94a3b8;padding:2px 6px;border-radius:10px;font-size:9px;">🔍 Section N</span>
+        <span style="background:#1a1f2e;color:#94a3b8;padding:2px 6px;border-radius:10px;font-size:9px;">💡 Findings</span>
+      </div>
+      <div style="font-size:10px;color:#94a3b8;margin-bottom:5px;"><b style="color:#f472b6;">Data Profile:</b> 1,200 rows · nulls: 3% · outliers: 12 · types: 6 numeric, 8 categorical</div>
+      <div style="font-size:10px;color:#94a3b8;margin-bottom:5px;"><b style="color:#f472b6;">Section 1 — Compensation:</b><br><span style="font-size:9px;">Stat summary + LLM prose + chart + vision insight → synthesized paragraph</span></div>
+      <div style="background:#1a1f2e;height:24px;border-radius:3px;margin-bottom:5px;display:flex;align-items:center;justify-content:center;color:#4b5563;font-size:8px;">[chart embedded inline]</div>
+      <div style="font-size:9px;color:#94a3b8;"><b style="color:#f472b6;">Key Findings:</b> bullet-list LLM synthesis of all sections + anomalies flagged</div>
+    </div>
+    <div class="card-body">
+      <h3>C — Full Pipeline (profile → sections → synthesis)</h3>
+      <p>New pipeline phase: after charting, run a <code>synthesize_section()</code> per thematic section (stats + vision insights as evidence). Final phase writes executive summary + findings. Most powerful, most work.</p>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+        <span style="background:#1a2f1a;color:#4ade80;padding:2px 8px;border-radius:12px;font-size:10px;">✓ Deepest output</span>
+        <span style="background:#1a2f1a;color:#4ade80;padding:2px 8px;border-radius:12px;font-size:10px;">✓ Data profile section</span>
+        <span style="background:#2f2a1a;color:#facc15;padding:2px 8px;border-radius:12px;font-size:10px;">~ Most LLM calls</span>
+        <span style="background:#2f2a1a;color:#facc15;padding:2px 8px;border-radius:12px;font-size:10px;">~ Biggest rewrite</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:20px;padding:12px 16px;background:#1a1f2e;border-radius:8px;font-size:12px;color:#94a3b8;">
+  <b style="color:#e2e8f0;">Pipeline phases comparison:</b><br><br>
+  <table style="width:100%;border-collapse:collapse;font-size:11px;">
+    <tr style="color:#7c8cf8;">
+      <th style="text-align:left;padding:4px 8px;">Phase</th>
+      <th style="text-align:center;padding:4px;">A</th>
+      <th style="text-align:center;padding:4px;">B</th>
+      <th style="text-align:center;padding:4px;">C</th>
+    </tr>
+    <tr style="border-top:1px solid #2d3748;"><td style="padding:4px 8px;color:#e2e8f0;">Load → SQLite</td><td style="text-align:center;color:#4ade80;">✓</td><td style="text-align:center;color:#4ade80;">✓</td><td style="text-align:center;color:#4ade80;">✓</td></tr>
+    <tr style="border-top:1px solid #2d3748;"><td style="padding:4px 8px;color:#e2e8f0;">Plan (sub-tables + charts)</td><td style="text-align:center;color:#4ade80;">✓</td><td style="text-align:center;color:#4ade80;">✓</td><td style="text-align:center;color:#4ade80;">✓</td></tr>
+    <tr style="border-top:1px solid #2d3748;"><td style="padding:4px 8px;color:#e2e8f0;">Data profile section</td><td style="text-align:center;color:#f87171;">✗</td><td style="text-align:center;color:#f87171;">✗</td><td style="text-align:center;color:#4ade80;">✓</td></tr>
+    <tr style="border-top:1px solid #2d3748;"><td style="padding:4px 8px;color:#e2e8f0;">Vision insight per chart</td><td style="text-align:center;color:#4ade80;">✓</td><td style="text-align:center;color:#4ade80;">✓</td><td style="text-align:center;color:#4ade80;">✓</td></tr>
+    <tr style="border-top:1px solid #2d3748;"><td style="padding:4px 8px;color:#e2e8f0;">Thematic section narrative</td><td style="text-align:center;color:#f87171;">✗</td><td style="text-align:center;color:#4ade80;">✓</td><td style="text-align:center;color:#4ade80;">✓</td></tr>
+    <tr style="border-top:1px solid #2d3748;"><td style="padding:4px 8px;color:#e2e8f0;">Executive summary (LLM)</td><td style="text-align:center;color:#4ade80;">✓</td><td style="text-align:center;color:#f87171;">✗</td><td style="text-align:center;color:#4ade80;">✓</td></tr>
+    <tr style="border-top:1px solid #2d3748;"><td style="padding:4px 8px;color:#e2e8f0;">Key findings + recommendations</td><td style="text-align:center;color:#f87171;">✗</td><td style="text-align:center;color:#f87171;">✗</td><td style="text-align:center;color:#4ade80;">✓</td></tr>
+  </table>
+</div>

@@ -10,6 +10,7 @@ from atria.core.context_engineering.tools.implementations.md_to_pdf_tool import 
 def _weasyprint_native_libs_available() -> bool:
     try:
         from weasyprint import HTML
+
         HTML(string="<p>x</p>").write_pdf()
         return True
     except Exception:

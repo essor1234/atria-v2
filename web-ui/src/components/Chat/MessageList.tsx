@@ -1,6 +1,9 @@
-import { memo, useEffect, useRef, useState, useCallback } from 'react';
+import { memo, useEffect, useRef, useState, useMemo } from 'react';
+import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
+import { ChevronDown } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
+import type { Message } from '../../types';
 import { useChatStore } from '../../stores/chat';
 import { ToolCallMessage } from './ToolCallMessage';
 import { ThinkingBlock } from './ThinkingBlock';
@@ -9,7 +12,7 @@ import { DeepResearchBlock } from './DeepResearchBlock';
 import { DeepAnalyzeBlock } from './DeepAnalyzeBlock';
 import { ImageMessage } from './ImageMessage';
 import { DataMessage } from './DataMessage/DataMessage';
-import { SPINNER_FRAMES, THINKING_VERBS, SPINNER_COLORS } from '../../constants/spinner';
+import { THINKING_VERBS } from '../../constants/spinner';
 
 // Stable module-level components map — passing a new object per render
 // makes ReactMarkdown discard its internal memoization on every parent tick.
@@ -57,11 +60,14 @@ const MARKDOWN_COMPONENTS: Components = {
 
 const AssistantMarkdown = memo(function AssistantMarkdown({ content }: { content: string }) {
   return (
-    <div className="color-block bg-block-cream text-ink rounded-lg px-6 py-7 md:px-10 md:py-9">
-      <span className="font-mono uppercase tracking-[0.54px] text-[12px] text-ink/60 block mb-4">
-        Atria
-      </span>
-      <div className="prose max-w-none code-hover">
+    <div>
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-[18px] h-[18px] rounded-full bg-ink flex items-center justify-center flex-shrink-0">
+          <span className="text-[8px] text-canvas font-[700] leading-none tracking-tight">A</span>
+        </div>
+        <span className="font-mono text-[11px] uppercase tracking-[0.54px] text-ink/40">Atria</span>
+      </div>
+      <div className="prose max-w-none code-hover pl-[26px]">
         <ReactMarkdown components={MARKDOWN_COMPONENTS}>
           {content}
         </ReactMarkdown>
@@ -73,12 +79,11 @@ const AssistantMarkdown = memo(function AssistantMarkdown({ content }: { content
 const UserTurn = memo(function UserTurn({ content }: { content: string }) {
   return (
     <div className="flex justify-end">
-      <div className="color-block color-block-navy bg-block-navy rounded-lg px-6 py-5 md:px-7 md:py-6 max-w-[85%] md:max-w-[75%] shadow-md">
-        <span className="font-mono uppercase tracking-[0.54px] text-[12px] text-inverse-ink/70 block mb-2">
-          You
-        </span>
-        <div className="text-body text-inverse-ink whitespace-pre-wrap leading-relaxed">
-          {content}
+      <div className="max-w-[80%] md:max-w-[70%]">
+        <div className="bg-surface-soft rounded-[18px] rounded-tr-[6px] px-4 py-3">
+          <div className="text-[15px] text-ink whitespace-pre-wrap leading-relaxed">
+            {content}
+          </div>
         </div>
       </div>
     </div>
@@ -86,27 +91,13 @@ const UserTurn = memo(function UserTurn({ content }: { content: string }) {
 });
 
 function LoadingSpinner({ label }: { label: string }) {
-  const [spinnerIndex, setSpinnerIndex] = useState(0);
-  const [colorIndex, setColorIndex] = useState(0);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setSpinnerIndex(prev => (prev + 1) % SPINNER_FRAMES.length);
-      setColorIndex(prev => (prev + 1) % SPINNER_COLORS.length);
-    }, 160);
-    return () => clearInterval(id);
-  }, []);
-
   return (
-    <div className="bg-block-cream rounded-lg px-6 py-4">
-      <div className="flex items-center gap-3">
-        <span className={`text-base font-medium ${SPINNER_COLORS[colorIndex]}`}>
-          {SPINNER_FRAMES[spinnerIndex]}
-        </span>
-        <span className="text-sm text-text-300 font-medium">
-          {label}
-        </span>
+    <div className="flex items-center gap-2.5 py-1">
+      <div className="w-[18px] h-[18px] rounded-full bg-ink flex items-center justify-center flex-shrink-0">
+        <span className="text-[8px] text-canvas font-[700] leading-none tracking-tight">A</span>
       </div>
+      <span className="braille-spinner text-sm text-ink/40" aria-hidden="true" />
+      <span className="text-sm text-ink/45">{label}</span>
     </div>
   );
 }
@@ -156,8 +147,62 @@ function WelcomeScreen() {
   );
 }
 
+// ─── per-item renderer ────────────────────────────────────────────────────────
+
+interface ListContext {
+  isLoading: boolean;
+  progressMessage: string | null;
+  totalCount: number;
+}
+
+const MessageItem = memo(function MessageItem({
+  message,
+  index,
+  context,
+}: {
+  message: Message;
+  index: number;
+  context: ListContext;
+}) {
+  const { isLoading, totalCount } = context;
+
+  if (message.role === 'tool_call') {
+    const hasResult = message.tool_result != null && Object.keys(message.tool_result).length > 0;
+    return <ToolCallMessage message={message} hasResult={hasResult} />;
+  }
+  if (message.role === 'thinking') {
+    const isLastThinking = (isLoading || !!message.streaming) && index === totalCount - 1;
+    return <ThinkingBlock content={message.content} level={message.metadata?.level} isActive={isLastThinking} />;
+  }
+  if (message.role === 'search_result') return <SearchResultBlock message={message} />;
+  if (message.role === 'data_message') return <DataMessage message={message} />;
+  if (message.role === 'image_message') return <ImageMessage message={message} />;
+  if (message.role === 'deep_research') return <DeepResearchBlock message={message} />;
+  if (message.role === 'deep_analyze') return <DeepAnalyzeBlock message={message} />;
+
+  return message.role === 'user'
+    ? <UserTurn content={message.content} />
+    : <AssistantMarkdown content={message.content} />;
+});
+
+// ─── footer: progress / thinking spinner ─────────────────────────────────────
+
+function ListFooter({ context }: { context?: ListContext }) {
+  if (!context?.isLoading) return null;
+  return (
+    <div className="max-w-4.5xl mx-auto px-4 md:px-8 pb-8 pt-1">
+      {context.progressMessage
+        ? <LoadingSpinner label={context.progressMessage} />
+        : <ThinkingSpinner />
+      }
+    </div>
+  );
+}
+
+// ─── main component ───────────────────────────────────────────────────────────
+
 export function MessageList() {
-  const messages = useChatStore(state => {
+  const allMessages = useChatStore(state => {
     const sid = state.currentSessionId;
     return sid ? state.sessionStates[sid]?.messages ?? [] : [];
   });
@@ -170,133 +215,90 @@ export function MessageList() {
     return sid ? state.sessionStates[sid]?.progressMessage ?? null : null;
   });
   const thinkingLevel = useChatStore(state => state.thinkingLevel);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const [userHasScrolled, setUserHasScrolled] = useState(false);
-  const isNearBottomRef = useRef(true);
+  const virtuosoRef = useRef<VirtuosoHandle>(null);
+  // Ref for synchronous reads inside effects/events — avoids stale closure issues
+  const atBottomRef = useRef(true);
+  const [atBottom, setAtBottom] = useState(true);
+  const scrollerRef = useRef<HTMLElement | null>(null);
 
-  const handleScroll = useCallback(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
+  // Exclude thinking messages when the user has thinking display turned off
+  const messages = useMemo(
+    () => allMessages.filter(m => !(m.role === 'thinking' && thinkingLevel === 'Off')),
+    [allMessages, thinkingLevel]
+  );
 
-    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-    const nearBottom = distanceFromBottom < 50;
+  // Passed into Virtuoso so Footer/itemContent always see current values
+  const context = useMemo<ListContext>(
+    () => ({ isLoading, progressMessage, totalCount: messages.length }),
+    [isLoading, progressMessage, messages.length]
+  );
 
-    isNearBottomRef.current = nearBottom;
-
-    if (nearBottom) {
-      setUserHasScrolled(false);
-    } else {
-      setUserHasScrolled(true);
-    }
-  }, []);
-
-  // Auto-scroll on new messages. 'auto' (instant) — smooth scroll fires
-  // every token chunk during streaming and visibly stutters.
+  // Keep viewport pinned to bottom during streaming (item content grows, no new
+  // array entry added, so Virtuoso's followOutput alone won't fire).
   useEffect(() => {
-    if (!userHasScrolled) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+    if (atBottomRef.current && messages.length > 0) {
+      virtuosoRef.current?.scrollToIndex({ index: 'LAST', align: 'end', behavior: 'auto' });
     }
-  }, [messages, userHasScrolled, progressMessage]);
+  }, [messages]);
 
+  // PageUp / PageDown keyboard scrolling
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!scrollContainerRef.current) return;
-      const scrollDistance = 300;
-      if (e.key === 'PageUp') {
-        e.preventDefault();
-        scrollContainerRef.current.scrollBy({ top: -scrollDistance, behavior: 'auto' });
-      } else if (e.key === 'PageDown') {
-        e.preventDefault();
-        scrollContainerRef.current.scrollBy({ top: scrollDistance, behavior: 'auto' });
-      }
+    const onKeyDown = (e: KeyboardEvent) => {
+      const el = scrollerRef.current;
+      if (!el) return;
+      if (e.key === 'PageUp') { e.preventDefault(); el.scrollBy({ top: -300, behavior: 'auto' }); }
+      else if (e.key === 'PageDown') { e.preventDefault(); el.scrollBy({ top: 300, behavior: 'auto' }); }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  if (messages.length === 0) {
-    return <WelcomeScreen />;
-  }
+  if (allMessages.length === 0) return <WelcomeScreen />;
 
   return (
-    <div ref={scrollContainerRef} className="flex-1 overflow-y-auto bg-canvas" onScroll={handleScroll}>
-      <div className="max-w-4.5xl mx-auto py-8 md:py-10 px-4 md:px-8 space-y-5 md:space-y-6">
-        {messages.map((message, index) => {
-          const depthStyle = message.depth ? { marginLeft: `${message.depth * 1.5}rem` } : undefined;
+    <div className="flex-1 min-h-0 relative bg-canvas">
+      <Virtuoso<Message, ListContext>
+        ref={virtuosoRef}
+        style={{ height: '100%' }}
+        data={messages}
+        context={context}
+        // followOutput: auto-scroll to bottom only when already pinned there.
+        // Covers new message arrivals; the useEffect above covers streaming growth.
+        followOutput={(isAtBottom) => isAtBottom ? 'auto' : false}
+        alignToBottom
+        atBottomStateChange={(bottom) => {
+          atBottomRef.current = bottom;
+          setAtBottom(bottom);
+        }}
+        atBottomThreshold={50}
+        initialTopMostItemIndex={messages.length - 1}
+        scrollerRef={(el) => { scrollerRef.current = el as HTMLElement | null; }}
+        itemContent={(index, message, ctx) => (
+          <div
+            className="max-w-4.5xl mx-auto px-4 md:px-8 pb-5 md:pb-6"
+            style={message.depth ? { paddingLeft: `calc(${message.depth * 1.5}rem + 1rem)` } : undefined}
+          >
+            <MessageItem message={message} index={index} context={ctx} />
+          </div>
+        )}
+        components={{
+          Header: () => <div className="h-8 md:h-10" aria-hidden="true" />,
+          Footer: ListFooter,
+        }}
+      />
 
-          if (message.role === 'tool_call') {
-            const hasResult = message.tool_result != null && Object.keys(message.tool_result).length > 0;
-            return (
-              <div key={index} style={depthStyle}>
-                <ToolCallMessage message={message} hasResult={hasResult} />
-              </div>
-            );
-          }
-
-          if (message.role === 'thinking') {
-            if (thinkingLevel === 'Off') return null;
-            const isLastThinking = (isLoading || !!message.streaming) && index === messages.length - 1;
-            return <ThinkingBlock key={index} content={message.content} level={message.metadata?.level} isActive={isLastThinking} />;
-          }
-
-          if (message.role === 'search_result') {
-            return (
-              <div key={index}>
-                <SearchResultBlock message={message} />
-              </div>
-            );
-          }
-
-          if (message.role === 'data_message') {
-            return (
-              <div key={index}>
-                <DataMessage message={message} />
-              </div>
-            );
-          }
-
-          if (message.role === 'image_message') {
-            return (
-              <div key={index}>
-                <ImageMessage message={message} />
-              </div>
-            );
-          }
-
-          if (message.role === 'deep_research') {
-            return (
-              <div key={index}>
-                <DeepResearchBlock message={message} />
-              </div>
-            );
-          }
-
-          if (message.role === 'deep_analyze') {
-            return (
-              <div key={index}>
-                <DeepAnalyzeBlock message={message} />
-              </div>
-            );
-          }
-
-          const isUser = message.role === 'user';
-          return (
-            <div key={index}>
-              {isUser
-                ? <UserTurn content={message.content} />
-                : <AssistantMarkdown content={message.content} />
-              }
-            </div>
-          );
-        })}
-
-        {progressMessage && <LoadingSpinner label={progressMessage} />}
-        {isLoading && !progressMessage && <ThinkingSpinner />}
-
-        <div ref={messagesEndRef} />
-      </div>
+      {/* Scroll-to-bottom pill — appears when user has scrolled up into history */}
+      {!atBottom && (
+        <button
+          onClick={() => virtuosoRef.current?.scrollToIndex({ index: 'LAST', align: 'end', behavior: 'auto' })}
+          className="absolute bottom-4 right-6 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-ink text-inverse-ink text-xs font-medium shadow-lg hover:bg-ink/80 transition-colors"
+          aria-label="Jump to latest message"
+        >
+          <ChevronDown className="w-3.5 h-3.5" />
+          Latest
+        </button>
+      )}
     </div>
   );
 }

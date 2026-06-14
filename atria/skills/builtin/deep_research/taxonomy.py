@@ -17,8 +17,7 @@ def _client():
     from openai import OpenAI  # noqa: PLC0415
 
     return OpenAI(
-        api_key=os.environ.get("DEEP_RESEARCH_API_KEY", "")
-        or os.environ.get("OPENAI_API_KEY", ""),
+        api_key=os.environ.get("DEEP_RESEARCH_API_KEY", "") or os.environ.get("OPENAI_API_KEY", ""),
         base_url=os.environ.get("DEEP_RESEARCH_BASE_URL", "https://api.openai.com/v1"),
     )
 

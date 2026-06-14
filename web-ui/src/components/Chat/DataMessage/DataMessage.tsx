@@ -1,51 +1,107 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import type { Message } from '../../../types';
-import { useChartsStore } from '../../../stores/charts';
-import { processChart } from './chartProcessor';
-import { EditPanel } from './EditPanel';
+import { useEffect, useState, useCallback } from 'react';
+import type { DataColumn, Message } from '../../../types';
+import { apiClient } from '../../../api/client';
 
-// chart.js + react-chartjs-2 is ~120 kB gzip — load it only when an assistant
-// turn actually renders a chart, not on every cold start.
-const ChartView = lazy(() => import('./ChartView').then(m => ({ default: m.ChartView })));
+function SqlDisclosure({ sql }: { sql: string }) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const copy = useCallback(() => {
+    navigator.clipboard.writeText(sql).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }, [sql]);
+
+  return (
+    <div className="border-b border-border-300/15 bg-bg-000/20">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-1.5 w-full px-3 py-1.5 text-[11px] text-text-300 hover:text-text-100"
+      >
+        <span className={`transition-transform ${open ? 'rotate-90' : ''}`}>▶</span>
+        <span className="font-mono opacity-70">SQL</span>
+        <span className="truncate opacity-50 flex-1 text-left">{!open && sql.replace(/\s+/g, ' ').slice(0, 80)}</span>
+      </button>
+      {open && (
+        <div className="relative px-3 pb-3">
+          <pre className="text-[11px] font-mono text-text-200 bg-bg-000/40 rounded p-2 overflow-x-auto whitespace-pre-wrap break-all">
+            {sql}
+          </pre>
+          <button
+            onClick={copy}
+            className="absolute top-1 right-4 px-1.5 py-0.5 text-[10px] rounded border border-border-300/15 text-text-300 hover:bg-bg-200"
+          >
+            {copied ? 'Copied' : 'Copy'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function DataMessage({ message }: { message: Message }) {
   const messageId = message.data_message_id ?? '';
-  const columns = message.data_columns ?? [];
-  const rows = message.data_rows ?? [];
-  const suggestions = message.data_suggestions ?? [];
 
-  const initFromSuggestion = useChartsStore((s) => s.initFromSuggestion);
-  const state = useChartsStore((s) => (messageId ? s.states[messageId] : undefined));
+  const [fetchedColumns, setFetchedColumns] = useState<DataColumn[]>(message.data_columns ?? []);
+  const [fetchedRows, setFetchedRows] = useState<Record<string, any>[]>(message.data_rows ?? []);
+  const [fetchedImageSrc, setFetchedImageSrc] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
+  // Lazy-fetch table rows when not embedded in the event
   useEffect(() => {
-    if (!messageId) return;
-    const current = useChartsStore.getState().states[messageId];
-    if (!current && suggestions.length > 0) {
-      initFromSuggestion(messageId, suggestions, columns, 0);
-    }
-  }, [messageId, suggestions, columns, initFromSuggestion]);
+    if (fetchedRows.length > 0) return;
+    if (!message.data_db_path || !message.data_table_name) return;
+    apiClient
+      .fetchTableData(message.data_db_path, message.data_table_name)
+      .then(({ columns, rows }) => {
+        setFetchedColumns(columns);
+        setFetchedRows(rows);
+      })
+      .catch((e) => setFetchError(String(e)));
+  }, [message.data_db_path, message.data_table_name]);
 
-  const [editOpen, setEditOpen] = useState(false);
-  const chartRef = useRef<any>(null);
+  // Lazy-fetch chart PNG from disk path (session reload path)
+  useEffect(() => {
+    if (message.data_image_src || fetchedImageSrc) return;
+    if (!message.data_image_path) return;
+    apiClient
+      .fetchChartImage(message.data_image_path)
+      .then(setFetchedImageSrc)
+      .catch((e) => setFetchError(String(e)));
+  }, [message.data_image_path]);
 
-  const processed = useMemo(() => {
-    if (!state) return null;
-    return processChart(rows, columns, state);
-  }, [rows, columns, state]);
+  const columns = fetchedColumns;
+  const rows = fetchedRows;
 
-  if (!messageId || !state) {
+  const imageSrc = message.data_image_src || fetchedImageSrc || null;
+  const hasData = rows.length > 0;
+
+  const [view, setView] = useState<'preview' | 'table'>(imageSrc ? 'preview' : 'table');
+  const TABLE_PAGE = 200;
+
+  // Auto-switch to preview when image arrives after initial mount
+  useEffect(() => {
+    if (imageSrc) setView('preview');
+  }, [!!imageSrc]);
+
+  if (fetchError) {
     return (
-      <div className="my-3 rounded-lg border border-border-300/15 bg-bg-100 px-3 py-2 text-sm text-text-300">
-        Loading data…
+      <div className="my-3 rounded-lg border border-red-500/30 bg-bg-100 px-3 py-2 text-sm text-red-400">
+        Failed to load chart data: {fetchError}
       </div>
     );
   }
 
-  const resetState = () => {
-    if (suggestions.length > 0) {
-      initFromSuggestion(messageId, suggestions, columns, state.activeSuggestionIdx);
-    }
-  };
+  const pendingImageFetch = !!message.data_image_path && !imageSrc && !fetchError;
+  const nothingReady = !imageSrc && !hasData && !pendingImageFetch;
+  if (!messageId || nothingReady) {
+    return (
+      <div className="my-3 rounded-lg border border-border-300/15 bg-bg-100 px-3 py-2 text-sm text-text-300">
+        {pendingImageFetch ? (message.data_title || 'Loading chart…') : 'Loading data…'}
+      </div>
+    );
+  }
 
   return (
     <div className="my-3 relative">
@@ -54,7 +110,7 @@ export function DataMessage({ message }: { message: Message }) {
         <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border-300/15">
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-sm font-semibold text-text-000 truncate">
-              {message.data_title || state.title || 'Data'}
+              {message.data_title || 'Data'}
             </span>
             {message.data_warning && (
               <span
@@ -65,81 +121,87 @@ export function DataMessage({ message }: { message: Message }) {
               </span>
             )}
           </div>
-          <button
-            onClick={() => setEditOpen((o) => !o)}
-            className="px-2 py-1 text-xs rounded border border-border-300/15 text-text-100 hover:bg-bg-200"
-          >
-            {editOpen ? 'Close' : 'Edit'}
-          </button>
-        </div>
-
-        {/* Suggestion chip bar */}
-        {suggestions.length > 1 && (
-          <div className="flex flex-wrap gap-1 px-3 py-2 border-b border-border-300/15 bg-bg-000/40">
-            {suggestions.map((s, i) => {
-              const active = state.activeSuggestionIdx === i;
-              return (
+          <div className="flex items-center gap-1">
+            <div className="flex rounded border border-border-300/15 overflow-hidden text-xs">
+              {imageSrc && (
                 <button
-                  key={i}
-                  onClick={() =>
-                    initFromSuggestion(messageId, suggestions, columns, i)
-                  }
-                  className={
-                    'px-2 py-0.5 text-[11px] rounded-full border ' +
-                    (active
-                      ? 'bg-accent-main-100/15 border-accent-main-100/40 text-accent-main-100'
-                      : 'border-border-300/15 text-text-300 hover:bg-bg-200')
-                  }
-                  title={s.reason}
+                  onClick={() => setView('preview')}
+                  className={`px-2 py-1 ${view === 'preview' ? 'bg-accent-main-100/15 text-accent-main-100' : 'text-text-300 hover:bg-bg-200'}`}
                 >
-                  {s.chart_type}
-                  {s.reason ? ` · ${s.reason}` : ''}
+                  Chart
                 </button>
-              );
-            })}
+              )}
+              {hasData && (
+                <button
+                  onClick={() => setView('table')}
+                  className={`px-2 py-1 ${imageSrc ? 'border-l border-border-300/15' : ''} ${view === 'table' ? 'bg-accent-main-100/15 text-accent-main-100' : 'text-text-300 hover:bg-bg-200'}`}
+                >
+                  Table <span className="opacity-60">({rows.length.toLocaleString()})</span>
+                </button>
+              )}
+            </div>
           </div>
-        )}
+        </div>
 
         {/* Body */}
-        <div className="p-3">
-          {processed && processed.ok === false ? (
-            <div className="flex items-center justify-between gap-3 rounded border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
-              <span>{processed.error}</span>
-              <button
-                onClick={resetState}
-                className="px-2 py-1 text-xs rounded border border-amber-500/30 hover:bg-amber-500/10"
-              >
-                Reset
-              </button>
-            </div>
-          ) : processed && processed.ok ? (
-            <Suspense fallback={<div className="h-64 w-full skeleton-shimmer rounded-md" aria-label="Loading chart" />}>
-              <ChartView
-                ref={chartRef}
-                chart={processed.chart}
-                chartType={state.chartType}
-                title={state.title}
-                axisLabels={state.axisLabels}
-                legend={state.legend}
-                grid={state.grid}
-                numberFormat={state.numberFormat}
+        {view === 'preview' && imageSrc ? (
+          <div>
+            <div className="p-3 flex justify-center">
+              <img
+                src={imageSrc}
+                alt={message.data_title || 'Chart'}
+                className="max-w-full rounded"
               />
-            </Suspense>
-          ) : null}
-        </div>
+            </div>
+            {message.data_sql && <SqlDisclosure sql={message.data_sql} />}
+          </div>
+        ) : (
+          <div className="overflow-auto max-h-80">
+            {message.data_sql && (
+              <SqlDisclosure sql={message.data_sql} />
+            )}
+            {rows.length === 0 ? (
+              <div className="px-3 py-4 text-sm text-text-300">No data.</div>
+            ) : (
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr className="sticky top-0 bg-bg-100 z-10">
+                    {columns.map((col) => (
+                      <th
+                        key={col.name}
+                        className="px-3 py-2 text-left font-medium text-text-100 border-b border-border-300/15 whitespace-nowrap"
+                      >
+                        {col.name}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.slice(0, TABLE_PAGE).map((row, i) => (
+                    <tr key={i} className={i % 2 === 0 ? 'bg-transparent' : 'bg-bg-000/30'}>
+                      {columns.map((col) => (
+                        <td
+                          key={col.name}
+                          className="px-3 py-1.5 text-text-200 border-b border-border-300/10 whitespace-nowrap max-w-[200px] truncate"
+                          title={String(row[col.name] ?? '')}
+                        >
+                          {row[col.name] == null ? <span className="opacity-30">—</span> : String(row[col.name])}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            {rows.length > TABLE_PAGE && (
+              <div className="px-3 py-2 text-xs text-text-300 border-t border-border-300/10">
+                Showing first {TABLE_PAGE.toLocaleString()} of {rows.length.toLocaleString()} rows
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Edit popover (anchored under the Edit button, right-aligned) */}
-      {editOpen && (
-        <div className="absolute right-2 top-12 z-20">
-          <EditPanel
-            messageId={messageId}
-            columns={columns}
-            chartRef={chartRef}
-            onClose={() => setEditOpen(false)}
-          />
-        </div>
-      )}
     </div>
   );
 }

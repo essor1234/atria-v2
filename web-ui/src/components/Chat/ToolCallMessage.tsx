@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { ChevronDown } from 'lucide-react';
 import type { Message } from '../../types';
 
 interface ToolCallMessageProps {
@@ -430,10 +431,12 @@ export function ToolCallMessage({ message, hasResult }: ToolCallMessageExtProps)
   const [expandHeight, setExpandHeight] = useState(0);
 
   useEffect(() => {
-    if (expandRef.current) {
-      setExpandHeight(expandRef.current.scrollHeight);
-    }
-  });
+    const el = expandRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setExpandHeight(el.scrollHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   if (message.role === 'tool_call') {
     const toolName = message.tool_name ||
@@ -519,50 +522,46 @@ export function ToolCallMessage({ message, hasResult }: ToolCallMessageExtProps)
     }
     const hasExpandableContent = !!fullOutput && fullOutput.length > 200;
 
+    const isRunning = hasResult === false;
+
     return (
-      <div className={`bg-bg-100 border border-border-300/15 rounded-lg px-4 py-3 ${
-        hasResult === false ? 'tool-executing' : hasResult ? 'border-l-3 border-l-success-100/50' : ''
-      }`}>
-        {/* Tool action header */}
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-text-400 font-mono text-sm leading-6 flex-shrink-0">▶</span>
-          <span className="font-medium text-text-000 text-sm leading-6">
-            {verb}
-          </span>
+      <div className={`rounded-md border border-hairline-soft/50 overflow-hidden ${isRunning ? 'tool-executing' : ''}`}>
+        {/* Header row */}
+        <div
+          className="flex items-center gap-2 px-3 py-2 cursor-pointer select-none hover:bg-surface-soft/40 transition-colors"
+          onClick={hasExpandableContent ? () => setIsExpanded(!isExpanded) : undefined}
+        >
+          <span className="text-ink/25 text-[11px] select-none flex-shrink-0">·</span>
+          <span className="text-[13px] font-[450] text-ink/65">{verb}</span>
           {summary && (
-            <span className="text-text-200 text-sm bg-bg-000 px-2 py-1 rounded border border-border-300/20 font-mono leading-6">
+            <span className="text-[12px] text-ink/40 font-mono bg-surface-soft rounded px-1.5 py-[2px] ml-0.5 max-w-[260px] truncate">
               {summary}
             </span>
           )}
+          {isRunning && (
+            <span className="ml-auto inline-block w-3 h-3 border-[1.5px] border-ink/30 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+          )}
+          {hasExpandableContent && !isRunning && (
+            <ChevronDown className={`w-3 h-3 text-ink/25 ml-auto flex-shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+          )}
         </div>
 
-        {/* Subagent in-progress spinner */}
-        {toolName === 'spawn_subagent' && hasResult === false && (
-          <div className="ml-4 pl-3 border-l-2 border-border-300/30 flex items-center gap-2">
-            <span className="inline-block w-3 h-3 border-2 border-accent-100/60 border-t-transparent rounded-full animate-spin" />
-            <span className="text-text-300 text-sm font-mono">Running...</span>
-          </div>
-        )}
-
-        {/* Tool result summary with proper colors */}
-        {!(toolName === 'spawn_subagent' && hasResult === false) && summaryLines.length > 0 && (
-          <div className="ml-4 pl-3 border-l-2 border-border-300/30">
+        {/* Result summary */}
+        {!(toolName === 'spawn_subagent' && isRunning) && summaryLines.length > 0 && (
+          <div className="px-3 pb-2 pt-0.5 pl-5">
             {summaryLines.map((line: string, index: number) => {
               const lineStr = typeof line === 'string' ? line : String(line);
-              // Check if this line indicates success or failure
-              const isSuccess = successOverride ?? (
-                lineStr.includes('Read') || lineStr.includes('Created') || lineStr.includes('Updated') ||
-                lineStr.includes('Changes') || lineStr.includes('Packages installed') || lineStr.includes('completed')
-              );
               const isError = message.tool_error
                 ? true
                 : lineStr.includes('Error') || lineStr.includes('Failed') || lineStr.includes('interrupted') || lineStr.includes('Exit code');
+              const isSuccess = !isError && (successOverride ?? (
+                lineStr.includes('Read') || lineStr.includes('Created') || lineStr.includes('Updated') ||
+                lineStr.includes('Changes') || lineStr.includes('Packages installed') || lineStr.includes('completed')
+              ));
 
               return (
-                <div key={index} className={`font-mono text-sm mb-1 leading-6 ${
-                  isError ? 'text-danger-100' :
-                  isSuccess ? 'text-success-100' :
-                  'text-text-300'
+                <div key={index} className={`font-mono text-[12px] leading-5 ${
+                  isError ? 'text-block-coral' : isSuccess ? 'text-semantic-success' : 'text-ink/40'
                 }`}>
                   {lineStr}
                 </div>
@@ -571,27 +570,15 @@ export function ToolCallMessage({ message, hasResult }: ToolCallMessageExtProps)
           </div>
         )}
 
-        {/* Expand button */}
-        {hasExpandableContent && (
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="ml-4 text-sm text-text-400 hover:text-text-200 font-medium mt-2 leading-6"
-          >
-            {isExpanded ? 'Hide details' : 'Show details'}
-          </button>
-        )}
-
-        {/* Expanded content — always rendered, animated via maxHeight */}
+        {/* Expanded raw output */}
         {hasExpandableContent && (
           <div
             className="overflow-hidden transition-all duration-300 ease-in-out"
-            style={{
-              maxHeight: isExpanded ? `${expandHeight}px` : '0px',
-            }}
+            style={{ maxHeight: isExpanded ? `${expandHeight}px` : '0px' }}
           >
-            <div ref={expandRef} className="ml-4 mt-3 pl-3 border-t border-border-300/15 pt-3">
+            <div ref={expandRef} className="px-3 pt-2 pb-3 border-t border-hairline-soft/40">
               {fullOutput && (
-                <pre className="text-sm text-text-300 font-mono bg-bg-000 border border-border-300/15 rounded p-3 overflow-x-auto leading-6">
+                <pre className="text-[12px] text-ink/50 font-mono bg-surface-soft rounded px-3 py-2.5 overflow-x-auto leading-[1.55]">
                   {fullOutput}
                 </pre>
               )}

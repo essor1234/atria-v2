@@ -135,6 +135,8 @@ class Artifact(Base):
     pinned: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     payload_ref: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     preview: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    scope: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    local_path: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
 
     __table_args__ = (
         Index(

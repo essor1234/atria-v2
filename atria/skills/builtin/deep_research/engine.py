@@ -44,9 +44,7 @@ class DeepResearchEngine:
                     "request_id": review_request_id,
                 }
                 try:
-                    result = self._ctx.review_callback(
-                        job_id, review_request_id, event_payload
-                    )
+                    result = self._ctx.review_callback(job_id, review_request_id, event_payload)
                 except Exception as exc:
                     logger.warning(f"Taxonomy review callback error: {exc} — proceeding")
                     break
@@ -78,12 +76,15 @@ class DeepResearchEngine:
         job = ResearchJob(job_id=job_id, topic=topic, depth=depth, taxonomy=taxonomy)
         self._manager.submit(job, lambda j: run_job(j, self._ctx))
 
-        _emit(self._ctx, {
-            "type": "deep_research_queued",
-            "job_id": job_id,
-            "topic": topic,
-            "taxonomy": taxonomy,
-        })
+        _emit(
+            self._ctx,
+            {
+                "type": "deep_research_queued",
+                "job_id": job_id,
+                "topic": topic,
+                "taxonomy": taxonomy,
+            },
+        )
 
         cat_count = len(taxonomy.get("taxonomy", []))
         sub_count = sum(len(c.get("sub_topics", [])) for c in taxonomy.get("taxonomy", []))

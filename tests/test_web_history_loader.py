@@ -1,6 +1,5 @@
 """Tests for Web UI history loader fixes: thinking traces, nested tool calls, and persistence."""
 
-
 from atria.models.message import ToolCall
 from atria.models.api import (
     MessageResponse,

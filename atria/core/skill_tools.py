@@ -3,7 +3,7 @@
 Skill folders that ship executable tools export a `register(ctx)` function from
 `tools.py` returning a list of ToolSpec. The tool registry constructs a single
 mutable SkillToolContext at init and passes it to register(). Session layers
-mutate `ctx.broadcaster` and `ctx.review_callback` after the session is set up;
+mutate `ctx.broadcaster`, `ctx.review_callback`, and `ctx.clarify_callback` after the session is set up;
 handlers read these fields at call time so the mutation propagates without
 re-registration.
 """
@@ -33,9 +33,10 @@ class ToolSpec:
 class SkillToolContext:
     """Cross-cutting services available to skill tools.
 
-    `broadcaster` and `review_callback` are deliberately mutable — the web
-    session layer assigns them after the session starts. Handlers read these
-    attributes at call time, not at register time.
+    `broadcaster`, `review_callback`, `clarify_callback`, and `on_clarify_message`
+    are deliberately mutable — the web session layer assigns them after the
+    session starts. Handlers read these attributes at call time, not at register
+    time.
     """
 
     working_dir: str | None = None
@@ -47,8 +48,18 @@ class SkillToolContext:
     # emit in one place closes the race where the user could respond
     # before the pending entry exists.
     review_callback: Callable[[str, str, dict[str, Any]], dict[str, Any]] | None = None
+    # Clarification Q&A callback used by deep_analyze EXPLORE phase.
+    # Signature mirrors review_callback: (job_id, request_id, payload) -> result.
+    # Payload contains {"type": "analyze.clarify", "questions": [...], "domain_brief": str, "iteration": int}.
+    # Result must contain {"answers": [{"id": str, "answer": str}, ...]}.
+    clarify_callback: Callable[[str, str, dict[str, Any]], dict[str, Any]] | None = None
+    # Per-message persistence hook for clarification round-trip. Receives a payload
+    # like {"role": "assistant"|"user", "content": str, "metadata": dict}; the bridge
+    # converts it into a ChatMessage and persists to the session store.
+    on_clarify_message: Callable[[dict[str, Any]], None] | None = None
     subagent_dispatcher: Callable[..., Any] | None = None
     on_artifact: Callable[[dict[str, Any]], None] | None = None
+    on_analyze_done: Callable[[dict[str, Any]], None] | None = None
     # Text-LLM call: (system, user) -> str. Wired from AppConfig so skills
     # reuse atria's configured api_key/api_base_url/model.
     llm_chat: Callable[[str, str], str] | None = None
@@ -56,16 +67,12 @@ class SkillToolContext:
     llm_vision: Callable[[str, str, str], str] | None = None
     # Model identifier (for display/logging).
     llm_model: str | None = None
-    logger: logging.Logger = field(
-        default_factory=lambda: logging.getLogger("atria.skill_tools")
-    )
+    logger: logging.Logger = field(default_factory=lambda: logging.getLogger("atria.skill_tools"))
 
 
 # ─── append to atria/core/skill_tools.py ─────────────────────────────────────
 
-_FRONTMATTER_TOOLS_RE = re.compile(
-    r"^---\s*\n(.*?)\n---", re.DOTALL
-)
+_FRONTMATTER_TOOLS_RE = re.compile(r"^---\s*\n(.*?)\n---", re.DOTALL)
 
 
 class SkillToolError(RuntimeError):
@@ -93,14 +100,10 @@ class SkillToolLoader:
             module = self._import_tools_module(skill_md.parent, tools_file)
             register_fn = getattr(module, "register", None)
             if register_fn is None:
-                raise SkillToolError(
-                    f"{tools_file}: missing required `register(ctx)` function"
-                )
+                raise SkillToolError(f"{tools_file}: missing required `register(ctx)` function")
             produced = register_fn(ctx)
             if not isinstance(produced, list):
-                raise SkillToolError(
-                    f"{tools_file}: register() must return list[ToolSpec]"
-                )
+                raise SkillToolError(f"{tools_file}: register() must return list[ToolSpec]")
             for spec in produced:
                 if not isinstance(spec, ToolSpec):
                     raise SkillToolError(
@@ -108,8 +111,7 @@ class SkillToolLoader:
                     )
                 if spec.name in seen:
                     raise SkillToolError(
-                        f"Duplicate tool name {spec.name!r}: "
-                        f"{seen[spec.name]} and {tools_file}"
+                        f"Duplicate tool name {spec.name!r}: " f"{seen[spec.name]} and {tools_file}"
                     )
                 seen[spec.name] = tools_file
                 specs.append(spec)
@@ -141,9 +143,7 @@ class SkillToolLoader:
                 p = (skill_md.parent / value).resolve()
                 if p.exists():
                     return p
-                raise SkillToolError(
-                    f"{skill_md}: declared tools file {value!r} not found"
-                )
+                raise SkillToolError(f"{skill_md}: declared tools file {value!r} not found")
         return None
 
     @staticmethod
@@ -155,6 +155,17 @@ class SkillToolLoader:
         """
         pkg_name = f"atria_skills.{skill_dir.name.replace('-', '_')}"
         import sys
+
+        # Ensure the top-level `atria_skills` namespace package exists so that
+        # relative imports inside sibling modules (e.g. engine.py → search.py)
+        # can resolve their grandparent package correctly.
+        root_pkg = "atria_skills"
+        if root_pkg not in sys.modules:
+            root_spec = importlib.util.spec_from_loader(root_pkg, loader=None)
+            assert root_spec is not None
+            root_mod = importlib.util.module_from_spec(root_spec)
+            root_mod.__path__ = [str(skill_dir.parent)]  # type: ignore[attr-defined]
+            sys.modules[root_pkg] = root_mod
 
         if pkg_name not in sys.modules:
             parent_spec = importlib.util.spec_from_loader(pkg_name, loader=None)

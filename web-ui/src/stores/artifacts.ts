@@ -12,6 +12,8 @@ interface ArtifactsState {
   scanArtifacts: (conversationId: string) => Promise<void>;
   togglePin: (conversationId: string, artifactId: number, pinned: boolean) => Promise<void>;
   deleteArtifact: (conversationId: string, artifactId: number) => Promise<void>;
+  addArtifact: (conversationId: string, artifact: Artifact) => void;
+  setArtifacts: (conversationId: string, artifacts: Artifact[]) => void;
 }
 
 export const useArtifactsStore = create<ArtifactsState>((set, get) => ({
@@ -60,6 +62,24 @@ export const useArtifactsStore = create<ArtifactsState>((set, get) => ({
       artifacts: {
         ...s.artifacts,
         [conversationId]: (s.artifacts[conversationId] ?? []).filter(a => a.id !== artifactId),
+      },
+    }));
+  },
+
+  addArtifact: (conversationId: string, artifact: Artifact) => {
+    set(s => ({
+      artifacts: {
+        ...s.artifacts,
+        [conversationId]: [...(s.artifacts[conversationId] ?? []), artifact],
+      },
+    }));
+  },
+
+  setArtifacts: (conversationId: string, artifacts: Artifact[]) => {
+    set(s => ({
+      artifacts: {
+        ...s.artifacts,
+        [conversationId]: artifacts,
       },
     }));
   },

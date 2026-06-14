@@ -77,6 +77,13 @@ class FileContentInjector:
         ".gitignore",
         ".dockerignore",
         ".env.example",
+        ".csv",
+        ".tsv",
+        ".sql",
+        ".log",
+        ".r",
+        ".rmd",
+        ".ipynb",
     }
 
     # Special filenames (no extension but still text)

@@ -468,17 +468,27 @@ _BUILTIN_TOOL_SCHEMAS: list[dict[str, Any]] = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "db_path":      {"type": "string"},
+                    "db_path": {"type": "string"},
                     "source_table": {"type": "string"},
-                    "chart_type":   {"type": "string",
-                                     "enum": ["bar","line","scatter","hist","pie"]},
-                    "x":            {"type": "string"},
-                    "y":            {"type": "array", "items": {"type": "string"}},
-                    "title":        {"type": "string"},
-                    "out_path":     {"type": "string"},
-                    "agg":          {"type": ["string","null"]},
+                    "chart_type": {
+                        "type": "string",
+                        "enum": ["bar", "line", "scatter", "hist", "pie"],
+                    },
+                    "x": {"type": "string"},
+                    "y": {"type": "array", "items": {"type": "string"}},
+                    "title": {"type": "string"},
+                    "out_path": {"type": "string"},
+                    "agg": {"type": ["string", "null"]},
                 },
-                "required": ["db_path","source_table","chart_type","x","y","title","out_path"],
+                "required": [
+                    "db_path",
+                    "source_table",
+                    "chart_type",
+                    "x",
+                    "y",
+                    "title",
+                    "out_path",
+                ],
             },
         },
     },
@@ -490,10 +500,10 @@ _BUILTIN_TOOL_SCHEMAS: list[dict[str, Any]] = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "md_path":  {"type": "string"},
+                    "md_path": {"type": "string"},
                     "pdf_path": {"type": "string"},
                 },
-                "required": ["md_path","pdf_path"],
+                "required": ["md_path", "pdf_path"],
             },
         },
     },
@@ -1576,6 +1586,43 @@ _BUILTIN_TOOL_SCHEMAS: list[dict[str, Any]] = [
                     },
                 },
                 "required": ["md_path", "pdf_path"],
+            },
+        },
+    },
+    # ===== Artifact Tools =====
+    {
+        "type": "function",
+        "function": {
+            "name": "list_artifact_images",
+            "description": load_tool_description("list-artifact-images"),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "scope": {
+                        "type": "string",
+                        "enum": ["conversation", "project", "both"],
+                        "description": "Scope to list artifacts from: 'conversation' for current conversation only, 'project' for entire project, 'both' for artifacts from both scopes",
+                        "default": "conversation",
+                    },
+                },
+                "required": [],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "read_artifact_image",
+            "description": load_tool_description("read-artifact-image"),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "artifact_id": {
+                        "type": "integer",
+                        "description": "The ID of the artifact image to read",
+                    },
+                },
+                "required": ["artifact_id"],
             },
         },
     },

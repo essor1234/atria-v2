@@ -19,5 +19,7 @@ class Artifact(BaseModel):
     pinned: bool = False
     payload_ref: Optional[str] = None  # file path
     preview: Optional[Any] = None  # JSON preview data
+    scope: Optional[str] = None  # conversation | project
+    local_path: Optional[str] = None  # relative path to artifact file
 
     model_config = {"from_attributes": True}

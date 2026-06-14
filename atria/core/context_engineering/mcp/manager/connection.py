@@ -6,7 +6,18 @@ import threading
 import time
 from typing import Callable, Dict, List, Optional
 
-from fastmcp import Client
+# Try to import Client from fastmcp (newer versions)
+# Fall back to mcp (older versions) if not available
+try:
+    from fastmcp import Client
+except ImportError:
+    try:
+        from mcp.client import Client
+    except ImportError:
+        # Define placeholder for testing purposes
+        class Client:
+            def __init__(self, *args, **kwargs):
+                raise NotImplementedError("MCP Client not available")
 
 
 class ConnectionMixin:

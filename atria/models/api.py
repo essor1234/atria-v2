@@ -38,6 +38,7 @@ class MessageResponse(BaseModel):
     tool_calls: List[ToolCallResponse] | None = None
     thinking_trace: str | None = None
     reasoning_content: str | None = None
+    metadata: dict | None = None
 
 
 class SessionResponse(BaseModel):

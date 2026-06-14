@@ -7,12 +7,17 @@ import { AskUserDialog } from '../components/Chat/AskUserDialog';
 import { PlanApprovalDialog } from '../components/Chat/PlanApprovalDialog';
 import { CommandPalette } from '../components/Chat/CommandPalette';
 import { StatusDialog } from '../components/Chat/StatusDialog';
+import { SettingsModal } from '../components/Settings/SettingsModal';
 import { ToastContainer } from '../components/ui/Toast';
 import { ArtifactViewer } from '../components/ArtifactViewer/ArtifactViewer';
+import { useChatStore } from '../stores/chat';
 
 export function ChatPage() {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+
+  const settingsModalOpen = useChatStore(state => state.settingsModalOpen);
+  const closeSettingsModal = useChatStore(state => state.closeSettingsModal);
 
   const openCommandPalette = useCallback(() => setCommandPaletteOpen(true), []);
   const closeCommandPalette = useCallback(() => setCommandPaletteOpen(false), []);
@@ -39,6 +44,7 @@ export function ChatPage() {
         onOpenStatus={openStatusDialog}
       />
       <StatusDialog isOpen={statusDialogOpen} onClose={closeStatusDialog} />
+      <SettingsModal isOpen={settingsModalOpen} onClose={closeSettingsModal} />
       <ToastContainer />
     </div>
   );

@@ -45,7 +45,7 @@ export interface SearchResultItem {
 }
 
 // Message types
-export type DeepAnalyzePhase = 'load' | 'plan' | 'extract' | 'render' | 'insight' | 'report';
+export type DeepAnalyzePhase = 'explore' | 'load' | 'profile' | 'plan' | 'extract' | 'synthesize' | 'report';
 export type DeepAnalyzePhaseStatus = 'pending' | 'running' | 'done';
 export type DeepAnalyzeItemStatus = 'done' | 'failed';
 
@@ -56,19 +56,6 @@ export interface DeepAnalyzeSubtable {
   error?: string;
 }
 
-export interface DeepAnalyzeChart {
-  name: string;
-  png_path: string | null;
-  status: DeepAnalyzeItemStatus;
-  error?: string;
-}
-
-export interface DeepAnalyzeInsight {
-  name: string;
-  md: string | null;
-  status: DeepAnalyzeItemStatus;
-  error?: string;
-}
 
 export interface Message {
   role: 'user' | 'assistant' | 'system' | 'tool_call' | 'tool_result' | 'thinking' | 'search_result' | 'deep_research' | 'deep_analyze' | 'image_message' | 'data_message';
@@ -107,18 +94,51 @@ export interface Message {
   dr_report_path?: string;
   // deep_analyze fields
   da_job_id?: string;
-  da_status?: 'running' | 'done' | 'error' | 'cancelled';
+  da_status?: 'running' | 'clarifying' | 'plan_reviewing' | 'done' | 'error' | 'cancelled';
   da_phases?: Partial<Record<DeepAnalyzePhase, DeepAnalyzePhaseStatus>>;
   da_load_rows?: number;
   da_load_cols?: number;
   da_plan_subtables?: number;
   da_plan_charts?: number;
   da_subtables?: DeepAnalyzeSubtable[];
-  da_charts?: DeepAnalyzeChart[];
-  da_insights?: DeepAnalyzeInsight[];
   da_report_path?: string;
   da_error?: string;
   da_failed_phase?: string;
+  da_plan?: {
+    summary?: string;
+    sections: Array<{
+      name: string;
+      key_question?: string;
+      description?: string;
+      chart_names: string[];
+      analysis_angles?: string[];
+    }>;
+    charts: Array<{
+      name: string;
+      source_table: string;
+      type: string;
+      x: string;
+      y: string[];
+      title: string;
+      insight?: string;
+    }>;
+    sub_tables: Array<{
+      name: string;
+      sql: string;
+      why?: string;
+    }>;
+  };
+  da_plan_review_request_id?: string;
+  // EXPLORE-phase clarify Q&A
+  da_clarify_request_id?: string;
+  da_clarify_iteration?: number;
+  da_clarify_questions?: Array<{
+    id: string;
+    text: string;
+    kind: 'intent' | 'ambiguity';
+    column?: string;
+  }>;
+  da_domain_brief?: string;
   // image_message fields
   image_src?: string;
   image_mime?: string;
@@ -130,6 +150,14 @@ export interface Message {
   data_rows?: Record<string, any>[];
   data_suggestions?: ChartSuggestion[];
   data_warning?: string;
+  data_sql?: string;
+  // lazy-load fallback: fetch rows via /api/analyze/table-data
+  data_db_path?: string;
+  data_table_name?: string;
+  // pre-rendered chart image from the pipeline (live base64 from WS event)
+  data_image_src?: string;
+  // server-side PNG path: fetched via /api/analyze/chart-image on reload
+  data_image_path?: string;
 }
 
 export interface ChartSuggestion {
@@ -174,7 +202,7 @@ export interface Config {
 
 // WebSocket event types
 export interface WSMessage {
-  type: 'user_message' | 'message_start' | 'message_chunk' | 'message_complete' | 'tool_call' | 'tool_result' | 'approval_required' | 'approval_resolved' | 'error' | 'pong' | 'mcp_status_update' | 'mcp_servers_update' | 'connected' | 'disconnected' | 'thinking_block' | 'thinking' | 'thinking_done' | 'search_done' | 'status_update' | 'ask_user_required' | 'ask_user_resolved' | 'session_activity' | 'plan_approval_required' | 'plan_approval_resolved' | 'plan_content' | 'subagent_start' | 'subagent_complete' | 'parallel_agents_start' | 'parallel_agents_done' | 'task_completed' | 'progress' | 'nested_tool_call' | 'nested_tool_result' | 'deep_research_taxonomy_ready' | 'deep_research_queued' | 'deep_research_start' | 'deep_research_section_start' | 'deep_research_section_done' | 'deep_research_done' | 'deep_research_error' | 'analyze.phase' | 'analyze.subtable' | 'analyze.chart' | 'analyze.insight' | 'analyze.report' | 'analyze.done' | 'analyze.failed' | 'analyze.cancelled' | 'image_message' | 'data_message';
+  type: 'user_message' | 'message_start' | 'message_chunk' | 'message_complete' | 'tool_call' | 'tool_result' | 'approval_required' | 'approval_resolved' | 'error' | 'pong' | 'mcp_status_update' | 'mcp_servers_update' | 'connected' | 'disconnected' | 'thinking_block' | 'thinking' | 'thinking_done' | 'search_done' | 'status_update' | 'ask_user_required' | 'ask_user_resolved' | 'session_activity' | 'plan_approval_required' | 'plan_approval_resolved' | 'plan_content' | 'subagent_start' | 'subagent_complete' | 'parallel_agents_start' | 'parallel_agents_done' | 'task_completed' | 'progress' | 'nested_tool_call' | 'nested_tool_result' | 'deep_research_taxonomy_ready' | 'deep_research_queued' | 'deep_research_start' | 'deep_research_section_start' | 'deep_research_section_done' | 'deep_research_done' | 'deep_research_error' | 'analyze.started' | 'analyze.phase' | 'analyze.subtable' | 'analyze.plan_ready' | 'analyze.clarify' | 'analyze.chart_data' | 'analyze.chart_image' | 'analyze.chart_insight' | 'analyze.section_synthesized' | 'analyze.report' | 'analyze.done' | 'analyze.failed' | 'analyze.cancelled' | 'analyze.agent_message' | 'image_message' | 'data_message';
   data: any;
 }
 
@@ -259,6 +287,7 @@ export interface Artifact {
   pinned: boolean;
   payload_ref: string | null;
   preview: any | null;
+  size?: number; // Actual file size in bytes
   created_at: string;
   updated_at: string | null;
 }
@@ -273,6 +302,7 @@ export interface PerSessionState {
   pendingPlanApproval: PlanApprovalRequest | null;
   progressMessage: string | null;
   queuedMessages: string[];
+  selectedPersona?: string | null;
 }
 
 // ── Artifact Viewer ──────────────────────────────────────────────────────────

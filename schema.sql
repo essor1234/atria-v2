@@ -105,6 +105,8 @@ CREATE TABLE "public"."artifacts" (
     "pinned" boolean NOT NULL,
     "payload_ref" text,
     "preview" json,
+    "scope" character varying(20),
+    "local_path" character varying(512),
     CONSTRAINT "artifacts_pkey" PRIMARY KEY ("id")
 );
 CREATE INDEX artifacts_conversation_id_idx ON public.artifacts(conversation_id) WHERE is_deleted = false;

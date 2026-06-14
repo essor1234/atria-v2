@@ -3,7 +3,6 @@
 import sqlite3
 from pathlib import Path
 
-import pandas as pd
 import pytest
 
 from atria.skills.builtin.deep_analyze.dataloader import load_to_sqlite, profile_schema

@@ -84,6 +84,12 @@ class WebState:
         # Pending deep research taxonomy review requests
         self._pending_taxonomy_reviews: Dict[str, Dict[str, Any]] = {}
 
+        # Pending deep_analyze plan review requests
+        self._pending_plan_reviews: Dict[str, Dict[str, Any]] = {}
+
+        # Pending deep_analyze EXPLORE clarification Q&A requests
+        self._pending_clarify_reviews: Dict[str, Dict[str, Any]] = {}
+
         # Running sessions: session_id -> "running"
         self._running_sessions: Dict[str, str] = {}
 
@@ -347,9 +353,7 @@ class WebState:
                 "session_id": session_id,
                 "_event": event,
             }
-        self._schedule_async(
-            self._persist_pending("ask_user", request_id, session_id, data)
-        )
+        self._schedule_async(self._persist_pending("ask_user", request_id, session_id, data))
 
     def resolve_ask_user(
         self, request_id: str, answers: Optional[Dict], cancelled: bool = False
@@ -395,9 +399,7 @@ class WebState:
                 "session_id": session_id,
                 "_event": event,
             }
-        self._schedule_async(
-            self._persist_pending("plan_approval", request_id, session_id, data)
-        )
+        self._schedule_async(self._persist_pending("plan_approval", request_id, session_id, data))
 
     def resolve_plan_approval(self, request_id: str, action: str, feedback: str = "") -> bool:
         """Resolve a pending plan approval request."""
@@ -441,9 +443,7 @@ class WebState:
                 "session_id": session_id,
                 "_event": event,
             }
-        self._schedule_async(
-            self._persist_pending("taxonomy_review", request_id, session_id, data)
-        )
+        self._schedule_async(self._persist_pending("taxonomy_review", request_id, session_id, data))
 
     def resolve_taxonomy_review(
         self,
@@ -478,6 +478,114 @@ class WebState:
         """Clear a resolved taxonomy review request."""
         with self._lock:
             self._pending_taxonomy_reviews.pop(request_id, None)
+
+    # --- Plan review state ---
+
+    def add_pending_plan_review(
+        self,
+        request_id: str,
+        data: Dict[str, Any],
+        session_id: Optional[str] = None,
+        event: Optional[threading.Event] = None,
+    ) -> None:
+        with self._lock:
+            self._pending_plan_reviews[request_id] = {
+                "data": data,
+                "resolved": False,
+                "action": None,
+                "instructions": None,
+                "session_id": session_id,
+                "_event": event,
+            }
+        self._schedule_async(self._persist_pending("plan_review", request_id, session_id, data))
+
+    def resolve_plan_review(
+        self,
+        request_id: str,
+        action: str = "accept",
+        instructions: Optional[str] = None,
+    ) -> bool:
+        with self._lock:
+            if request_id in self._pending_plan_reviews:
+                self._pending_plan_reviews[request_id]["resolved"] = True
+                self._pending_plan_reviews[request_id]["action"] = action
+                self._pending_plan_reviews[request_id]["instructions"] = instructions
+                event = self._pending_plan_reviews[request_id].get("_event")
+                if event:
+                    event.set()
+                return True
+            return False
+
+    def get_pending_plan_review(self, request_id: str) -> Optional[Dict[str, Any]]:
+        with self._lock:
+            return self._pending_plan_reviews.get(request_id)
+
+    def clear_plan_review(self, request_id: str) -> None:
+        with self._lock:
+            self._pending_plan_reviews.pop(request_id, None)
+
+    async def aresolve_plan_review(
+        self,
+        request_id: str,
+        action: str = "accept",
+        instructions: Optional[str] = None,
+    ) -> bool:
+        ok = self.resolve_plan_review(request_id, action, instructions)
+        response = {"action": action, "instructions": instructions}
+        db_ok = await self._persist_resolution(request_id, response)
+        return ok or db_ok
+
+    # --- Clarify review state (deep_analyze EXPLORE phase) ---
+
+    def add_pending_clarify_review(
+        self,
+        request_id: str,
+        data: Dict[str, Any],
+        session_id: Optional[str] = None,
+        event: Optional[threading.Event] = None,
+    ) -> None:
+        with self._lock:
+            self._pending_clarify_reviews[request_id] = {
+                "data": data,
+                "resolved": False,
+                "answers": None,
+                "session_id": session_id,
+                "_event": event,
+            }
+        self._schedule_async(self._persist_pending("clarify_review", request_id, session_id, data))
+
+    def resolve_clarify_review(
+        self,
+        request_id: str,
+        answers: Optional[List[Dict[str, Any]]] = None,
+    ) -> bool:
+        with self._lock:
+            if request_id in self._pending_clarify_reviews:
+                self._pending_clarify_reviews[request_id]["resolved"] = True
+                self._pending_clarify_reviews[request_id]["answers"] = answers or []
+                event = self._pending_clarify_reviews[request_id].get("_event")
+                if event:
+                    event.set()
+                return True
+            return False
+
+    def get_pending_clarify_review(self, request_id: str) -> Optional[Dict[str, Any]]:
+        with self._lock:
+            return self._pending_clarify_reviews.get(request_id)
+
+    def clear_clarify_review(self, request_id: str) -> None:
+        with self._lock:
+            self._pending_clarify_reviews.pop(request_id, None)
+
+    async def aresolve_clarify_review(
+        self,
+        request_id: str,
+        answers: Optional[List[Dict[str, Any]]] = None,
+    ) -> bool:
+        ok = self.resolve_clarify_review(request_id, answers)
+        response = {"answers": answers or []}
+        db_ok = await self._persist_resolution(request_id, response)
+        return ok or db_ok
 
     # ──────────────────────────────────────────────────────────────────
     # Persistence for pending reviews
@@ -588,9 +696,7 @@ class WebState:
         topic: Optional[str] = None,
         instructions: Optional[str] = None,
     ) -> bool:
-        ok = self.resolve_taxonomy_review(
-            request_id, action, taxonomy, depth, topic, instructions
-        )
+        ok = self.resolve_taxonomy_review(request_id, action, taxonomy, depth, topic, instructions)
         response = {
             "action": action,
             "taxonomy": taxonomy,

@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { PanelRightOpen } from 'lucide-react';
+import React, { useCallback } from 'react';
+import { useLocalStorage } from 'usehooks-ts';
+import { PanelRightOpen, PanelRightClose } from 'lucide-react';
+import { Resizable, type ResizeCallbackData } from 'react-resizable';
 import { useChatStore } from '../../stores/chat';
 import { useViewerTabsStore } from '../../stores/viewerTabs';
 import { TabBar } from './TabBar';
@@ -14,24 +16,14 @@ const MIN_PANEL = 320;
 const MAX_PANEL = 1100;
 const MIN_TREE = 160;
 const MAX_TREE = 480;
-
-function readNum(key: string, fallback: number): number {
-  const v = parseInt(localStorage.getItem(key) ?? '', 10);
-  return Number.isNaN(v) ? fallback : v;
-}
+const MIN_VIEWER = 80;
 
 export function ArtifactViewer() {
   const currentSessionId = useChatStore(s => s.currentSessionId);
 
-  const [collapsed, setCollapsed] = useState(
-    () => localStorage.getItem(KEY_COLLAPSED) === 'true',
-  );
-  const [panelWidth, setPanelWidth] = useState(() => readNum(KEY_WIDTH, 560));
-  const [treeWidth, setTreeWidth] = useState(() => readNum(KEY_TREE_WIDTH, 240));
-
-  useEffect(() => { localStorage.setItem(KEY_COLLAPSED, String(collapsed)); }, [collapsed]);
-  useEffect(() => { localStorage.setItem(KEY_WIDTH, String(panelWidth)); }, [panelWidth]);
-  useEffect(() => { localStorage.setItem(KEY_TREE_WIDTH, String(treeWidth)); }, [treeWidth]);
+  const [collapsed, setCollapsed] = useLocalStorage<boolean>(KEY_COLLAPSED, false);
+  const [panelWidth, setPanelWidth] = useLocalStorage<number>(KEY_WIDTH, 560);
+  const [treeWidth, setTreeWidth] = useLocalStorage<number>(KEY_TREE_WIDTH, 220);
 
   const activeTab = useViewerTabsStore(s => {
     if (!currentSessionId) return null;
@@ -40,40 +32,24 @@ export function ArtifactViewer() {
     return slice.tabs.find(t => t.id === slice.activeId) ?? null;
   });
 
-  const dragRef = useRef<{ kind: 'panel' | 'tree'; startX: number; startW: number } | null>(null);
+  const effectiveTreeWidth = Math.min(treeWidth, panelWidth - 2 - MIN_VIEWER);
 
-  const onMouseMove = useCallback((e: MouseEvent) => {
-    const d = dragRef.current;
-    if (!d) return;
-    const delta = e.clientX - d.startX;
-    if (d.kind === 'panel') {
-      const next = Math.max(MIN_PANEL, Math.min(MAX_PANEL, d.startW - delta));
-      setPanelWidth(next);
-    } else {
-      const next = Math.max(MIN_TREE, Math.min(MAX_TREE, d.startW + delta));
-      setTreeWidth(next);
-    }
-  }, []);
-
-  const onMouseUp = useCallback(() => {
-    dragRef.current = null;
-    window.removeEventListener('mousemove', onMouseMove);
-    window.removeEventListener('mouseup', onMouseUp);
-  }, [onMouseMove]);
-
-  useEffect(() => {
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-    };
-  }, [onMouseMove, onMouseUp]);
-
-  const startDrag = (kind: 'panel' | 'tree', startW: number) => (e: React.MouseEvent) => {
-    e.preventDefault();
-    dragRef.current = { kind, startX: e.clientX, startW };
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+  // Shared defaults required by bundled .d.ts (static defaultProps not inferred by TS)
+  const resizableDefaults = {
+    handleSize: [8, 8] as [number, number],
+    lockAspectRatio: false,
+    transformScale: 1,
   };
+
+  const onPanelResize = useCallback((_: React.SyntheticEvent, data: ResizeCallbackData) => {
+    const next = data.size.width;
+    setPanelWidth(next);
+    setTreeWidth(prev => Math.min(prev, next - 2 - MIN_VIEWER));
+  }, [setPanelWidth, setTreeWidth]);
+
+  const onTreeResize = useCallback((_: React.SyntheticEvent, data: ResizeCallbackData) => {
+    setTreeWidth(data.size.width);
+  }, [setTreeWidth]);
 
   if (!currentSessionId) return null;
   const convInt = parseInt(currentSessionId, 10);
@@ -93,21 +69,67 @@ export function ArtifactViewer() {
   }
 
   return (
-    <div className="flex h-full shadow-lg" style={{ width: panelWidth }}>
-      <div
-        onMouseDown={startDrag('panel', panelWidth)}
-        className="w-1 cursor-col-resize hover:bg-ink/30"
-      />
-      <div className="flex flex-col flex-1 min-w-0 bg-canvas">
-        <TabBar convId={currentSessionId} onCollapse={() => setCollapsed(true)} />
-        <div className="flex flex-1 min-h-0">
-          <div style={{ width: treeWidth }} className="flex-shrink-0 min-w-0 shadow-lg">
+    // Outer panel — resizable from the left (west) edge
+    <Resizable
+      {...resizableDefaults}
+      width={panelWidth}
+      height={0}
+      axis="x"
+      minConstraints={[MIN_PANEL, 0]}
+      maxConstraints={[MAX_PANEL, Infinity]}
+      resizeHandles={['w']}
+      handle={(_, ref) => (
+        <div
+          ref={ref as React.RefObject<HTMLDivElement>}
+          className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-sky-400/25 transition-colors z-10"
+        />
+      )}
+      onResize={onPanelResize}
+    >
+      <div className="relative flex h-full shadow-xl" style={{ width: panelWidth }}>
+
+        {/* ── Left: file tree, full height ── */}
+        <Resizable
+          {...resizableDefaults}
+          width={effectiveTreeWidth}
+          height={0}
+          axis="x"
+          minConstraints={[MIN_TREE, 0]}
+          maxConstraints={[Math.min(MAX_TREE, panelWidth - 2 - MIN_VIEWER), Infinity]}
+          resizeHandles={['e']}
+          handle={(_, ref) => (
+            <div
+              ref={ref as React.RefObject<HTMLDivElement>}
+              className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-sky-400/25 transition-colors z-10"
+            />
+          )}
+          onResize={onTreeResize}
+        >
+          <div
+            className="relative flex-shrink-0 h-full overflow-hidden border-r border-hairline-soft/60"
+            style={{ width: effectiveTreeWidth }}
+          >
             <FileTree convId={currentSessionId} />
           </div>
-          <div
-            onMouseDown={startDrag('tree', treeWidth)}
-            className="w-1 cursor-col-resize hover:bg-ink/30"
-          />
+        </Resizable>
+
+        {/* ── Right: [tab bar | collapse btn] + viewer ── */}
+        <div className="flex flex-col flex-1 min-w-0 min-h-0 bg-canvas">
+
+          {/* Tab row with collapse button pushed to far right */}
+          <div className="flex items-center border-b border-hairline-soft/60 bg-surface-soft/30 flex-shrink-0 min-w-0">
+            <TabBar convId={currentSessionId} />
+            <button
+              onClick={() => setCollapsed(true)}
+              aria-label="Collapse panel"
+              title="Collapse panel"
+              className="flex-shrink-0 p-1.5 mr-1 rounded text-ink/35 hover:text-ink/70 hover:bg-ink/6 cursor-pointer transition-colors"
+            >
+              <PanelRightClose className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* File viewer */}
           <div className="flex-1 min-w-0 min-h-0">
             {activeTab ? (
               <ViewerDispatcher
@@ -117,19 +139,17 @@ export function ArtifactViewer() {
                 ext={activeTab.ext}
               />
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-ink/45 gap-2">
-                <div className="w-12 h-12 rounded-full border border-hairline flex items-center justify-center">
-                  <PanelRightOpen className="w-5 h-5" />
+              <div className="flex flex-col items-center justify-center h-full gap-2 select-none">
+                <div className="w-10 h-10 rounded-full border border-hairline flex items-center justify-center text-ink/20">
+                  <PanelRightOpen className="w-4 h-4" />
                 </div>
-                <p className="text-sm font-mono text-ink/80">Select a file to preview</p>
-                <p className="text-xs font-mono text-ink/45 text-center max-w-[260px]">
-                  Choose a file from the sidebar to show its contents here.
-                </p>
+                <p className="text-[12px] font-mono text-ink/35">Select a file to preview</p>
               </div>
             )}
           </div>
+
         </div>
       </div>
-    </div>
+    </Resizable>
   );
 }

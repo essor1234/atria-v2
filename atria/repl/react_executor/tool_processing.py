@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 from atria.core.runtime.monitoring import TaskMonitor
 from atria.db.sync import run_sync
-from atria.ui_textual.utils.tool_display import format_tool_call
+from atria.core.utils.tool_display import format_tool_call
 
 logger = logging.getLogger(__name__)
 

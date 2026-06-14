@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ChevronRight } from 'lucide-react';
 import { useChatStore } from '../../stores/chat';
 
 export function QueueBar() {
@@ -18,17 +19,7 @@ export function QueueBar() {
           onClick={() => setExpanded(prev => !prev)}
           className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-text-300 hover:text-text-100 transition-colors"
         >
-          <svg
-            className={`w-3 h-3 transition-transform ${expanded ? 'rotate-90' : ''}`}
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <ChevronRight className={`w-3 h-3 transition-transform ${expanded ? 'rotate-90' : ''}`} />
           <span>
             {queuedMessages.length} message{queuedMessages.length !== 1 ? 's' : ''} queued
           </span>

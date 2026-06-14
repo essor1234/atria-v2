@@ -59,8 +59,11 @@ def test_rejects_malicious_table_name(tmp_path: Path) -> None:
         db_path=str(db),
         source_table="t; DROP TABLE raw; --",
         chart_type="bar",
-        x="region", y=["r"], title="x",
-        out_path=str(tmp_path / "x.png"), agg=None,
+        x="region",
+        y=["r"],
+        title="x",
+        out_path=str(tmp_path / "x.png"),
+        agg=None,
     )
     assert not result["success"]
     assert "invalid source_table" in (result["error"] or "")

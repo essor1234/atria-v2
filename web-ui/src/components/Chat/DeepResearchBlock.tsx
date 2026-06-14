@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { ChevronRight, ChevronDown, ArrowRight, FileText, ClipboardList } from 'lucide-react';
 import type { Message, TaxonomyCategory, DeepResearchSection } from '../../types';
 import { wsClient } from '../../api/websocket';
 
@@ -47,12 +48,9 @@ function TaxonomyTree({ categories }: { categories: TaxonomyCategory[] }) {
             })}
             className="w-full flex items-center gap-2 px-3 py-1.5 bg-bg-200/40 hover:bg-bg-200/70 transition-colors text-left"
           >
-            <svg
+            <ChevronRight
               className={`w-3 h-3 text-text-400 flex-shrink-0 transition-transform ${openCats.has(ci) ? 'rotate-90' : ''}`}
-              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
+            />
             <span className="text-xs font-semibold text-text-100 font-mono flex-1">{cat.name}</span>
             <span className="text-xs text-text-500 font-mono">{cat.sub_topics.length}</span>
           </button>
@@ -152,9 +150,7 @@ function ReviewPanel({ message }: { message: Message }) {
             {pending === 'modify' ? (
               <span className="inline-block w-3.5 h-3.5 border-2 border-text-400 border-t-transparent rounded-full animate-spin" />
             ) : (
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
+              <ArrowRight className="w-3.5 h-3.5" />
             )}
           </button>
         </div>
@@ -243,12 +239,9 @@ function SectionAccordion({ sections }: { sections: DeepResearchSection[] }) {
                   onClick={() => setOpen(isOpen ? null : key)}
                 >
                   <span className="text-xs text-text-200 font-mono truncate">{sec.subtopic}</span>
-                  <svg
+                  <ChevronDown
                     className={`w-3 h-3 text-text-400 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
+                  />
                 </button>
                 {isOpen && (
                   <div className="px-3 pb-3 prose prose-sm max-w-none text-text-200">
@@ -312,9 +305,7 @@ export function DeepResearchBlock({ message }: Props) {
 
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-border-300/10">
-        <svg className="w-4 h-4 text-accent-main-100 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-        </svg>
+        <ClipboardList className="w-4 h-4 text-accent-main-100 flex-shrink-0" />
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -377,9 +368,7 @@ export function DeepResearchBlock({ message }: Props) {
           {/* Report saved path */}
           {dr_status === 'done' && dr_report_path && (
             <div className="flex items-center gap-2 px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-md">
-              <svg className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
+              <FileText className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
               <span className="text-xs font-mono text-emerald-300 truncate" title={dr_report_path}>
                 Saved: {dr_report_path}
               </span>
@@ -393,9 +382,7 @@ export function DeepResearchBlock({ message }: Props) {
                 onClick={() => setShowTaxonomy(v => !v)}
                 className="flex items-center gap-1.5 text-xs text-text-400 hover:text-text-200 transition-colors font-mono"
               >
-                <svg className={`w-3 h-3 transition-transform ${showTaxonomy ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
+                <ChevronRight className={`w-3 h-3 transition-transform ${showTaxonomy ? 'rotate-90' : ''}`} />
                 Research plan ({categories.length} categories, {totalSubs} subtopics)
               </button>
               {showTaxonomy && (

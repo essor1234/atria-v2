@@ -1,6 +1,5 @@
 """Tests for message schema validation."""
 
-
 from atria.models.message import ChatMessage, Role, ToolCall
 from atria.models.message_validator import (
     filter_and_repair_messages,

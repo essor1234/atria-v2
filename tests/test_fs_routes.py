@@ -1,4 +1,5 @@
 """Tests for fs router and path-traversal helper."""
+
 from __future__ import annotations
 
 import os
@@ -102,8 +103,8 @@ def test_list_root_returns_entries(fake_conv: int) -> None:
     names = [e["name"] for e in data["entries"]]
     assert "src" in names
     assert "README.md" in names
-    assert ".hidden" not in names           # dotfiles hidden by default
-    assert "node_modules" not in names      # default-ignore
+    assert ".hidden" not in names  # dotfiles hidden by default
+    assert "node_modules" not in names  # default-ignore
 
 
 def test_list_show_hidden_true_includes_dotfiles(fake_conv: int) -> None:
@@ -158,7 +159,9 @@ def test_list_traversal_blocked(fake_conv: int) -> None:
     assert r.status_code == 403
 
 
-def test_list_404_unknown_conversation(fake_conv: int) -> None:  # noqa: ARG001 (fixture activates patches)
+def test_list_404_unknown_conversation(
+    fake_conv: int,
+) -> None:  # noqa: ARG001 (fixture activates patches)
     client = _client()
     r = client.get("/api/conversations/9999/fs/list")
     assert r.status_code == 404
@@ -211,7 +214,7 @@ def test_read_traversal_blocked(fake_conv: int) -> None:
 def test_read_oversize_returns_413(fake_conv: int, tmp_path: Path) -> None:
     # tmp_path here is the SAME tmp_path used by fake_conv (pytest reuses per-test).
     big = tmp_path / "big.bin"
-    big.write_bytes(b"\0" * (26 * 1024 * 1024))   # 26 MB
+    big.write_bytes(b"\0" * (26 * 1024 * 1024))  # 26 MB
     client = _client()
     r = client.get(f"/api/conversations/{fake_conv}/fs/read?path=big.bin")
     assert r.status_code == 413

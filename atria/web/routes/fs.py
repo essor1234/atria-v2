@@ -63,7 +63,8 @@ async def list_dir(
     entries: list[dict] = []
     for child in target.iterdir():
         name = child.name
-        if not show_hidden and name.startswith("."):
+        _always_visible = {".artifacts"}
+        if not show_hidden and name.startswith(".") and name not in _always_visible:
             continue
         if name in _DEFAULT_IGNORE:
             continue

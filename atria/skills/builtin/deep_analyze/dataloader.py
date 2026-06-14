@@ -14,9 +14,26 @@ _MAX_ROWS = 100_000
 
 
 def _read_dataframe(p: Path) -> pd.DataFrame:
-    if p.suffix.lower() == ".csv":
-        return pd.read_csv(p)
-    return pd.read_excel(p)
+    if p.suffix.lower() not in {".csv", ".tsv", ".txt"}:
+        return pd.read_excel(p)
+
+    # Try common separators in order; pick the one that produces the most columns.
+    # Fall back to engine='python' with sep=None (auto-detect) if all else fails.
+    candidates = [",", ";", "\t", "|"]
+    best: pd.DataFrame | None = None
+    for sep in candidates:
+        try:
+            df = pd.read_csv(p, sep=sep, on_bad_lines="skip", engine="c")
+            if best is None or df.shape[1] > best.shape[1]:
+                best = df
+        except Exception:
+            continue
+
+    if best is None or best.shape[1] <= 1:
+        # Last resort: let pandas auto-detect
+        best = pd.read_csv(p, sep=None, engine="python", on_bad_lines="skip")
+
+    return best
 
 
 def load_to_sqlite(file_path: Path, db_path: Path) -> int:

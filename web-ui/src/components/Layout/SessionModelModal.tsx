@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { apiClient } from '../../api/client';
 import { useToastStore } from '../../stores/toast';
@@ -146,9 +147,7 @@ export function SessionModelModal({ sessionId, sessionLabel, onClose }: SessionM
               onClick={onClose}
               className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-100 text-gray-400 hover:text-gray-600"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="w-5 h-5" />
             </button>
           </div>
           <div className="mt-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">

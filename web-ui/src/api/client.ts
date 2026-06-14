@@ -28,6 +28,21 @@ class APIClient {
     return response.json();
   }
 
+  async fetchChartImage(pngPath: string): Promise<string> {
+    const qs = new URLSearchParams({ path: pngPath });
+    const response = await fetch(`${API_BASE}/analyze/chart-image?${qs.toString()}`);
+    if (!response.ok) throw new Error(`chart-image error: ${response.statusText}`);
+    const { src } = await response.json();
+    return src as string;
+  }
+
+  async fetchTableData(dbPath: string, tableName: string, limit = 50000): Promise<{ columns: import('../types').DataColumn[]; rows: Record<string, any>[] }> {
+    const qs = new URLSearchParams({ db_path: dbPath, table: tableName, limit: String(limit) });
+    const response = await fetch(`${API_BASE}/analyze/table-data?${qs.toString()}`);
+    if (!response.ok) throw new Error(`table-data error: ${response.statusText}`);
+    return response.json();
+  }
+
   // Generic GET method for any endpoint
   async get<T = any>(endpoint: string): Promise<T> {
     const response = await fetch(`${API_BASE}${endpoint}`);
@@ -284,28 +299,6 @@ class APIClient {
   async deleteConversation(projectId: string, conversationId: string): Promise<void> {
     const res = await fetch(`${API_BASE}/projects/${projectId}/conversations/${conversationId}`, { method: 'DELETE' });
     if (!res.ok) throw new Error(`deleteConversation: ${res.statusText}`);
-  }
-
-  // Personal (no-project) conversations
-  async listPersonalConversations(): Promise<Conversation[]> {
-    const res = await fetch(`${API_BASE}/personal/conversations`);
-    if (!res.ok) throw new Error(`listPersonalConversations: ${res.statusText}`);
-    return res.json();
-  }
-
-  async createPersonalConversation(name: string): Promise<Conversation> {
-    const res = await fetch(`${API_BASE}/personal/conversations`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name }),
-    });
-    if (!res.ok) throw new Error(`createPersonalConversation: ${res.statusText}`);
-    return res.json();
-  }
-
-  async deletePersonalConversation(conversationId: string): Promise<void> {
-    const res = await fetch(`${API_BASE}/personal/conversations/${conversationId}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error(`deletePersonalConversation: ${res.statusText}`);
   }
 
   // Artifacts

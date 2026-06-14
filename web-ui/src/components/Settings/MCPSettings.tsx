@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
+import { CircleAlert, X, ArrowRight, Check, EllipsisVertical, Pencil, Trash2 } from 'lucide-react';
 import { AddMCPServerModal } from './AddMCPServerModal';
 import { EditMCPServerModal } from './EditMCPServerModal';
 import { MCPToolsModal } from './MCPToolsModal';
@@ -196,15 +197,11 @@ export function MCPSettings() {
       {error && (
         <div className="flex items-center justify-between px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
           <div className="flex items-center gap-3">
-            <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <CircleAlert className="w-5 h-5 text-red-600" />
             <p className="text-sm text-red-800">{error}</p>
           </div>
           <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -284,9 +281,7 @@ function LoadingState() {
 function EmptyState() {
   return (
     <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
-      <svg className="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 12h14M12 5l7 7-7 7" />
-      </svg>
+      <ArrowRight className="w-12 h-12 mx-auto text-gray-300 mb-3" />
       <p className="text-sm text-gray-600 font-medium mb-1">No MCP servers configured</p>
       <p className="text-xs text-gray-500">
         Click "Add Server" above to add your first MCP server
@@ -461,9 +456,7 @@ function ServerRow({
       {/* Enabled */}
       <td className="px-4 py-3 text-center whitespace-nowrap">
         {server.config.enabled ? (
-          <svg className="w-5 h-5 text-green-600 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-          </svg>
+          <Check className="w-5 h-5 text-green-600 mx-auto" />
         ) : (
           <span className="text-gray-300">-</span>
         )}
@@ -472,9 +465,7 @@ function ServerRow({
       {/* Auto-start */}
       <td className="px-4 py-3 text-center whitespace-nowrap">
         {server.config.auto_start ? (
-          <svg className="w-5 h-5 text-green-600 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-          </svg>
+          <Check className="w-5 h-5 text-green-600 mx-auto" />
         ) : (
           <span className="text-gray-300">-</span>
         )}
@@ -533,9 +524,7 @@ function DropdownMenu({ server, isProcessing, onEdit, onDelete }: DropdownMenuPr
         className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         title="More actions"
       >
-        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-        </svg>
+        <EllipsisVertical className="w-5 h-5" />
       </button>
 
       {/* Dropdown Menu */}
@@ -548,9 +537,7 @@ function DropdownMenu({ server, isProcessing, onEdit, onDelete }: DropdownMenuPr
             }}
             className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
+            <Pencil className="w-4 h-4" />
             Edit
           </button>
           <button
@@ -560,9 +547,7 @@ function DropdownMenu({ server, isProcessing, onEdit, onDelete }: DropdownMenuPr
             }}
             className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
+            <Trash2 className="w-4 h-4" />
             Remove
           </button>
         </div>

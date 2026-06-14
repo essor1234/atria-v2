@@ -51,6 +51,9 @@ class PDFTool(BaseTool):
                 - error: str (if success is False)
         """
         try:
+            # Strip @ mention prefixes from path components (e.g. @.artifacts → .artifacts)
+            from atria.core.context_engineering.tools.path_utils import sanitize_path
+            file_path = sanitize_path(file_path)
             # Resolve path
             path = Path(file_path)
             if not path.is_absolute():

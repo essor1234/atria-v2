@@ -6,20 +6,18 @@ import {
 import { motion, useReducedMotion } from 'motion/react';
 import { useProjectsStore } from '../../stores/projects';
 import { useChatStore } from '../../stores/chat';
-import { apiClient } from '../../api/client';
 import { CreateProjectModal } from './CreateProjectModal';
 import { CreateConversationModal } from './CreateConversationModal';
 import { SettingsModal } from '../Settings/SettingsModal';
-import { ArtifactsPanel } from './ArtifactsPanel';
 import type { Project } from '../../types';
 
 export function ProjectSidebar() {
   const {
-    projects, conversations, personalConversations, expandedProjects, isLoading,
+    projects, conversations, expandedProjects, isLoading,
     loadProjects, toggleProject, deleteProject, deleteConversation,
-    createConversation, expandProject,
-    createPersonalConversation, deletePersonalConversation,
+    createWorkspaceConversation,
   } = useProjectsStore();
+  const workspaceProjectId = useProjectsStore(s => s.workspaceProjectId);
 
   const currentSessionId = useChatStore(s => s.currentSessionId);
   const loadSession = useChatStore(s => s.loadSession);
@@ -30,41 +28,18 @@ export function ProjectSidebar() {
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
   const [createConvFor, setCreateConvFor] = useState<Project | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState<{ type: 'project' | 'conv' | 'personal'; id: string; projectId?: string } | null>(null);
-  // Workspace project id of the current user — populated from /api/auth/me.
-  // The top-of-sidebar "+ Chat" button drops new chats into this project so
-  // they stay scoped to the user's workspace instead of becoming orphan
-  // "personal" conversations.
-  const [workspaceProjectId, setWorkspaceProjectId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ type: 'project' | 'conv'; id: string; projectId?: string } | null>(null);
   const [creatingChat, setCreatingChat] = useState(false);
 
   const reduce = useReducedMotion();
 
   useEffect(() => { loadProjects(); }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    apiClient.me().then(me => {
-      if (cancelled || !me) return;
-      const pid = (me as { project_id?: number | null }).project_id;
-      if (pid != null) setWorkspaceProjectId(String(pid));
-    });
-    return () => { cancelled = true; };
-  }, []);
-
-  /** Create a new chat inside the user's workspace project (no orphan
-   *  personal chats). Falls back to a personal conversation only if /me
-   *  hasn't returned a project_id yet — should be rare. */
   const handleNewChat = async () => {
-    if (creatingChat) return;
+    if (creatingChat || !workspaceProjectId) return;
     setCreatingChat(true);
     try {
-      if (workspaceProjectId) {
-        await createConversation(workspaceProjectId, 'New Chat');
-        expandProject(workspaceProjectId);
-      } else {
-        await createPersonalConversation('New Chat');
-      }
+      await createWorkspaceConversation('New Chat');
     } finally {
       setCreatingChat(false);
     }
@@ -74,8 +49,6 @@ export function ProjectSidebar() {
     if (!confirmDelete) return;
     if (confirmDelete.type === 'project') {
       await deleteProject(confirmDelete.id);
-    } else if (confirmDelete.type === 'personal') {
-      await deletePersonalConversation(confirmDelete.id);
     } else if (confirmDelete.projectId) {
       await deleteConversation(confirmDelete.projectId, confirmDelete.id);
     }
@@ -130,47 +103,10 @@ export function ProjectSidebar() {
 
         <div className="flex-1 overflow-y-auto py-1">
 
-          {/* ── Personal (no-project) conversations ── shown at top, no label ── */}
-          {personalConversations.map(conv => {
-            const isActive = currentSessionId === conv.id;
-            const isRunning = runningSessions.has(conv.id);
-            return (
-              <div
-                key={conv.id}
-                onClick={() => loadSession(conv.id)}
-                className={`group flex items-center gap-1.5 px-3 py-1.5 cursor-pointer transition-colors ${
-                  isActive ? 'bg-accent-main-100/10 border-r-2 border-accent-main-100' : 'hover:bg-bg-200/40'
-                }`}
-              >
-                {isRunning
-                  ? <span className="w-3 h-3 flex-shrink-0 inline-block rounded-full bg-amber-400 animate-pulse" />
-                  : <MessageSquare className={`w-3 h-3 flex-shrink-0 ${isActive ? 'text-accent-main-100' : 'text-text-400'}`} />
-                }
-                <span className={`flex-1 text-xs truncate ${isActive ? 'text-accent-main-100 font-medium' : 'text-text-200'}`}>
-                  {conv.name}
-                </span>
-                {conv.message_count > 0 && (
-                  <span className="text-[10px] text-text-500 font-mono">{conv.message_count}</span>
-                )}
-                <button
-                  onClick={e => { e.stopPropagation(); setConfirmDelete({ type: 'personal', id: conv.id }); }}
-                  className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-bg-300 text-text-400 hover:text-red-400 transition-colors"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              </div>
-            );
-          })}
-
-          {/* ── Divider only when both personal convs and projects exist ── */}
-          {personalConversations.length > 0 && projects.length > 0 && (
-            <div className="mx-3 my-1 border-t border-border-300/10" />
-          )}
-
-          {isLoading && projects.length === 0 && personalConversations.length === 0 && (
+          {isLoading && projects.length === 0 && (
             <p className="text-xs text-text-400 font-mono px-4 py-3">Loading…</p>
           )}
-          {!isLoading && projects.length === 0 && personalConversations.length === 0 && (
+          {!isLoading && projects.length === 0 && (
             <div className="px-4 py-6 text-center">
               <MessageSquare className="w-7 h-7 text-text-500 mx-auto mb-2 opacity-40" />
               <p className="text-xs text-text-300 mb-3">Start chatting or create a project</p>
@@ -270,7 +206,6 @@ export function ProjectSidebar() {
             );
           })}
         </div>
-        <ArtifactsPanel />
       </motion.aside>
 
       <CreateProjectModal isOpen={createProjectOpen} onClose={() => setCreateProjectOpen(false)} />

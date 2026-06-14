@@ -6,12 +6,8 @@ from typing import Any, Optional
 
 from rich.console import Console
 
-from atria.ui_textual.formatters.result_formatter import (
-    ToolResultFormatter,
-    get_formatter,
-    RESULT_PREFIX,
-    RESULT_CONTINUATION,
-)
+RESULT_PREFIX = "  ⎿  "
+RESULT_CONTINUATION = "     "
 
 
 @dataclass
@@ -37,7 +33,7 @@ class CommandHandler(ABC):
 
     Output Formatting:
         All output methods (print_success, print_error, etc.) use
-        ToolResultFormatter to ensure consistent `⎿` prefixed display.
+        RESULT_PREFIX to ensure consistent `⎿` prefixed display.
     """
 
     def __init__(self, console: Console):
@@ -47,7 +43,6 @@ class CommandHandler(ABC):
             console: Rich console for output
         """
         self.console = console
-        self._formatter: ToolResultFormatter = get_formatter()
 
     @abstractmethod
     def handle(self, args: str) -> CommandResult:
@@ -83,7 +78,7 @@ class CommandHandler(ABC):
         Args:
             message: Message to display
         """
-        self.console.print(self._formatter.format_success(message))
+        self.console.print(f"{RESULT_PREFIX}[green]{message}[/green]")
 
     def print_error(self, message: str) -> None:
         """Print error message with ⎿ prefix.
@@ -91,7 +86,7 @@ class CommandHandler(ABC):
         Args:
             message: Error message to display
         """
-        self.console.print(self._formatter.format_error(message))
+        self.console.print(f"{RESULT_PREFIX}[red]{message}[/red]")
 
     def print_warning(self, message: str) -> None:
         """Print warning message with ⎿ prefix.
@@ -99,7 +94,7 @@ class CommandHandler(ABC):
         Args:
             message: Warning message to display
         """
-        self.console.print(self._formatter.format_warning(message))
+        self.console.print(f"{RESULT_PREFIX}[yellow]{message}[/yellow]")
 
     def print_info(self, message: str) -> None:
         """Print info message with ⎿ prefix.
@@ -107,7 +102,7 @@ class CommandHandler(ABC):
         Args:
             message: Info message to display
         """
-        self.console.print(self._formatter.format_info(message))
+        self.console.print(f"{RESULT_PREFIX}{message}")
 
     def print_line(self, message: str) -> None:
         """Print a line with standard ⎿ prefix (2 spaces + ⎿ + 2 spaces).

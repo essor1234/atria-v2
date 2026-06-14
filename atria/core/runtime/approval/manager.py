@@ -6,20 +6,12 @@ import fnmatch
 from enum import Enum
 from typing import Any, Optional, Union
 
-from prompt_toolkit import prompt
-from prompt_toolkit.application import Application
-from prompt_toolkit.formatted_text import FormattedText
-from prompt_toolkit.key_binding import KeyBindings
-from prompt_toolkit.layout import Layout
-from prompt_toolkit.layout.containers import Window
-from prompt_toolkit.layout.controls import FormattedTextControl
 from rich.console import Console
 from rich.live import Live
 from rich.panel import Panel
 from rich.text import Text
 
 from atria.models.operation import Operation
-from atria.ui_textual.style_tokens import PT_META_GREY
 
 
 class ApprovalChoice(str, Enum):
@@ -102,6 +94,14 @@ class ApprovalManager:
         command: Optional[str] = None,
         working_dir: Optional[str] = None,
     ) -> ApprovalChoice:
+        from prompt_toolkit.application import Application
+        from prompt_toolkit.formatted_text import FormattedText
+        from prompt_toolkit.key_binding import KeyBindings
+        from prompt_toolkit.layout import Layout
+        from prompt_toolkit.layout.containers import Window
+        from prompt_toolkit.layout.controls import FormattedTextControl
+        from atria.ui_textual.style_tokens import PT_META_GREY
+
         selected_index = [0]
 
         if command and working_dir:
@@ -220,6 +220,8 @@ class ApprovalManager:
         command: str,
         working_dir: Optional[str],
     ) -> ApprovalResult:
+        from prompt_toolkit import prompt
+
         if not working_dir:
             working_dir = "current directory"
 
@@ -296,6 +298,8 @@ class ApprovalManager:
             return ApprovalResult(False, choice)
 
         if choice == ApprovalChoice.EDIT and allow_edit:
+            from prompt_toolkit import prompt
+
             edited = prompt("Enter your revised content:\n")
             get_debug_logger().log(
                 "approval_result", "approval", approved=True, method="user", choice="edit"

@@ -1,6 +1,5 @@
 """Tests for MessagePairValidator — message pair integrity enforcement."""
 
-
 from atria.core.context_engineering.message_pair_validator import (
     MessagePairValidator,
     ViolationType,

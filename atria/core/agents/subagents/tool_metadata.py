@@ -55,6 +55,8 @@ _TOOL_DISPLAY_NAMES = {
     "invoke_skill": "Invoke Skill",
     "get_subagent_output": "Get Subagent Output",
     "spawn_subagent": "Spawn Subagent",
+    "list_artifact_images": "List Artifact Images",
+    "read_artifact_image": "Read Artifact Image",
 }
 
 

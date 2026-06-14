@@ -10,18 +10,20 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import {
   CpuChipIcon,
   ServerIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { ModelSettings } from './ModelSettings';
 import { MCPSettings } from './MCPSettings';
+import { PersonasSettings } from './PersonasSettings';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type TabId = 'model' | 'mcp' | 'general';
+type TabId = 'model' | 'mcp' | 'personas' | 'general';
 
 interface TabConfig {
   id: TabId;
@@ -42,6 +44,12 @@ const tabs: TabConfig[] = [
     label: 'MCP Servers',
     icon: ServerIcon,
     description: 'Manage Model Context Protocol servers'
+  },
+  {
+    id: 'personas',
+    label: 'Personas',
+    icon: SparklesIcon,
+    description: 'Customize agent behavior and system prompts'
   },
   {
     id: 'general',
@@ -143,6 +151,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             <div className="p-6">
               {activeTab === 'model' && <ModelSettings />}
               {activeTab === 'mcp' && <MCPSettings />}
+              {activeTab === 'personas' && <PersonasSettings />}
               {activeTab === 'general' && (
                 <div className="text-center py-12">
                   <Cog6ToothIcon className="w-12 h-12 mx-auto text-gray-300 mb-3" />
