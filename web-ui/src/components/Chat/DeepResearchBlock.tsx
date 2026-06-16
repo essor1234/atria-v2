@@ -20,7 +20,7 @@ const STATUS_COLORS = {
   queued:    'text-text-400',
   running:   'text-amber-400',
   done:      'text-emerald-400',
-  error:     'text-red-400',
+  error:     'text-semantic-danger',
 } as const;
 
 const STATUS_LABELS = {
@@ -333,13 +333,13 @@ export function DeepResearchBlock({ message }: Props) {
       {dr_status === 'running' && (
         <div className="h-0.5 bg-bg-200">
           <div
-            className="h-full bg-accent-main-100 transition-all duration-500"
+            className="h-full bg-accent-main-100 transition-all duration-slow"
             style={{ width: `${Math.max(dr_progress * 100, 3)}%` }}
           />
         </div>
       )}
       {dr_status === 'done'  && <div className="h-0.5 bg-emerald-500/60" />}
-      {dr_status === 'error' && <div className="h-0.5 bg-red-500/60" />}
+      {dr_status === 'error' && <div className="h-0.5 bg-semantic-danger/60" />}
 
       {/* Review panel — completely blocks until user responds */}
       {isReviewing && <ReviewPanel message={message} />}
@@ -356,7 +356,7 @@ export function DeepResearchBlock({ message }: Props) {
 
       {/* Error message */}
       {dr_status === 'error' && dr_error && (
-        <div className="px-4 py-2 text-xs text-red-400 font-mono border-b border-border-300/10">
+        <div className="px-4 py-2 text-xs text-semantic-danger font-mono border-b border-border-300/10">
           {dr_error}
         </div>
       )}

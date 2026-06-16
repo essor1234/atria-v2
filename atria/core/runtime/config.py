@@ -298,10 +298,6 @@ class ConfigManager:
             dirs.append(self.user_skills_dir)
         # Bundle skills (from enabled bundles)
         dirs.extend(self._get_bundle_skill_dirs())
-        # Built-in skills (lowest priority)
-        builtin_dir = get_paths(self.working_dir).builtin_skills_dir
-        if builtin_dir.exists():
-            dirs.append(builtin_dir)
         return dirs
 
     def _get_bundle_skill_dirs(self) -> list[Path]:

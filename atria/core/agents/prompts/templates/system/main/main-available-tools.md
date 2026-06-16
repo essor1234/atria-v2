@@ -17,7 +17,6 @@ Tool schemas are provided separately. Key categories:
 **MCP**: search_tools (keyword query) → discover MCP tools, then call them with data queries
 **Todos**: write_todos, update_todo, complete_todo, list_todos, clear_todos
 **Subagents**: spawn_subagent (for complex tasks, user questions, deep research, multi-file work)
-**Domain Knowledge** *(call FIRST before any domain-specific task)*: `domain_enrich(topic, context)` — searches web + synthesizes a knowledge brief into DOMAIN_SKILL.md. Call this before data analysis, research, or any field-specific work.
 
 **MCP Workflow**: `search_tools("github repository")` finds tools like `mcp__github__search_repositories`. Then call the discovered tool with your data query (e.g., `language:java stars:>=500`).
 

@@ -107,7 +107,7 @@ export function PlanApprovalDialog() {
 
   return (
     <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-      <div className="bg-bg-000 rounded-xl shadow-2xl border border-border-300/15 max-w-2xl w-full mx-4 max-h-[85vh] flex flex-col animate-slide-up">
+      <div className="bg-bg-000 rounded-xl shadow-modal border border-border-300/15 max-w-2xl w-full mx-4 max-h-[85vh] flex flex-col animate-slide-up">
         {/* Header */}
         <div className="border-b border-border-300/15 px-6 py-4 flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -165,7 +165,7 @@ export function PlanApprovalDialog() {
                 value={feedback}
                 onChange={e => setFeedback(e.target.value)}
                 placeholder="What changes would you like? (optional)"
-                className="w-full px-4 py-2.5 border border-border-300/20 rounded-lg text-sm text-text-000 bg-bg-000 focus:outline-none focus:ring-2 focus:ring-accent-secondary-100 focus:border-accent-secondary-100 placeholder-text-500 resize-none"
+                className="w-full px-4 py-2.5 border border-border-300/20 rounded-lg text-sm text-text-000 bg-bg-000 focus:border-accent-secondary-100 placeholder-text-500 resize-none"
                 rows={3}
                 autoFocus
               />

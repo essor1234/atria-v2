@@ -296,6 +296,21 @@ class BashTool(SecurityMixin, ProcessMixin, BaseTool):
             exec_env.update(env)
         # Force unbuffered Python output for immediate display
         exec_env["PYTHONUNBUFFERED"] = "1"
+        # Expose the active session id + API base so module scripts can call
+        # the in-process push_block HTTP gateway (atria/web/routes/blocks.py).
+        try:
+            from atria.web.ui_bridge import get_current_ui_callback
+
+            _cb = get_current_ui_callback()
+            _sid = getattr(_cb, "session_id", None) if _cb else None
+            if _sid and "ATRIA_SESSION_ID" not in exec_env:
+                exec_env["ATRIA_SESSION_ID"] = _sid
+        except Exception:  # noqa: BLE001 — best-effort env injection
+            pass
+        exec_env.setdefault(
+            "ATRIA_API_BASE",
+            os.environ.get("ATRIA_API_BASE", "http://127.0.0.1:8080"),
+        )
 
         try:
             # Mark operation as executing
@@ -321,16 +336,25 @@ class BashTool(SecurityMixin, ProcessMixin, BaseTool):
 
                 master_fd, slave_fd = pty.openpty()
 
-                process = subprocess.Popen(
-                    exec_command,
-                    shell=True,
-                    stdin=slave_fd,
-                    stdout=slave_fd,
-                    stderr=slave_fd,
-                    cwd=str(work_dir),
-                    env=exec_env,
-                    close_fds=True,
-                )
+                try:
+                    process = subprocess.Popen(
+                        exec_command,
+                        shell=True,
+                        stdin=slave_fd,
+                        stdout=slave_fd,
+                        stderr=slave_fd,
+                        cwd=str(work_dir),
+                        env=exec_env,
+                        close_fds=True,
+                    )
+                except BaseException:
+                    # Popen failed (e.g. fork error); both pty fds must be closed
+                    # to avoid leaks. master_fd is kept open on success for later reads.
+                    try:
+                        os.close(slave_fd)
+                    finally:
+                        os.close(master_fd)
+                    raise
                 os.close(slave_fd)  # Close slave in parent
 
                 # Capture initial startup output for background processes

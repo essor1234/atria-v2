@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
+import os
 import threading
 import webbrowser
 from contextlib import asynccontextmanager
@@ -28,8 +30,12 @@ from atria.web.routes import (
     fs_router,
     personas_router,
     analyze_router,
+    modules_router,
+    blocks_router,
+    module_dashboard_router,
 )
 from atria.web.websocket import websocket_endpoint
+from atria.core.modules.watcher import start_global_watcher, stop_global_watcher
 from atria.web.state import init_state, get_state
 from atria.core.runtime import ConfigManager, ModeManager
 from atria.core.context_engineering.history import SessionManager, UndoManager
@@ -37,6 +43,34 @@ from atria.core.runtime.approval import ApprovalManager
 
 if TYPE_CHECKING:
     from atria.core.context_engineering.mcp.manager import MCPManager
+
+
+async def _bus_handler(topic: str, payload: dict) -> None:
+    """Single subscriber callback for the message bus.
+
+    - ``atria:block:<sid>``: re-broadcast the WS envelope to all local clients;
+      the chat store on each client filters by ``session_id``.
+    - ``atria:event:<bid>``: invoke the locally-registered ``on_event`` handler
+      if this worker is the one that called ``push_block``.
+    """
+    from atria.web.websocket import ws_manager as _ws
+    from atria.web.ui_bridge import get_block_event_handler
+
+    if topic.startswith("atria:block:"):
+        await _ws.broadcast(payload)
+    elif topic.startswith("atria:event:"):
+        bid = topic.removeprefix("atria:event:")
+        handler = get_block_event_handler(bid)
+        if handler is None:
+            return
+        try:
+            handler(payload)
+        except Exception:  # noqa: BLE001
+            import logging
+
+            logging.getLogger(__name__).exception(
+                "block on_event handler failed (block_id=%s)", bid
+            )
 
 
 @asynccontextmanager
@@ -59,16 +93,65 @@ async def lifespan(app: FastAPI):
         state.ws_manager = _global_ws_manager
 
     # Bootstrap the ORM schema (idempotent — only creates missing tables).
-    from atria.db.connection import init_schema
+    from atria.db.connection import init_schema, get_sessionmaker
 
     await init_schema()
+
+    # Ensure sessionmaker is initialized
+    await get_sessionmaker()
+
+    # Start the modules filesystem watcher: reloads the in-memory registry on
+    # disk changes and broadcasts a ``modules.changed`` event to all WS clients.
+    def _broadcast_modules_changed(name: str) -> None:
+        coro = _global_ws_manager.broadcast({"type": "modules.changed", "name": name})
+        with contextlib.suppress(RuntimeError):
+            asyncio.run_coroutine_threadsafe(coro, loop)
+
+    start_global_watcher(on_change=_broadcast_modules_changed)
+
+    # Start the cross-process message bus.
+    from atria.web.bus import make_bus, set_bus
+
+    cfg = state.config_manager.get_config() if state.config_manager else None
+    bus_cfg = cfg.web.bus if cfg else None
+    bus = make_bus(
+        bus_cfg.kind if bus_cfg else "in_memory",
+        bus_cfg.redis_url if bus_cfg else "redis://localhost:6379/0",
+    )
+    bus.subscribe(_bus_handler)
+    try:
+        await bus.start()
+        set_bus(bus)
+        app.state.bus = bus
+    except Exception as exc:  # noqa: BLE001
+        # Don't crash startup if Redis is unreachable; degrade to no-bus mode
+        # (single-process push still works via in-process callback).
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "Message bus startup failed (%s); push_block falls back to "
+            "in-process only. Set web.bus.kind=in_memory to silence.",
+            exc,
+        )
+        set_bus(None)
+        app.state.bus = None
 
     # Signal that the server is ready (event loop + ws_manager are set)
     ready_event = getattr(app.state, "_ready_event", None)
     if ready_event is not None:
         ready_event.set()
 
-    yield
+    try:
+        yield
+    finally:
+        stop_global_watcher()
+        active_bus = getattr(app.state, "bus", None)
+        if active_bus is not None:
+            try:
+                await active_bus.stop()
+            except Exception:  # noqa: BLE001
+                pass
+        set_bus(None)
 
 
 def create_app() -> FastAPI:
@@ -105,6 +188,9 @@ def create_app() -> FastAPI:
     app.include_router(fs_router)
     app.include_router(personas_router)
     app.include_router(analyze_router)
+    app.include_router(modules_router)
+    app.include_router(blocks_router)
+    app.include_router(module_dashboard_router)
 
     # WebSocket endpoint
     app.add_websocket_route("/ws", websocket_endpoint)
@@ -121,6 +207,10 @@ def create_app() -> FastAPI:
         assets_dir = static_dir / "assets"
         if assets_dir.exists():
             app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="static-assets")
+
+        # Mount /static for runtime-served assets shared by custom-block iframes
+        # (e.g. /static/blocks/_base.css and /static/blocks/_base.js).
+        app.mount("/static", StaticFiles(directory=str(static_dir)), name="static-root")
 
         # SPA catch-all: serve index.html for all non-API paths
         # Registered AFTER API routes so they take priority in Starlette's route matching
@@ -387,6 +477,10 @@ def start_server(
                 },
             }
 
+            # Expose the bind address so subprocess scripts (spawned by the
+            # bash tool) can reach the in-process push_block HTTP gateway.
+            api_host = host if host not in ("0.0.0.0", "::") else "127.0.0.1"
+            os.environ.setdefault("ATRIA_API_BASE", f"http://{api_host}:{port}")
             uvicorn.run(
                 app,
                 host=host,

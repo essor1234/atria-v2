@@ -1,12 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PersonaForm } from '../Personas/PersonaForm';
-
-interface Persona {
-  name: string;
-  system_prompt: string;
-  is_built_in: boolean;
-  created_at: string;
-}
+import { apiClient } from '../../api/client';
+import type { Persona } from '../../types';
 
 export function PersonasSettings() {
   const [personas, setPersonas] = useState<Persona[]>([]);
@@ -23,9 +18,7 @@ export function PersonasSettings() {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await fetch('/api/personas');
-      if (!response.ok) throw new Error('Failed to load personas');
-      const data = await response.json();
+      const data = await apiClient.listPersonas();
       setPersonas(data);
       if (data.length > 0 && !selectedPersona) {
         setSelectedPersona(data[0]);
@@ -40,17 +33,9 @@ export function PersonasSettings() {
   const handleSavePersona = async (persona: Persona) => {
     try {
       const isNew = !personas.find(p => p.name === persona.name);
-      const method = isNew ? 'POST' : 'PUT';
-      const url = isNew ? '/api/personas' : `/api/personas/${selectedPersona?.name}`;
-
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(persona),
-      });
-
-      if (!response.ok) throw new Error('Failed to save persona');
-      const savedPersona = await response.json();
+      const savedPersona = isNew
+        ? await apiClient.createPersona(persona)
+        : await apiClient.updatePersona(selectedPersona?.name ?? persona.name, persona);
 
       if (isNew) {
         setPersonas([...personas, savedPersona]);
@@ -69,9 +54,7 @@ export function PersonasSettings() {
     if (!confirm(`Delete persona "${name}"?`)) return;
 
     try {
-      const response = await fetch(`/api/personas/${name}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Failed to delete');
-
+      await apiClient.deletePersona(name);
       setPersonas(personas.filter(p => p.name !== name));
       if (selectedPersona?.name === name) {
         setSelectedPersona(personas[0] || null);
@@ -101,7 +84,7 @@ export function PersonasSettings() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+        <div className="bg-red-50 border border-semantic-danger text-semantic-danger px-4 py-3 rounded-lg text-sm">
           {error}
         </div>
       )}
@@ -116,7 +99,7 @@ export function PersonasSettings() {
                 setSelectedPersona(null);
                 setIsEditing(true);
               }}
-              className="px-3 py-1.5 bg-ink text-inverse-ink text-xs rounded-full hover:bg-ink/90 font-medium transition-colors"
+              className="px-3 py-1.5 bg-ink text-inverse-ink text-xs rounded-full hover:bg-ink/90 font-medium transition-colors active:scale-[0.98] whitespace-nowrap"
             >
               + New
             </button>
@@ -160,7 +143,7 @@ export function PersonasSettings() {
               {!isEditing && selectedPersona && (
                 <button
                   onClick={() => handleDeletePersona(selectedPersona.name)}
-                  className="px-3 py-1.5 text-red-600 text-xs rounded-full hover:bg-red-50 font-medium transition-colors border border-red-200"
+                  className="px-3 py-1.5 text-semantic-danger text-xs rounded-full hover:bg-red-50 font-medium transition-colors border border-semantic-danger active:scale-[0.98] whitespace-nowrap"
                 >
                   Delete
                 </button>
@@ -190,7 +173,7 @@ export function PersonasSettings() {
                   </div>
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="w-full px-4 py-2 bg-ink text-inverse-ink rounded-full hover:bg-ink/90 font-medium text-sm transition-colors"
+                    className="w-full px-4 py-2 bg-ink text-inverse-ink rounded-full hover:bg-ink/90 font-medium text-sm transition-colors active:scale-[0.98] whitespace-nowrap"
                   >
                     Edit Persona
                   </button>

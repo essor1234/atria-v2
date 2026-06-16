@@ -542,7 +542,7 @@ export function ToolCallMessage({ message, hasResult }: ToolCallMessageExtProps)
             <span className="ml-auto inline-block w-3 h-3 border-[1.5px] border-ink/30 border-t-transparent rounded-full animate-spin flex-shrink-0" />
           )}
           {hasExpandableContent && !isRunning && (
-            <ChevronDown className={`w-3 h-3 text-ink/25 ml-auto flex-shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-3 h-3 text-ink/25 ml-auto flex-shrink-0 transition-transform duration-fast ${isExpanded ? 'rotate-180' : ''}`} />
           )}
         </div>
 
@@ -573,7 +573,7 @@ export function ToolCallMessage({ message, hasResult }: ToolCallMessageExtProps)
         {/* Expanded raw output */}
         {hasExpandableContent && (
           <div
-            className="overflow-hidden transition-all duration-300 ease-in-out"
+            className="overflow-hidden transition-all duration-base ease-motion-out"
             style={{ maxHeight: isExpanded ? `${expandHeight}px` : '0px' }}
           >
             <div ref={expandRef} className="px-3 pt-2 pb-3 border-t border-hairline-soft/40">

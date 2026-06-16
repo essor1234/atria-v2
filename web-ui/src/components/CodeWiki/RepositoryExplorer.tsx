@@ -100,7 +100,7 @@ export function RepositoryExplorer({ selectedRepo, onRepoSelect, searchQuery }: 
       case 'indexing':
         return <ArrowPathIcon className="w-4 h-4 text-blue-500 animate-spin" />;
       case 'error':
-        return <ExclamationCircleIcon className="w-4 h-4 text-red-500" />;
+        return <ExclamationCircleIcon className="w-4 h-4 text-semantic-danger" />;
     }
   };
 
@@ -154,7 +154,7 @@ export function RepositoryExplorer({ selectedRepo, onRepoSelect, searchQuery }: 
         return (
           <div
             key={repo.id}
-            className={`rounded-lg border transition-all duration-200 ${
+            className={`rounded-lg border transition-all duration-base ${
               isSelected
                 ? 'border-purple-500 bg-purple-50 shadow-sm'
                 : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'

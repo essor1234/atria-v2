@@ -10,7 +10,7 @@ describe('viewerTabs store', () => {
     useViewerTabsStore.getState().openTab('1', 'README.md');
     const { tabs, activeId } = useViewerTabsStore.getState().tabsByConv['1'];
     expect(tabs).toHaveLength(1);
-    expect(tabs[0].path).toBe('README.md');
+    expect(tabs[0].kind === 'file' ? tabs[0].path : '').toBe('README.md');
     expect(activeId).toBe('README.md');
   });
 
@@ -19,7 +19,7 @@ describe('viewerTabs store', () => {
     useViewerTabsStore.getState().openTab('1', 'b.txt');
     useViewerTabsStore.getState().openTab('1', 'a.txt');
     const { tabs, activeId } = useViewerTabsStore.getState().tabsByConv['1'];
-    expect(tabs.map(t => t.path)).toEqual(['a.txt', 'b.txt']);
+    expect(tabs.map(t => (t.kind === 'file' ? t.path : ''))).toEqual(['a.txt', 'b.txt']);
     expect(activeId).toBe('a.txt');
   });
 
@@ -29,7 +29,7 @@ describe('viewerTabs store', () => {
     useViewerTabsStore.getState().openTab('1', 'c.txt');
     useViewerTabsStore.getState().closeTab('1', 'b.txt');
     const { tabs, activeId } = useViewerTabsStore.getState().tabsByConv['1'];
-    expect(tabs.map(t => t.path)).toEqual(['a.txt', 'c.txt']);
+    expect(tabs.map(t => (t.kind === 'file' ? t.path : ''))).toEqual(['a.txt', 'c.txt']);
     expect(activeId).toBe('c.txt');
   });
 

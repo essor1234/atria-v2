@@ -162,6 +162,20 @@ class AgentExecutor:
         finally:
             # Clean up ReactExecutor reference
             self._current_react_executors.pop(session_id, None)
+            # Clear the ui_bridge registries so push_block calls after the run
+            # raise instead of broadcasting to a torn-down session.
+            try:
+                from atria.web.ui_bridge import (
+                    clear_runtime_context,
+                    clear_session_ui_callback,
+                    set_current_ui_callback,
+                )
+
+                clear_session_ui_callback(session_id)
+                set_current_ui_callback(None)
+                clear_runtime_context(session_id)
+            except Exception as _e:
+                logger.warning(f"Failed to clear ui_bridge callback: {_e}")
             # Always mark session as idle and clean up injection queue + approvals
             self.state.set_session_idle(session_id)
             self.state.clear_injection_queue(session_id)
@@ -248,6 +262,12 @@ class AgentExecutor:
         # Create web UI callback for plan approval, subagent events, etc.
         web_ui_callback = WebUICallback(ws_manager, loop, session_id, self.state)
 
+        # Register the callback so module code (push_block, etc.) can reach it
+        # via session_id or the contextvar. Cleared in the run-cleanup path.
+        from atria.web.ui_bridge import set_current_ui_callback
+
+        set_current_ui_callback(web_ui_callback)
+
         # Build runtime suite
         runtime_service = RuntimeService(config_manager, self.state.mode_manager)
         runtime_suite = runtime_service.build_suite(
@@ -303,87 +323,23 @@ class AgentExecutor:
             session_id=session_id,
         )
 
-        # Wire skill-context callbacks. deep_research reads ctx.review_callback at
-        # call time; deep_analyze reads ctx.subagent_dispatcher.
-        skill_ctx = getattr(runtime_suite.tool_registry, "skill_ctx", None)
-        if skill_ctx is not None:
-            skill_ctx.review_callback = web_ui_callback.request_review
-            skill_ctx.clarify_callback = web_ui_callback.request_clarify
+        # Expose the live runtime suite to ui_bridge so block_rpc tool.invoke can
+        # dispatch via the same wrapped registry/approval manager used by the agent.
+        try:
+            from atria.web.ui_bridge import set_runtime_context
 
-            _exec_state = self.state
-            _exec_loop = loop
-
-            def _on_analyze_done(job_data: Dict[str, Any]) -> None:
-                from atria.models.message import ChatMessage, Role  # noqa: PLC0415
-
-                async def _save() -> None:
-                    try:
-                        sess = await _exec_state.session_manager.get_current_session()
-                        if sess is None:
-                            return
-                        msg = ChatMessage(role=Role.ASSISTANT, content="", metadata=job_data)
-                        sess.add_message(msg)
-                        await _exec_state.session_manager.save_session(sess)
-                    except Exception as _e:
-                        logger.warning("Failed to save deep_analyze message: %s", _e)
-
-                asyncio.run_coroutine_threadsafe(_save(), _exec_loop)
-
-            skill_ctx.on_analyze_done = _on_analyze_done
-
-            def _on_clarify_message(payload: Dict[str, Any]) -> None:
-                from atria.models.message import ChatMessage, Role  # noqa: PLC0415
-
-                role_str = payload.get("role", "assistant")
-                try:
-                    role = Role(role_str)
-                except ValueError:
-                    role = Role.ASSISTANT
-
-                async def _save() -> None:
-                    try:
-                        sess = await _exec_state.session_manager.get_current_session()
-                        if sess is None:
-                            return
-                        msg = ChatMessage(
-                            role=role,
-                            content=payload.get("content", ""),
-                            metadata=payload.get("metadata") or {},
-                        )
-                        sess.add_message(msg)
-                        await _exec_state.session_manager.save_session(sess)
-                    except Exception as _e:
-                        logger.warning("Failed to save clarify message: %s", _e)
-
-                asyncio.run_coroutine_threadsafe(_save(), _exec_loop)
-
-            skill_ctx.on_clarify_message = _on_clarify_message
-
-            subagent_mgr_for_analyze = runtime_suite.tool_registry.get_subagent_manager()
-            if subagent_mgr_for_analyze is not None:
-                from atria.core.agents.subagents.manager import SubAgentDeps
-
-                _analyze_state = self.state
-                _analyze_approval = web_approval_manager
-                _analyze_ui_cb = web_ui_callback
-
-                def _spawn_analyze_subagent(agent: str, task: str) -> Any:
-                    deps = SubAgentDeps(
-                        mode_manager=_analyze_state.mode_manager,
-                        approval_manager=_analyze_approval,
-                        undo_manager=_analyze_state.undo_manager,
-                        session_manager=_analyze_state.session_manager,
-                    )
-                    return subagent_mgr_for_analyze.execute_subagent(
-                        name=agent,
-                        task=task,
-                        deps=deps,
-                        ui_callback=_analyze_ui_cb,
-                        working_dir=working_dir,
-                        show_spawn_header=True,
-                    )
-
-                skill_ctx.subagent_dispatcher = _spawn_analyze_subagent
+            set_runtime_context(
+                session_id,
+                {
+                    "tool_registry": wrapped_registry,
+                    "approval_manager": web_approval_manager,
+                    "ui_callback": web_ui_callback,
+                    "working_dir": working_dir,
+                    "config": config,
+                },
+            )
+        except Exception as _ctx_err:
+            logger.warning(f"Failed to register runtime context: {_ctx_err}")
 
         # Instantiate CostTracker for this execution
         from atria.core.runtime.cost_tracker import CostTracker
@@ -423,6 +379,25 @@ class AgentExecutor:
                 f"All files you create or save MUST be placed inside this directory. "
                 f"Use relative paths when possible."
             )
+
+        # Inject the file-based module SKILL block into the cached prefix so the LLM
+        # provider's prefix cache picks it up. Stable across turns; rebuilt only when
+        # the registry version bumps (i.e. when files change on disk).
+        try:
+            from atria.core.modules.prompt import build_skill_block
+            from atria.core.modules.registry import get_registry as _get_module_registry
+
+            _modules_block = build_skill_block(_get_module_registry())
+        except Exception as _mod_err:  # never let modules break a chat turn
+            logger.warning("Failed to build module SKILL block: %s", _mod_err)
+            _modules_block = ""
+
+        if _modules_block:
+            skill_block = "\n\n" + _modules_block
+            system_content += skill_block
+            if hasattr(agent, "_system_stable") and agent._system_stable:
+                agent._system_stable += skill_block
+
         if not message_history or message_history[0].get("role") != "system":
             message_history.insert(0, {"role": "system", "content": system_content})
         elif message_history[0].get("role") == "system" and wd_str not in message_history[0].get(
@@ -478,8 +453,8 @@ class AgentExecutor:
                 # Strip @ prefix from file references so the agent doesn't
                 # construct tool paths with @ (e.g. @.artifacts/... → .artifacts/...)
                 _clean_msg = _re.sub(
-                    r'(?:^|(?<=\s)|(?<=[^\w]))@([a-zA-Z0-9_./\-]+)',
-                    r'\1',
+                    r"(?:^|(?<=\s)|(?<=[^\w]))@([a-zA-Z0-9_./\-]+)",
+                    r"\1",
                     message,
                 )
                 query = _clean_msg + "\n\n" + _injection.text_content

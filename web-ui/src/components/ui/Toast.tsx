@@ -29,13 +29,13 @@ export function ToastContainer() {
             animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, x: 12, scale: 0.97 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg text-body-sm ${VARIANT_STYLES[toast.variant]}`}
+            className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg shadow-soft text-body-sm ${VARIANT_STYLES[toast.variant]}`}
           >
             <span className="flex-1 leading-snug">{toast.message}</span>
             <button
               onClick={() => removeToast(toast.id)}
               aria-label="Dismiss notification"
-              className="flex-shrink-0 opacity-60 hover:opacity-100 rounded-full p-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+              className="flex-shrink-0 opacity-60 hover:opacity-100 rounded-full p-0.5"
             >
               <X className="w-3.5 h-3.5" />
             </button>

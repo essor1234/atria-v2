@@ -37,7 +37,7 @@ export function RepositoryCard({ repository }: RepositoryCardProps) {
       case 'indexing':
         return <ArrowPathIcon className="w-4 h-4 text-blue-500 animate-spin" />;
       case 'error':
-        return <ExclamationCircleIcon className="w-4 h-4 text-red-500" />;
+        return <ExclamationCircleIcon className="w-4 h-4 text-semantic-danger" />;
     }
   };
 
@@ -64,7 +64,7 @@ export function RepositoryCard({ repository }: RepositoryCardProps) {
   return (
     <Link
       to={`/codewiki/${repository.name}`}
-      className="group block bg-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300 overflow-hidden"
+      className="group block bg-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-hover transition-all duration-slow overflow-hidden"
     >
       {/* Card Header with Gradient Background */}
       <div className="h-24 bg-gradient-to-br from-purple-500 via-purple-600 to-blue-600 p-4 relative overflow-hidden">

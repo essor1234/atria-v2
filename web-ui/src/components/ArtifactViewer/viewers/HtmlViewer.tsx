@@ -1,10 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { RefreshCw, ExternalLink } from 'lucide-react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { RefreshCw, ExternalLink, Code2, Eye } from 'lucide-react';
 import { apiClient } from '../../../api/client';
+import { fsScopeKey, type FsScope } from '../../../types';
+
+const MonacoViewer = lazy(() =>
+  import('./MonacoViewer').then(m => ({ default: m.MonacoViewer })),
+);
 
 interface Props {
-  convId: number;
+  scope: FsScope;
   path: string;
+  /** When true and scope is module, the Source tab edits + saves via Monaco. */
+  editable?: boolean;
 }
 
 const SHIM_TAG = '__atria_html_viewer_shim__';
@@ -123,18 +130,21 @@ function dirname(p: string): string {
   return i === -1 ? '' : p.slice(0, i);
 }
 
-export function HtmlViewer({ convId, path }: Props) {
+export function HtmlViewer({ scope, path, editable = false }: Props) {
   const [text, setText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [mode, setMode] = useState<'preview' | 'source'>('preview');
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const scopeKey = useMemo(() => fsScopeKey(scope), [scope]);
+  const canEdit = editable && scope.kind === 'module';
 
   useEffect(() => {
     let cancelled = false;
     setText(null);
     setError(null);
     apiClient
-      .readFsText(convId, path)
+      .readFsText(scope, path)
       .then(t => {
         if (!cancelled) setText(t);
       })
@@ -144,7 +154,7 @@ export function HtmlViewer({ convId, path }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [convId, path, reloadKey]);
+  }, [scopeKey, path, reloadKey]);
 
   // Listen for shim requests from the iframe and fulfill via FS endpoint.
   useEffect(() => {
@@ -157,7 +167,7 @@ export function HtmlViewer({ convId, path }: Props) {
         iframeWin.postMessage({ __atria_reply: d.__atria_request, ...payload }, '*');
       };
       try {
-        const blob = await apiClient.readFsBlob(convId, d.url);
+        const blob = await apiClient.readFsBlob(scope, d.url);
         const contentType = blob.type || 'application/octet-stream';
         const isText = /^text\/|json|xml|csv|javascript|svg/.test(contentType);
         const body = isText ? await blob.text() : await blob.arrayBuffer();
@@ -168,7 +178,7 @@ export function HtmlViewer({ convId, path }: Props) {
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, [convId]);
+  }, [scopeKey]);
 
   const srcDoc = useMemo(() => {
     if (text == null) return '';
@@ -186,42 +196,84 @@ export function HtmlViewer({ convId, path }: Props) {
     return <div className="p-4 text-xs font-mono text-ink/45">Loading…</div>;
   }
 
-  const externalUrl = apiClient.readFsUrl(convId, path);
+  const externalUrl = apiClient.readFsUrl(scope, path);
+
+  const segBtn = (active: boolean) =>
+    `inline-flex items-center gap-1 px-2 py-0.5 text-[12px] font-mono rounded cursor-pointer transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-sky-400/60 ${
+      active ? 'bg-ink/10 text-ink' : 'text-ink/55 hover:bg-surface-soft hover:text-ink/80'
+    }`;
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-end gap-1 px-2 py-1 border-b border-hairline-soft">
-        <button
-          type="button"
-          onClick={() => setReloadKey(k => k + 1)}
-          title="Reload preview"
-          aria-label="Reload preview"
-          className="inline-flex items-center gap-1 px-2 py-0.5 text-[13px] font-mono rounded cursor-pointer text-ink/65 hover:bg-surface-soft transition-colors"
-        >
-          <RefreshCw className="w-3 h-3" />
-        </button>
+      <div className="flex items-center gap-1 px-2 py-1 border-b border-hairline-soft">
+        {canEdit && (
+          <div role="tablist" aria-label="View mode" className="flex items-center gap-0.5 bg-ink/5 rounded p-0.5">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === 'preview'}
+              onClick={() => setMode('preview')}
+              title="Preview rendered HTML"
+              className={segBtn(mode === 'preview')}
+            >
+              <Eye className="w-3 h-3" />
+              Preview
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === 'source'}
+              onClick={() => setMode('source')}
+              title="Edit HTML source"
+              className={segBtn(mode === 'source')}
+            >
+              <Code2 className="w-3 h-3" />
+              Source
+            </button>
+          </div>
+        )}
+        <div className="flex-1" />
+        {mode === 'preview' && (
+          <button
+            type="button"
+            onClick={() => setReloadKey(k => k + 1)}
+            title="Reload preview"
+            aria-label="Reload preview"
+            className="inline-flex items-center gap-1 px-2 py-0.5 text-[13px] font-mono rounded cursor-pointer text-ink/65 hover:bg-surface-soft transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-sky-400/60"
+          >
+            <RefreshCw className="w-3 h-3" />
+          </button>
+        )}
         <a
           href={externalUrl}
           target="_blank"
           rel="noopener noreferrer"
           title="Open in new tab"
           aria-label="Open in new tab"
-          className="inline-flex items-center gap-1 px-2 py-0.5 text-[13px] font-mono rounded cursor-pointer text-ink/65 hover:bg-surface-soft transition-colors"
+          className="inline-flex items-center gap-1 px-2 py-0.5 text-[13px] font-mono rounded cursor-pointer text-ink/65 hover:bg-surface-soft transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-sky-400/60"
         >
           <ExternalLink className="w-3 h-3" />
         </a>
       </div>
 
-      <div className="flex-1 overflow-hidden bg-white">
-        <iframe
-          ref={iframeRef}
-          key={reloadKey}
-          title="HTML preview"
-          srcDoc={srcDoc}
-          sandbox="allow-scripts allow-forms allow-popups allow-modals"
-          className="w-full h-full border-0 bg-white"
-        />
-      </div>
+      {mode === 'source' && canEdit ? (
+        <div className="flex-1 min-h-0">
+          <Suspense fallback={<div className="p-4 text-xs font-mono text-ink/45">Loading editor…</div>}>
+            <MonacoViewer scope={scope} path={path} editable languageOverride="html" />
+          </Suspense>
+        </div>
+      ) : (
+        <div className="flex-1 overflow-hidden bg-white">
+          <iframe
+            ref={iframeRef}
+            key={reloadKey}
+            title="HTML preview"
+            srcDoc={srcDoc}
+            sandbox="allow-scripts allow-forms allow-popups allow-modals"
+            className="w-full h-full border-0 bg-white"
+          />
+        </div>
+      )}
     </div>
   );
 }

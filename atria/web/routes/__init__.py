@@ -11,6 +11,9 @@ from atria.web.routes.artifacts import router as artifacts_router
 from atria.web.routes.fs import router as fs_router
 from atria.web.routes.personas import router as personas_router
 from atria.web.routes.analyze import router as analyze_router
+from atria.web.routes.modules import router as modules_router
+from atria.web.routes.blocks import router as blocks_router
+from atria.web.routes.module_dashboard import router as module_dashboard_router
 
 __all__ = [
     "chat_router",
@@ -24,4 +27,7 @@ __all__ = [
     "fs_router",
     "personas_router",
     "analyze_router",
+    "modules_router",
+    "blocks_router",
+    "module_dashboard_router",
 ]

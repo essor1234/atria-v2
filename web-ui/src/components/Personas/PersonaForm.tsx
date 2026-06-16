@@ -1,11 +1,5 @@
 import { useState, useEffect } from 'react';
-
-interface Persona {
-  name: string;
-  system_prompt: string;
-  is_built_in: boolean;
-  created_at: string;
-}
+import type { Persona } from '../../types';
 
 interface PersonaFormProps {
   persona: Persona | null;
@@ -61,7 +55,7 @@ export function PersonaForm({ persona, onSave, onCancel }: PersonaFormProps) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g., Code Expert, Creative Writer"
-              className="w-full px-3 py-2 border border-hairline rounded-lg focus:outline-none focus:ring-2 focus:ring-ink/20 bg-canvas text-ink placeholder:text-ink/40"
+              className="w-full px-3 py-2 border border-hairline rounded-lg bg-canvas text-ink placeholder:text-ink/40"
             />
           </div>
 
@@ -74,7 +68,7 @@ export function PersonaForm({ persona, onSave, onCancel }: PersonaFormProps) {
               value={systemPrompt}
               onChange={(e) => setSystemPrompt(e.target.value)}
               placeholder="Enter custom system prompt for this persona..."
-              className="w-full px-3 py-2 border border-hairline rounded-lg focus:outline-none focus:ring-2 focus:ring-ink/20 bg-canvas text-ink resize-none font-mono text-xs leading-relaxed placeholder:text-ink/40"
+              className="w-full px-3 py-2 border border-hairline rounded-lg bg-canvas text-ink resize-none font-mono text-xs leading-relaxed placeholder:text-ink/40"
               rows={10}
             />
           </div>
@@ -85,13 +79,13 @@ export function PersonaForm({ persona, onSave, onCancel }: PersonaFormProps) {
       <div className="border-t border-hairline bg-surface-soft px-6 py-3 flex gap-3 rounded-b-lg">
         <button
           onClick={handleSave}
-          className="flex-1 px-4 py-2 bg-ink text-inverse-ink rounded-full hover:bg-ink/90 font-medium text-sm transition-colors"
+          className="flex-1 px-4 py-2 bg-ink text-inverse-ink rounded-full hover:bg-ink/90 active:scale-[0.98] font-medium text-sm transition-all whitespace-nowrap"
         >
           Save
         </button>
         <button
           onClick={onCancel}
-          className="flex-1 px-4 py-2 border border-hairline text-ink rounded-full hover:bg-canvas font-medium text-sm transition-colors"
+          className="flex-1 px-4 py-2 border border-hairline text-ink rounded-full hover:bg-canvas active:scale-[0.98] font-medium text-sm transition-all whitespace-nowrap"
         >
           Cancel
         </button>

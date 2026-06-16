@@ -36,7 +36,7 @@ function ModelInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-white font-mono"
+        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white font-mono"
       />
     </div>
   );
@@ -132,7 +132,7 @@ export function SessionModelModal({ sessionId, sessionLabel, onClose }: SessionM
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col"
+        className="bg-white rounded-2xl shadow-modal w-full max-w-lg max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -185,7 +185,7 @@ export function SessionModelModal({ sessionId, sessionLabel, onClose }: SessionM
                 <button
                   onClick={handleClear}
                   disabled={saving}
-                  className="px-4 py-2.5 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+                  className="px-4 py-2.5 border border-semantic-danger/40 text-semantic-danger rounded-lg hover:bg-semantic-danger/10 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
                 >
                   Clear Overrides
                 </button>
@@ -193,7 +193,7 @@ export function SessionModelModal({ sessionId, sessionLabel, onClose }: SessionM
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shadow-md hover:shadow-lg"
+                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shadow-soft hover:shadow-hover"
               >
                 {saving ? (
                   <span className="flex items-center justify-center gap-2">

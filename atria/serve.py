@@ -1,4 +1,5 @@
 """Web server entry point — starts the Atria FastAPI server directly."""
+
 from __future__ import annotations
 
 import argparse

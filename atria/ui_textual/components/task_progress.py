@@ -1,4 +1,5 @@
 """No-op stub for TaskProgressDisplay — TUI removed, web uses WebSocket for progress."""
+
 from __future__ import annotations
 from typing import TYPE_CHECKING
 

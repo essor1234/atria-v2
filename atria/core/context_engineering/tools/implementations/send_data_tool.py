@@ -5,10 +5,11 @@ from __future__ import annotations
 import csv
 import io
 import re
-import urllib.request
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+import httpx
 
 
 _MAX_BYTES = 10 * 1024 * 1024  # 10 MB
@@ -19,6 +20,11 @@ _URL_TIMEOUT = 30
 _ISO_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _BOOL_SET = frozenset({"true", "false", "0", "1"})
 _XLSX_MAGIC = b"PK\x03\x04"
+
+
+def _err(msg: str) -> dict[str, Any]:
+    """Build a uniform failure dict for the tool result."""
+    return {"success": False, "error": msg, "output": None}
 
 
 class SendDataHandler:
@@ -36,72 +42,33 @@ class SendDataHandler:
         suggestions = args.get("suggestions")
 
         if bool(path) == bool(url):
-            return {
-                "success": False,
-                "error": "Provide exactly one of 'path' or 'url'",
-                "output": None,
-            }
+            return _err("Provide exactly one of 'path' or 'url'")
 
         if not title:
-            return {
-                "success": False,
-                "error": "'title' is required",
-                "output": None,
-            }
+            return _err("'title' is required")
 
         if not isinstance(suggestions, list) or not suggestions:
-            return {
-                "success": False,
-                "error": "'suggestions' must be a non-empty list",
-                "output": None,
-            }
+            return _err("'suggestions' must be a non-empty list")
 
         for i, sug in enumerate(suggestions):
             if not isinstance(sug, dict):
-                return {
-                    "success": False,
-                    "error": f"suggestion[{i}] must be an object",
-                    "output": None,
-                }
+                return _err(f"suggestion[{i}] must be an object")
             if not sug.get("chart_type") or not isinstance(sug.get("chart_type"), str):
-                return {
-                    "success": False,
-                    "error": f"suggestion[{i}] missing 'chart_type'",
-                    "output": None,
-                }
+                return _err(f"suggestion[{i}] missing 'chart_type'")
             if not sug.get("x") or not isinstance(sug.get("x"), str):
-                return {
-                    "success": False,
-                    "error": f"suggestion[{i}] missing 'x' column",
-                    "output": None,
-                }
+                return _err(f"suggestion[{i}] missing 'x' column")
             y = sug.get("y")
             if not isinstance(y, list) or not y or not all(isinstance(c, str) for c in y):
-                return {
-                    "success": False,
-                    "error": f"suggestion[{i}] 'y' must be a non-empty list of strings",
-                    "output": None,
-                }
+                return _err(f"suggestion[{i}] 'y' must be a non-empty list of strings")
 
         ui_callback = getattr(context, "ui_callback", None)
         if ui_callback is None or not hasattr(ui_callback, "on_data"):
-            return {
-                "success": False,
-                "error": "UI callback unavailable; send_data only works in the web UI",
-                "output": None,
-            }
+            return _err("UI callback unavailable; send_data only works in the web UI")
 
         # Load raw bytes and decide extension
-        if url:
-            loaded = self._load_url(url)
-        else:
-            loaded = self._load_path(path)
+        loaded = self._load_url(url) if url else self._load_path(path)
         if not loaded.get("success"):
-            return {
-                "success": False,
-                "error": loaded.get("error", "Failed to load file"),
-                "output": None,
-            }
+            return _err(loaded.get("error", "Failed to load file"))
         raw: bytes = loaded["data"]
         ext: str = loaded["ext"]
 
@@ -112,24 +79,12 @@ class SendDataHandler:
             elif ext in ("xlsx", "xls"):
                 header, data_rows = self._parse_xlsx(raw)
             else:
-                return {
-                    "success": False,
-                    "error": f"Unsupported file extension: {ext}",
-                    "output": None,
-                }
+                return _err(f"Unsupported file extension: {ext}")
         except Exception as exc:  # noqa: BLE001
-            return {
-                "success": False,
-                "error": f"Failed to parse file: {exc}",
-                "output": None,
-            }
+            return _err(f"Failed to parse file: {exc}")
 
         if not data_rows:
-            return {
-                "success": False,
-                "error": "File contains no data rows",
-                "output": None,
-            }
+            return _err("File contains no data rows")
 
         # Dedup header names
         header = self._dedup_header(header)
@@ -179,27 +134,19 @@ class SendDataHandler:
             rows.append(obj)
 
         # Validate suggestion column refs
-        col_name_set = {h for h in header}
+        col_name_set = set(header)
         for i, sug in enumerate(suggestions):
             if sug["x"] not in col_name_set:
-                return {
-                    "success": False,
-                    "error": (
-                        f"suggestion[{i}].x references unknown column '{sug['x']}'. "
-                        f"Available: {sorted(col_name_set)}"
-                    ),
-                    "output": None,
-                }
+                return _err(
+                    f"suggestion[{i}].x references unknown column '{sug['x']}'. "
+                    f"Available: {sorted(col_name_set)}"
+                )
             for y_col in sug["y"]:
                 if y_col not in col_name_set:
-                    return {
-                        "success": False,
-                        "error": (
-                            f"suggestion[{i}].y references unknown column '{y_col}'. "
-                            f"Available: {sorted(col_name_set)}"
-                        ),
-                        "output": None,
-                    }
+                    return _err(
+                        f"suggestion[{i}].y references unknown column '{y_col}'. "
+                        f"Available: {sorted(col_name_set)}"
+                    )
 
         warning_text = "; ".join(warnings) if warnings else None
 
@@ -238,10 +185,7 @@ class SendDataHandler:
             return {"success": False, "error": f"File not found: {path}"}
         size = p.stat().st_size
         if size > _MAX_BYTES:
-            return {
-                "success": False,
-                "error": f"File too large ({size} bytes; max {_MAX_BYTES})",
-            }
+            return {"success": False, "error": f"File too large ({size} bytes; max {_MAX_BYTES})"}
         ext = p.suffix.lower().lstrip(".")
         if ext not in ("csv", "xlsx", "xls"):
             return {"success": False, "error": f"Unsupported file extension: .{ext}"}
@@ -253,30 +197,26 @@ class SendDataHandler:
 
         # Best-effort extension from URL path
         url_ext = ""
-        try:
-            tail = url.split("?", 1)[0].rsplit("/", 1)[-1]
-            if "." in tail:
-                url_ext = tail.rsplit(".", 1)[-1].lower()
-        except Exception:  # noqa: BLE001
-            url_ext = ""
+        tail = url.split("?", 1)[0].rsplit("/", 1)[-1]
+        if "." in tail:
+            url_ext = tail.rsplit(".", 1)[-1].lower()
 
+        content_type = ""
+        buf = bytearray()
         try:
-            with urllib.request.urlopen(url, timeout=_URL_TIMEOUT) as resp:  # noqa: S310
-                content_type = ""
-                try:
-                    content_type = (resp.headers.get("Content-Type") or "").lower()
-                except Exception:  # noqa: BLE001
-                    content_type = ""
-                # Read up to _MAX_BYTES + 1 to detect overflow
-                data = resp.read(_MAX_BYTES + 1)
-        except Exception as exc:  # noqa: BLE001
+            with httpx.stream("GET", url, timeout=_URL_TIMEOUT, follow_redirects=True) as resp:
+                resp.raise_for_status()
+                content_type = (resp.headers.get("Content-Type") or "").lower()
+                for chunk in resp.iter_bytes(chunk_size=64 * 1024):
+                    buf.extend(chunk)
+                    if len(buf) > _MAX_BYTES:
+                        return {
+                            "success": False,
+                            "error": f"Remote file exceeds {_MAX_BYTES} bytes",
+                        }
+        except httpx.HTTPError as exc:
             return {"success": False, "error": f"Failed to fetch URL: {exc}"}
-
-        if len(data) > _MAX_BYTES:
-            return {
-                "success": False,
-                "error": f"Remote file exceeds {_MAX_BYTES} bytes",
-            }
+        data = bytes(buf)
 
         # Decide ext
         ext = url_ext if url_ext in ("csv", "xlsx", "xls") else ""
@@ -341,10 +281,7 @@ class SendDataHandler:
                     continue
                 data_rows.append([c if c is not None else "" for c in row])  # type: ignore[misc]
         finally:
-            try:
-                wb.close()
-            except Exception:  # noqa: BLE001
-                pass
+            wb.close()
         # Stringify cells in data_rows (datetime preserved as ISO for parser)
         out_rows: list[list[str]] = []
         for row in data_rows:
@@ -412,19 +349,29 @@ class SendDataHandler:
 
     @classmethod
     def _infer_column_type(cls, values: list[str]) -> str:
-        non_empty = [v for v in values if v != ""]
-        if not non_empty:
+        """Pick the narrowest type that fits every non-empty cell — single pass."""
+        all_number = all_date = all_bool = True
+        seen_any = False
+        for v in values:
+            if v == "":
+                continue
+            seen_any = True
+            if all_number and cls._try_float(v) is None:
+                all_number = False
+            if all_date and cls._try_date(v) is None:
+                all_date = False
+            if all_bool and v.lower() not in _BOOL_SET:
+                all_bool = False
+            if not (all_number or all_date or all_bool):
+                return "string"
+        if not seen_any:
             return "string"
-
-        if all(cls._try_float(v) is not None for v in non_empty):
+        if all_number:
             return "number"
-
-        if all(cls._try_date(v) is not None for v in non_empty):
+        if all_date:
             return "date"
-
-        if all(v.lower() in _BOOL_SET for v in non_empty):
+        if all_bool:
             return "bool"
-
         return "string"
 
     @classmethod

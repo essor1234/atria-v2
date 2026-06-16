@@ -48,7 +48,7 @@ export function Modal({ isOpen, onClose, title, children, className = '' }: Moda
             animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className={`relative bg-canvas rounded-lg w-full max-w-md m-4 border border-hairline-soft ${className}`}
+            className={`relative bg-canvas rounded-lg shadow-modal w-full max-w-md m-4 border border-hairline-soft ${className}`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-4 border-b border-hairline-soft">
@@ -57,7 +57,7 @@ export function Modal({ isOpen, onClose, title, children, className = '' }: Moda
               </h2>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-full text-ink/60 hover:bg-surface-soft hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                className="p-1.5 rounded-full text-ink/60 hover:bg-surface-soft hover:text-ink"
                 aria-label="Close modal"
               >
                 <X className="w-[18px] h-[18px]" strokeWidth={1.5} />

@@ -1,28 +1,30 @@
-import { useEffect, useState, Suspense, lazy } from 'react';
+import { useEffect, useMemo, useState, Suspense, lazy } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Eye, FileCode2 } from 'lucide-react';
 import { apiClient } from '../../../api/client';
+import { fsScopeKey, type FsScope } from '../../../types';
 
 const MonacoViewer = lazy(() =>
   import('./MonacoViewer').then(m => ({ default: m.MonacoViewer })),
 );
 
-interface Props { convId: number; path: string }
+interface Props { scope: FsScope; path: string; editable?: boolean }
 
-export function MarkdownViewer({ convId, path }: Props) {
+export function MarkdownViewer({ scope, path, editable }: Props) {
   const [text, setText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<'preview' | 'source'>('preview');
+  const scopeKey = useMemo(() => fsScopeKey(scope), [scope]);
 
   useEffect(() => {
     let cancelled = false;
     setText(null);
     setError(null);
-    apiClient.readFsText(convId, path)
+    apiClient.readFsText(scope, path)
       .then(t => { if (!cancelled) setText(t); })
       .catch(e => { if (!cancelled) setError(String(e)); });
     return () => { cancelled = true; };
-  }, [convId, path]);
+  }, [scopeKey, path]);
 
   if (error) return <div className="p-4 text-xs font-mono text-block-coral">Failed to load file: {error}</div>;
   if (text === null) return <div className="p-4 text-xs font-mono text-ink/45">Loading…</div>;
@@ -54,7 +56,7 @@ export function MarkdownViewer({ convId, path }: Props) {
           </div>
         ) : (
           <Suspense fallback={<div className="p-4 text-xs font-mono text-ink/45">Loading editor…</div>}>
-            <MonacoViewer convId={convId} path={path} languageOverride="markdown" />
+            <MonacoViewer scope={scope} path={path} languageOverride="markdown" editable={editable} />
           </Suspense>
         )}
       </div>

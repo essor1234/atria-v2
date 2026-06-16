@@ -316,7 +316,7 @@ async def delete_session(
 
         state = get_state()
         try:
-            session = await state.session_manager.get_session_by_id(
+            await state.session_manager.get_session_by_id(
                 session_id, owner_id=str(user.id)
             )
         except FileNotFoundError:
@@ -334,6 +334,77 @@ async def delete_session(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/{session_id}/turns/{turn_index}")
+async def delete_session_turn(
+    session_id: str,
+    turn_index: int,
+    user=Depends(require_authenticated_user),
+) -> Dict[str, Any]:
+    """Soft-delete a turn slice from a session and broadcast the replacement.
+
+    A "turn" begins at a user message and extends through subsequent
+    non-user messages. ``turn_index`` must point at a USER message.
+    """
+    state = get_state()
+
+    # Ownership check (consistent with other routes that read this session).
+    try:
+        session = await state.session_manager.get_session_by_id(
+            session_id, owner_id=str(user.id)
+        )
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+
+    before_count = len(session.messages)
+
+    try:
+        remaining = await state.session_manager.delete_turn(session_id, turn_index)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+    except IndexError:
+        raise HTTPException(status_code=404, detail="turn_index out of range")
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    visible = [m for m in remaining if not m.metadata.get("display_hidden")]
+    payload = [
+        MessageResponse(
+            role=m.role.value,
+            content=m.content,
+            timestamp=(
+                m.timestamp.isoformat()
+                if hasattr(m, "timestamp") and m.timestamp
+                else None
+            ),
+            tool_calls=(
+                [tool_call_to_info(tc) for tc in m.tool_calls] if m.tool_calls else None
+            ),
+            thinking_trace=m.thinking_trace,
+            reasoning_content=m.reasoning_content,
+            metadata=m.metadata if m.metadata else None,
+        )
+        for m in visible
+    ]
+    payload_dicts = [p.model_dump() for p in payload]
+
+    # Best-effort broadcast so other connected tabs reconcile.
+    try:
+        from atria.web.state import broadcast_to_all_clients
+
+        await broadcast_to_all_clients(
+            {
+                "type": "session_messages_replaced",
+                "session_id": session_id,
+                "messages": payload_dicts,
+            }
+        )
+    except Exception:
+        pass
+
+    deleted_count = before_count - len(remaining)
+    return {"deleted": deleted_count, "messages": payload_dicts}
 
 
 @router.get("/{session_id}/export")

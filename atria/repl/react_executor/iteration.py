@@ -521,6 +521,7 @@ class IterationMixin:
             if content:
                 ctx.messages.append({"role": "assistant", "content": raw_content or content})
                 self._display_message(content, ctx.ui_callback)
+                self._add_assistant_message(content, raw_content)
             append_nudge(ctx.messages, nudge)
             return LoopAction.CONTINUE
 
@@ -529,6 +530,7 @@ class IterationMixin:
             if content:
                 ctx.messages.append({"role": "assistant", "content": raw_content or content})
                 self._display_message(content, ctx.ui_callback)
+                self._add_assistant_message(content, raw_content)
             return LoopAction.CONTINUE
 
         # Before accepting implicit completion, remind of original task (once) —
@@ -540,6 +542,7 @@ class IterationMixin:
             if content:
                 ctx.messages.append({"role": "assistant", "content": raw_content or content})
                 self._display_message(content, ctx.ui_callback)
+                self._add_assistant_message(content, raw_content)
             append_nudge(
                 ctx.messages,
                 get_reminder("implicit_completion_nudge", original_task=ctx.query),
@@ -581,6 +584,7 @@ class IterationMixin:
                 if content:
                     ctx.messages.append({"role": "assistant", "content": raw_content or content})
                     self._display_message(content, ctx.ui_callback)
+                    self._add_assistant_message(content, raw_content)
                 append_nudge(ctx.messages, nudge)
                 ctx.consecutive_no_tool_calls = 0
                 return LoopAction.CONTINUE
@@ -596,6 +600,7 @@ class IterationMixin:
         if content:
             ctx.messages.append({"role": "assistant", "content": raw_content or content})
             self._display_message(content, ctx.ui_callback)
+            self._add_assistant_message(content, raw_content)
 
         append_nudge(ctx.messages, get_reminder("failed_tool_nudge"))
         return LoopAction.CONTINUE

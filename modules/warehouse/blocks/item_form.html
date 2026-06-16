@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Warehouse item</title>
+  <link rel="stylesheet" href="../__base.css" />
+  <style>
+    :root {
+      color-scheme: light;
+      --ink:           #0a0a0a;
+      --muted-ink:     #525252;
+      --label-ink:     #404040;
+      --canvas:        #ffffff;
+      --surface-soft:  #f7f6f3;
+      --hairline:      #e5e5e5;
+      --hairline-soft: #ececec;
+      --focus-ring:    #0a0a0a;
+      --danger:        #b91c1c;
+      --danger-soft:   #fef2f2;
+      --primary-bg:    #0a0a0a;
+      --primary-fg:    #ffffff;
+    }
+    /* Force light surface — the form is a white card on a possibly-dark host. */
+    html, body { background: var(--canvas); }
+    body {
+      margin: 0;
+      padding: 18px;
+      color: var(--ink);
+      font-family: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+    }
+    .card {
+      background: var(--canvas);
+      border: 1px solid var(--hairline-soft);
+      border-radius: 14px;
+      padding: 18px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    h2 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+    }
+    .mode-pill {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 500;
+      color: var(--muted-ink);
+      background: var(--surface-soft);
+      border: 1px solid var(--hairline-soft);
+      padding: 3px 9px;
+      border-radius: 999px;
+    }
+    form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 14px;
+    }
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--label-ink);
+    }
+    label.full { grid-column: 1 / -1; }
+    input {
+      font: inherit;
+      color: var(--ink);
+      background: var(--canvas);
+      border: 1px solid var(--hairline);
+      border-radius: 8px;
+      padding: 9px 11px;
+      font-size: 13px;
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+    }
+    input::placeholder { color: #a3a3a3; }
+    input:hover { border-color: #d4d4d4; }
+    input:focus {
+      outline: none;
+      border-color: var(--focus-ring);
+      box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.08);
+    }
+    input[readonly] {
+      background: var(--surface-soft);
+      color: var(--muted-ink);
+      cursor: not-allowed;
+    }
+    .error {
+      color: var(--danger);
+      background: var(--danger-soft);
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 8px 11px;
+      grid-column: 1 / -1;
+      display: none;
+    }
+    .error.visible { display: block; }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      grid-column: 1 / -1;
+      margin-top: 6px;
+      padding-top: 14px;
+      border-top: 1px solid var(--hairline-soft);
+    }
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 0;
+      border-radius: 999px;
+      padding: 9px 18px;
+      transition: background-color 150ms ease, color 150ms ease, transform 100ms ease, box-shadow 150ms ease;
+    }
+    button:active { transform: translateY(1px); }
+    button:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.18);
+    }
+    button.primary {
+      background: var(--primary-bg);
+      color: var(--primary-fg);
+      box-shadow: 0 1px 2px rgba(10, 10, 10, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+    button.primary:hover { background: #262626; }
+    button.primary:disabled {
+      background: #a3a3a3;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    button.secondary {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--hairline);
+    }
+    button.secondary:hover { background: var(--surface-soft); }
+    button svg { display: block; }
+  </style>
+</head>
+<body>
+  <div class="card" id="root">
+    <header>
+      <h2 id="title">Warehouse item</h2>
+      <span class="mode-pill" id="mode-pill">…</span>
+    </header>
+    <form id="form" novalidate>
+      <label>SKU
+        <input id="sku" name="sku" required autocomplete="off" list="sku-list" />
+        <datalist id="sku-list"></datalist>
+      </label>
+      <label>Name
+        <input id="name" name="name" required autocomplete="off" list="name-list" />
+        <datalist id="name-list"></datalist>
+      </label>
+      <label>Location
+        <input id="location" name="location" placeholder="A1-03" autocomplete="off" list="location-list" />
+        <datalist id="location-list"></datalist>
+      </label>
+      <label>Quantity
+        <input id="quantity" name="quantity" type="number" min="0" step="1" required />
+      </label>
+      <label>Unit price
+        <input id="unit_price" name="unit_price" type="number" min="0" step="0.01" required />
+      </label>
+      <label>Reorder level
+        <input id="reorder_level" name="reorder_level" type="number" min="0" step="1" required />
+      </label>
+      <div class="error" id="error" role="alert"></div>
+      <div class="actions">
+        <button type="button" class="secondary" id="cancel">Cancel</button>
+        <button type="submit" class="primary" id="submit">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M22 2 11 13"/>
+            <path d="M22 2 15 22l-4-9-9-4 20-7Z"/>
+          </svg>
+          <span id="submit-label">Save item</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script src="../__bridge.js"></script>
+  <script>
+    (function () {
+      var FIELDS = ["sku", "name", "location", "quantity", "unit_price", "reorder_level"];
+      var mode = "create";
+      var existingSkus = [];
+
+      function fillDatalist(id, values) {
+        var dl = document.getElementById(id);
+        if (!dl) return;
+        dl.innerHTML = "";
+        (values || []).forEach(function (v) {
+          var opt = document.createElement("option");
+          opt.value = v;
+          dl.appendChild(opt);
+        });
+      }
+
+      function applySuggestions(s) {
+        s = s || {};
+        existingSkus = (s.sku || []).map(function (v) { return String(v).toLowerCase(); });
+        fillDatalist("sku-list", mode === "edit" ? [] : (s.sku || []));
+        fillDatalist("name-list", s.name);
+        fillDatalist("location-list", s.location);
+      }
+
+      function setMode(m) {
+        mode = m === "edit" ? "edit" : "create";
+        document.getElementById("mode-pill").textContent = mode;
+        document.getElementById("title").textContent =
+          mode === "edit" ? "Edit item" : "New item";
+        document.getElementById("sku").readOnly = (mode === "edit");
+        var submitLabel = document.getElementById("submit-label");
+        if (submitLabel) submitLabel.textContent = mode === "edit" ? "Save changes" : "Add item";
+      }
+
+      function fill(item) {
+        FIELDS.forEach(function (f) {
+          var el = document.getElementById(f);
+          if (el && item && item[f] != null) el.value = item[f];
+        });
+      }
+
+      function readForm() {
+        var data = {};
+        FIELDS.forEach(function (f) {
+          var el = document.getElementById(f);
+          data[f] = el ? el.value.trim() : "";
+        });
+        return data;
+      }
+
+      function validate(data) {
+        if (!data.sku) return "SKU is required.";
+        if (mode === "create" && existingSkus.indexOf(data.sku.toLowerCase()) >= 0)
+          return "SKU already exists — use Edit mode to update it.";
+        if (!data.name) return "Name is required.";
+        if (data.quantity === "" || isNaN(+data.quantity) || +data.quantity < 0)
+          return "Quantity must be a non-negative number.";
+        if (data.unit_price === "" || isNaN(+data.unit_price) || +data.unit_price < 0)
+          return "Unit price must be a non-negative number.";
+        if (data.reorder_level === "" || isNaN(+data.reorder_level) || +data.reorder_level < 0)
+          return "Reorder level must be a non-negative number.";
+        return "";
+      }
+
+      function reportSize() {
+        var h = Math.max(
+          document.body.scrollHeight,
+          document.documentElement.scrollHeight,
+          document.getElementById("root").offsetHeight + 32
+        );
+        AtriaBlock.resize(h);
+      }
+
+      AtriaBlock.onTheme(function () {});
+      AtriaBlock.onProps(function (props) {
+        props = props || {};
+        setMode(props.mode);
+        applySuggestions(props.suggestions);
+        fill(props.item || {});
+        reportSize();
+        requestAnimationFrame(reportSize);
+      });
+
+      if (typeof ResizeObserver !== "undefined") {
+        new ResizeObserver(reportSize).observe(document.body);
+      }
+      window.addEventListener("load", reportSize);
+
+      // Interactions are injected as natural-language chat messages so the
+      // agent (any runtime) interprets them — no typed RPC, no module-
+      // specific server handler. The prompt is written as a direct
+      // instruction naming the warehouse module's CLI, so the agent runs
+      // the bash command and persists the row to data/inventory.csv.
+      function shellQuote(v) {
+        var s = String(v == null ? "" : v);
+        return "'" + s.replace(/'/g, "'\\''") + "'";
+      }
+
+      function buildSubmitPrompt(data) {
+        var sub = mode === "edit" ? "update" : "add";
+        var flags = [
+          "--sku " + shellQuote(data.sku),
+          "--name " + shellQuote(data.name),
+          "--location " + shellQuote(data.location || ""),
+          "--quantity " + parseInt(data.quantity, 10),
+          "--unit-price " + parseFloat(data.unit_price),
+          "--reorder-level " + parseInt(data.reorder_level, 10),
+        ].join(" ");
+        return [
+          "Persist this warehouse item to data/inventory.csv by running the",
+          "warehouse module's inventory CLI (do not write CSV by hand):",
+          "",
+          "    python <modules>/warehouse/scripts/inventory.py " + sub + " " + flags,
+          "",
+          "Submitted from the item form (mode=" + mode + "). After the script",
+          "succeeds, briefly confirm the change.",
+        ].join("\n");
+      }
+
+      document.getElementById("form").addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        var data = readForm();
+        var err = validate(data);
+        var errEl = document.getElementById("error");
+        if (err) {
+          errEl.textContent = err;
+          errEl.classList.add("visible");
+          reportSize();
+          return;
+        }
+        errEl.textContent = "";
+        errEl.classList.remove("visible");
+        AtriaBlock.sendMessage(buildSubmitPrompt(data));
+      });
+
+      document.getElementById("cancel").addEventListener("click", function () {
+        AtriaBlock.sendMessage("Cancel the warehouse item form — no changes to apply.");
+      });
+
+      AtriaBlock.ready();
+    })();
+  </script>
+</body>
+</html>

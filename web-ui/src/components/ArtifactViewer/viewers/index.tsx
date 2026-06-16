@@ -7,6 +7,8 @@ import { PdfViewer } from './PdfViewer';
 import { MarkdownViewer } from './MarkdownViewer';
 import { HtmlViewer } from './HtmlViewer';
 import { CsvViewer } from './CsvViewer';
+import { ModuleEditor } from './ModuleEditor';
+import type { FsScope, ViewerTab } from '../../../types';
 
 const MonacoViewer = lazy(() =>
   import('./MonacoViewer').then(m => ({ default: m.MonacoViewer })),
@@ -17,25 +19,34 @@ const ExcelViewer = lazy(() =>
 
 interface Props {
   convId: number;
-  path: string;
-  name: string;
-  ext: string;
+  tab: ViewerTab;
 }
 
 function Fallback() {
   return <div className="p-4 text-xs font-mono text-ink/45">Loading viewer…</div>;
 }
 
-export function ViewerDispatcher({ convId, path, name, ext }: Props) {
-  const url = apiClient.readFsUrl(convId, path);
+export function ViewerDispatcher({ convId, tab }: Props) {
+  if (tab.kind === 'module') {
+    return <ModuleEditor convId={String(convId)} name={tab.name} />;
+  }
+
+  const scope: FsScope =
+    tab.kind === 'module-file'
+      ? { kind: 'module', name: tab.module }
+      : { kind: 'conv', id: convId };
+  const { path, name, ext } = tab;
+  const url = apiClient.readFsUrl(scope, path);
+  const editable = tab.kind === 'module-file';
   const kind = pickRenderer(ext);
+
   switch (kind) {
     case 'csv':
-      return <CsvViewer convId={convId} path={path} />;
+      return <CsvViewer scope={scope} path={path} />;
     case 'excel':
       return (
         <Suspense fallback={<Fallback />}>
-          <ExcelViewer convId={convId} path={path} />
+          <ExcelViewer scope={scope} path={path} />
         </Suspense>
       );
     case 'image':
@@ -43,17 +54,17 @@ export function ViewerDispatcher({ convId, path, name, ext }: Props) {
     case 'pdf':
       return <PdfViewer url={url} name={name} />;
     case 'markdown':
-      return <MarkdownViewer convId={convId} path={path} />;
+      return <MarkdownViewer scope={scope} path={path} editable={editable} />;
     case 'html':
-      return <HtmlViewer convId={convId} path={path} />;
+      return <HtmlViewer scope={scope} path={path} editable={editable} />;
     case 'monaco':
       return (
         <Suspense fallback={<Fallback />}>
-          <MonacoViewer convId={convId} path={path} />
+          <MonacoViewer scope={scope} path={path} editable={editable} />
         </Suspense>
       );
     case 'binary':
     default:
-      return <BinaryFallback convId={convId} path={path} url={url} />;
+      return <BinaryFallback path={path} url={url} />;
   }
 }

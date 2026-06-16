@@ -4,26 +4,22 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import queue as queue_mod
 import threading
-from typing import Any, Callable, Coroutine, Dict, List, Optional
+from queue import Queue
 from threading import Lock
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict, List, Optional
 
-logger = logging.getLogger(__name__)
-
-from atria.core.runtime import ConfigManager, ModeManager
 from atria.core.context_engineering.history import UndoManager
-from atria.core.runtime.approval import ApprovalManager
 from atria.core.auth.pg_user_store import PgUserStore
-from atria.models.user import User
+from atria.core.runtime import ConfigManager, ModeManager
+from atria.core.runtime.approval import ApprovalManager
 from atria.models.message import ChatMessage
-
-
-# Type imports
-from typing import TYPE_CHECKING
+from atria.models.user import User
 
 if TYPE_CHECKING:
     from atria.core.context_engineering.mcp.manager import MCPManager
+
+logger = logging.getLogger(__name__)
 
 
 class WebState:
@@ -81,20 +77,11 @@ class WebState:
         # Pending plan approval requests
         self._pending_plan_approvals: Dict[str, Dict[str, Any]] = {}
 
-        # Pending deep research taxonomy review requests
-        self._pending_taxonomy_reviews: Dict[str, Dict[str, Any]] = {}
-
-        # Pending deep_analyze plan review requests
-        self._pending_plan_reviews: Dict[str, Dict[str, Any]] = {}
-
-        # Pending deep_analyze EXPLORE clarification Q&A requests
-        self._pending_clarify_reviews: Dict[str, Dict[str, Any]] = {}
-
         # Running sessions: session_id -> "running"
         self._running_sessions: Dict[str, str] = {}
 
         # Live message injection queues: session_id -> Queue
-        self._injection_queues: Dict[str, queue_mod.Queue[str]] = {}
+        self._injection_queues: Dict[str, Queue[str]] = {}
 
         # Bridge mode: TUI injects messages via this callable
         self.tui_message_injector: Optional[Callable[[str, str], None]] = None
@@ -311,11 +298,11 @@ class WebState:
 
     # --- Injection queues ---
 
-    def get_injection_queue(self, session_id: str) -> queue_mod.Queue[str]:
+    def get_injection_queue(self, session_id: str) -> Queue[str]:
         """Get or create the injection queue for a session."""
         with self._lock:
             if session_id not in self._injection_queues:
-                self._injection_queues[session_id] = queue_mod.Queue(maxsize=10)
+                self._injection_queues[session_id] = Queue(maxsize=10)
             return self._injection_queues[session_id]
 
     def clear_injection_queue(self, session_id: str) -> None:
@@ -424,169 +411,6 @@ class WebState:
         with self._lock:
             self._pending_plan_approvals.pop(request_id, None)
 
-    # --- Taxonomy review state ---
-
-    def add_pending_taxonomy_review(
-        self,
-        request_id: str,
-        data: Dict[str, Any],
-        session_id: Optional[str] = None,
-        event: Optional[threading.Event] = None,
-    ) -> None:
-        """Add a pending taxonomy review request."""
-        with self._lock:
-            self._pending_taxonomy_reviews[request_id] = {
-                "data": data,
-                "resolved": False,
-                "taxonomy": None,
-                "depth": "standard",
-                "session_id": session_id,
-                "_event": event,
-            }
-        self._schedule_async(self._persist_pending("taxonomy_review", request_id, session_id, data))
-
-    def resolve_taxonomy_review(
-        self,
-        request_id: str,
-        action: str = "accept",
-        taxonomy: Optional[Dict[str, Any]] = None,
-        depth: str = "standard",
-        topic: Optional[str] = None,
-        instructions: Optional[str] = None,
-    ) -> bool:
-        """Resolve a pending taxonomy review request."""
-        with self._lock:
-            if request_id in self._pending_taxonomy_reviews:
-                self._pending_taxonomy_reviews[request_id]["resolved"] = True
-                self._pending_taxonomy_reviews[request_id]["action"] = action
-                self._pending_taxonomy_reviews[request_id]["taxonomy"] = taxonomy
-                self._pending_taxonomy_reviews[request_id]["depth"] = depth
-                self._pending_taxonomy_reviews[request_id]["topic"] = topic
-                self._pending_taxonomy_reviews[request_id]["instructions"] = instructions
-                event = self._pending_taxonomy_reviews[request_id].get("_event")
-                if event:
-                    event.set()
-                return True
-            return False
-
-    def get_pending_taxonomy_review(self, request_id: str) -> Optional[Dict[str, Any]]:
-        """Get a pending taxonomy review request."""
-        with self._lock:
-            return self._pending_taxonomy_reviews.get(request_id)
-
-    def clear_taxonomy_review(self, request_id: str) -> None:
-        """Clear a resolved taxonomy review request."""
-        with self._lock:
-            self._pending_taxonomy_reviews.pop(request_id, None)
-
-    # --- Plan review state ---
-
-    def add_pending_plan_review(
-        self,
-        request_id: str,
-        data: Dict[str, Any],
-        session_id: Optional[str] = None,
-        event: Optional[threading.Event] = None,
-    ) -> None:
-        with self._lock:
-            self._pending_plan_reviews[request_id] = {
-                "data": data,
-                "resolved": False,
-                "action": None,
-                "instructions": None,
-                "session_id": session_id,
-                "_event": event,
-            }
-        self._schedule_async(self._persist_pending("plan_review", request_id, session_id, data))
-
-    def resolve_plan_review(
-        self,
-        request_id: str,
-        action: str = "accept",
-        instructions: Optional[str] = None,
-    ) -> bool:
-        with self._lock:
-            if request_id in self._pending_plan_reviews:
-                self._pending_plan_reviews[request_id]["resolved"] = True
-                self._pending_plan_reviews[request_id]["action"] = action
-                self._pending_plan_reviews[request_id]["instructions"] = instructions
-                event = self._pending_plan_reviews[request_id].get("_event")
-                if event:
-                    event.set()
-                return True
-            return False
-
-    def get_pending_plan_review(self, request_id: str) -> Optional[Dict[str, Any]]:
-        with self._lock:
-            return self._pending_plan_reviews.get(request_id)
-
-    def clear_plan_review(self, request_id: str) -> None:
-        with self._lock:
-            self._pending_plan_reviews.pop(request_id, None)
-
-    async def aresolve_plan_review(
-        self,
-        request_id: str,
-        action: str = "accept",
-        instructions: Optional[str] = None,
-    ) -> bool:
-        ok = self.resolve_plan_review(request_id, action, instructions)
-        response = {"action": action, "instructions": instructions}
-        db_ok = await self._persist_resolution(request_id, response)
-        return ok or db_ok
-
-    # --- Clarify review state (deep_analyze EXPLORE phase) ---
-
-    def add_pending_clarify_review(
-        self,
-        request_id: str,
-        data: Dict[str, Any],
-        session_id: Optional[str] = None,
-        event: Optional[threading.Event] = None,
-    ) -> None:
-        with self._lock:
-            self._pending_clarify_reviews[request_id] = {
-                "data": data,
-                "resolved": False,
-                "answers": None,
-                "session_id": session_id,
-                "_event": event,
-            }
-        self._schedule_async(self._persist_pending("clarify_review", request_id, session_id, data))
-
-    def resolve_clarify_review(
-        self,
-        request_id: str,
-        answers: Optional[List[Dict[str, Any]]] = None,
-    ) -> bool:
-        with self._lock:
-            if request_id in self._pending_clarify_reviews:
-                self._pending_clarify_reviews[request_id]["resolved"] = True
-                self._pending_clarify_reviews[request_id]["answers"] = answers or []
-                event = self._pending_clarify_reviews[request_id].get("_event")
-                if event:
-                    event.set()
-                return True
-            return False
-
-    def get_pending_clarify_review(self, request_id: str) -> Optional[Dict[str, Any]]:
-        with self._lock:
-            return self._pending_clarify_reviews.get(request_id)
-
-    def clear_clarify_review(self, request_id: str) -> None:
-        with self._lock:
-            self._pending_clarify_reviews.pop(request_id, None)
-
-    async def aresolve_clarify_review(
-        self,
-        request_id: str,
-        answers: Optional[List[Dict[str, Any]]] = None,
-    ) -> bool:
-        ok = self.resolve_clarify_review(request_id, answers)
-        response = {"answers": answers or []}
-        db_ok = await self._persist_resolution(request_id, response)
-        return ok or db_ok
-
     # ──────────────────────────────────────────────────────────────────
     # Persistence for pending reviews
     #
@@ -684,26 +508,6 @@ class WebState:
     ) -> bool:
         ok = self.resolve_plan_approval(request_id, action, feedback)
         response = {"action": action, "feedback": feedback}
-        db_ok = await self._persist_resolution(request_id, response)
-        return ok or db_ok
-
-    async def aresolve_taxonomy_review(
-        self,
-        request_id: str,
-        action: str = "accept",
-        taxonomy: Optional[Dict[str, Any]] = None,
-        depth: str = "standard",
-        topic: Optional[str] = None,
-        instructions: Optional[str] = None,
-    ) -> bool:
-        ok = self.resolve_taxonomy_review(request_id, action, taxonomy, depth, topic, instructions)
-        response = {
-            "action": action,
-            "taxonomy": taxonomy,
-            "depth": depth,
-            "topic": topic,
-            "instructions": instructions,
-        }
         db_ok = await self._persist_resolution(request_id, response)
         return ok or db_ok
 

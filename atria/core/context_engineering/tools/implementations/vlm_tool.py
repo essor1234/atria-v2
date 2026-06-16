@@ -354,7 +354,6 @@ class VLMTool:
         Returns:
             Result dictionary
         """
-        url = "https://api.anthropic.com/v1/messages"
 
         # Anthropic requires downloading the image and base64 encoding
         # For now, we'll just return an error suggesting a URL-based approach

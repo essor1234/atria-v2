@@ -107,7 +107,7 @@ export function NewSessionModal({ isOpen, onClose }: NewSessionModalProps) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] flex flex-col mx-4"
+        className="bg-white rounded-xl shadow-modal max-w-lg w-full max-h-[80vh] flex flex-col mx-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -133,7 +133,7 @@ export function NewSessionModal({ isOpen, onClose }: NewSessionModalProps) {
                 if (e.key === 'Enter') handleManualGo();
               }}
               placeholder="/path/to/directory"
-              className="flex-1 px-3 py-2 text-sm font-mono border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+              className="flex-1 px-3 py-2 text-sm font-mono border border-gray-300 rounded-lg"
             />
             <button
               onClick={handleManualGo}
@@ -173,7 +173,7 @@ export function NewSessionModal({ isOpen, onClose }: NewSessionModalProps) {
               type="checkbox"
               checked={showHidden}
               onChange={(e) => setShowHidden(e.target.checked)}
-              className="rounded border-gray-300 text-amber-500 focus:ring-amber-400"
+              className="rounded border-gray-300 text-amber-500"
             />
             Show hidden
           </label>
@@ -187,7 +187,7 @@ export function NewSessionModal({ isOpen, onClose }: NewSessionModalProps) {
             </div>
           ) : browseError ? (
             <div className="px-5 py-8 text-center">
-              <p className="text-sm text-red-500">{browseError}</p>
+              <p className="text-sm text-semantic-danger">{browseError}</p>
             </div>
           ) : (
             <div className="py-1">
@@ -201,7 +201,7 @@ export function NewSessionModal({ isOpen, onClose }: NewSessionModalProps) {
                       value={filterText}
                       onChange={(e) => setFilterText(e.target.value)}
                       placeholder="Filter folders..."
-                      className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                      className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-md"
                     />
                   </div>
                 </div>
@@ -262,7 +262,7 @@ export function NewSessionModal({ isOpen, onClose }: NewSessionModalProps) {
         {/* Footer */}
         <div className="px-5 py-4 border-t border-gray-200">
           {createError && (
-            <p className="text-sm text-red-500 mb-3">{createError}</p>
+            <p className="text-sm text-semantic-danger mb-3">{createError}</p>
           )}
           <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">

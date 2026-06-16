@@ -46,6 +46,17 @@ This is a system built on contrast: the monochrome chrome makes the color blocks
 ### Semantic
 - **Success Green** ({colors.semantic-success}): Comparison-table checkmarks on pricing. Used as a glyph fill, not a surface.
 - **Overlay Scrim** ({colors.overlay-scrim}): Black used at ~60% opacity behind modal / video-overlay surfaces (token captures the base; opacity applied at render time).
+- **Focus Ring** ({colors.focus-ring}): A 2px outline drawn at 2px offset around any keyboard-focused interactive element. Token color is `{colors.primary}` on light surfaces and `{colors.canvas}` on dark / color-block surfaces. Never use the browser-default blue ring — it breaks the monochrome system.
+- **Danger** ({colors.semantic-danger}): A single muted red reserved for inline form errors and destructive confirmations. Never used as a surface or accent, only as 1px input border + small caption text.
+
+### Color Pairing Rules
+
+Each `{colors.block-*}` surface has exactly one approved text color and exactly one approved CTA pairing — keep these locked so the brand reads as a system, not a palette grab-bag.
+
+- Block Lime / Cream / Mint / Pink → ink text, `button-primary` CTA.
+- Block Lilac → ink text, `button-magenta-promo` CTA (the *only* place magenta appears alongside lilac).
+- Block Coral → ink text, `button-primary` CTA. Never put inverse text on coral; the contrast fails WCAG AA at body sizes.
+- Block Navy → inverse-ink text, `button-secondary` CTA (white pill against navy — the brand-signature pairing for dark sections).
 
 ## Typography
 
@@ -117,6 +128,16 @@ White space is used to make the color blocks feel deliberate. Between every colo
 
 Figma's marketing system is shadow-light by design — the color blocks substitute for traditional elevation. Where most SaaS sites use a shadowed white card to draw attention, Figma uses a saturated background panel. This makes the rare actual shadow (e.g., a floating template card hovering over a cream section) feel like an exception worth noticing.
 
+### Shadow Tokens
+
+| Token | Value | Use |
+|---|---|---|
+| `{shadow.none}` | `none` | Default — every color block, every nav, every footer |
+| `{shadow.soft}` | `0 4px 16px rgba(0,0,0,0.06)` | Floating template tile over a color block; dropdown menu |
+| `{shadow.hover}` | `0 8px 24px rgba(0,0,0,0.08)` | Hovered template tile or pricing card — the *only* time elevation animates |
+| `{shadow.modal}` | `0 24px 64px rgba(0,0,0,0.18)` | Lightbox / dialog |
+| `{shadow.focus-ring}` | `0 0 0 2px {colors.canvas}, 0 0 0 4px {colors.focus-ring}` | Keyboard focus — inset canvas gap + outer ring keeps the 2px halo crisp on any surface |
+
 ### Decorative Depth
 
 - **Color-block sections** are the primary depth device. The change from white canvas to lime / lavender / cream is the section break.
@@ -143,6 +164,42 @@ Figma's marketing system is shadow-light by design — the color blocks substitu
 - Template thumbnails on the home grid sit in `{rounded.md}` tiles with `{spacing.md}` interior padding around the embedded preview.
 - FigJam pastel sticky-note component thumbnails preserve a small `{rounded.sm}` corner that mimics actual sticky paper.
 - No avatar circles appear in marketing surfaces — Figma's marketing avoids personification.
+
+## Motion
+
+Motion in this system is editorial, not playful. Transitions exist to confirm an action happened — never to entertain. Every animated property uses `transform` or `opacity` (cheap on the compositor); never animate `width`, `height`, `top`, or `box-shadow`'s blur radius.
+
+### Duration & Easing Tokens
+
+| Token | Value | Use |
+|---|---|---|
+| `{motion.instant}` | 80ms · `cubic-bezier(0.4, 0, 1, 1)` | Tooltip show, focus-ring appear — perceptually "no delay" |
+| `{motion.fast}` | 160ms · `cubic-bezier(0.2, 0, 0, 1)` | Hover color shift, pill background swap, tab toggle |
+| `{motion.base}` | 240ms · `cubic-bezier(0.2, 0, 0, 1)` | Modal fade-in, dropdown open, color-block scroll reveal |
+| `{motion.slow}` | 480ms · `cubic-bezier(0.16, 1, 0.3, 1)` | Hero text stagger, marquee logo crossfade, lightbox open |
+| `{motion.marquee}` | 30s · `linear` infinite | The customer-logo strip — slow, hypnotic, never speeds up on hover |
+
+### Principles
+
+- **Micro-scale, never glow.** Hover on `button-primary` scales the pill to `transform: scale(0.98)` on press and back to 1.0 on release. No color shift, no shadow halo — the press feedback is the geometry tightening.
+- **Sticky-note rotation is static, never animated.** FigJam thumbnails are rotated at render time and stay put. Rotating on hover reads as cartoon, not craft.
+- **Reveal-on-scroll is opacity + 8px upward translate, once.** Trigger once at 20% of element height inside viewport. Never re-trigger on scroll back.
+- **Respect `prefers-reduced-motion`.** All reveal animations collapse to a 0ms opacity fade-in. The marquee strip pauses entirely.
+- **No spring physics.** Easing curves are CSS cubic-bezier, tuned for a deliberate, editorial feel — not for the bouncy overshoot common in consumer apps.
+
+## Interaction States
+
+Every interactive surface must define five states explicitly. The brand pattern is **state-via-token, not state-via-magic** — no hover handlers compute colors on the fly.
+
+| State | Treatment | Example |
+|---|---|---|
+| Default | The base component token | `button-primary` black pill |
+| Hover | `{motion.fast}` opacity drop to 0.92 (light surfaces) or 0.88 (dark surfaces) | Pointer enters pill |
+| Focus-visible | `{shadow.focus-ring}` outline; surface unchanged | Keyboard tab lands on pill |
+| Pressed | `transform: scale(0.98)` for `{motion.instant}` | Mouse-down or touch-down |
+| Disabled | Opacity 0.4, cursor `not-allowed`, no hover response | Form invalid, async pending |
+
+**Loading state** is a sixth, opt-in state for buttons that trigger async work: replace the label with an inline 16px spinner (figmaMono caret), keep the pill width frozen to prevent layout shift, and ignore further pointer events until the request resolves.
 
 ## Components
 
@@ -304,3 +361,31 @@ The defining surface of Figma's marketing. Each is a full-content-width panel wi
 - Dark mode is not documented because the marketing site does not ship a dark theme — the closest analog is the navy color-block (`color-block-section-navy`) and the inverse-canvas footer.
 - Form-field error and validation styling is not visible on `/contact/` because no error states render in the static screenshot. Inputs have hairline borders and rounded `{rounded.md}` corners; error treatment is not documented.
 - The animated marquee-strip and color-block reveal animations are not documented (per the no-interaction policy).
+
+## Polish Details
+
+The difference between a faithful clone and a *beautiful* one lives in these millimeter-scale decisions. Apply all of them; each is cheap individually but compounds.
+
+- **Optical centering, not geometric.** `button-secondary`'s asymmetric `8px 18px 10px` padding exists because the figmaSans cap-height sits ~1px above true center. Apply the same 1–2px bottom-heavy bias to any pill containing text under 20px.
+- **Pixel-snap large display type.** Display-xl at 86px with -1.72px tracking can sub-pixel-rasterize on non-Retina displays. Force `text-rendering: geometricPrecision` and `-webkit-font-smoothing: antialiased` only at display sizes; leave body at the browser default.
+- **Hairlines that survive zoom.** `{colors.hairline}` should render at exactly 1 device pixel, not 1 CSS pixel. Use `border-width: 1px` paired with `@media (min-resolution: 2dppx) { border-width: 0.5px }` so hairlines stay hair-thin on Retina.
+- **Color-block corner rendering.** At `{rounded.lg}` (24px) the corner antialiasing on a saturated pastel can pick up a faint white seam against the canvas. Add `transform: translateZ(0)` to the block to force GPU compositing — the seam disappears.
+- **figmaMono baseline alignment.** When `figmaMono` eyebrows sit next to figmaSans display headlines (common in color-block headers), the mono x-height lands ~2px low. Nudge eyebrows up with `transform: translateY(-2px)` so the visual baselines align.
+- **Pill button text never wraps.** Apply `white-space: nowrap` to every pill. A two-line CTA reads as a broken component.
+- **Selection color is brand.** Override `::selection` to `{colors.block-lime}` background with `{colors.ink}` text on light surfaces, and `{colors.block-coral}` on dark. The default browser blue clashes with every block color.
+- **Scrollbar restraint.** Use a 6px-wide thumb in `{colors.hairline}` against a transparent track. Never the OS default — it visually shouts on the otherwise quiet canvas.
+- **Image decoding.** Add `decoding="async"` and `loading="lazy"` to every image below the fold. Hero images get `fetchpriority="high"` so the LCP element doesn't queue behind logo-marquee assets.
+- **No emojis as glyphs.** Even single-character emoji ("✨", "→") break the editorial voice. Use inline SVG with `currentColor` so glyphs inherit ink and inverse-ink correctly across surfaces.
+- **Cursor specificity.** Pills and tabs get `cursor: pointer`; disabled buttons get `cursor: not-allowed`; loading buttons get `cursor: progress`. Color blocks themselves stay default — they are surfaces, not buttons.
+- **Footer wordmark scale.** The "Figma" wordmark at the top-left of the footer uses `{typography.display-lg}` (64px), not a logo asset. Render as text so it scales with the user's font size and inherits ink color.
+
+## Accessibility Floor
+
+These are not aspirations — they are the minimum bar for the system to ship.
+
+- **Contrast.** All ink-on-block-* combinations clear WCAG AA at 4.5:1 for body and 3:1 for display-xl. The single failing pair is inverse-ink on `{colors.block-coral}` — never use it (see Color Pairing Rules).
+- **Focus order matches DOM order.** No `tabindex` above 0. Skip-to-content link is the first focusable element, visually hidden until focused, then appears as a `button-primary` pill in the top-left.
+- **Color is never the sole signal.** Comparison-table checkmarks pair the green glyph with an aria-label "included"; the absence is `aria-label="not included"`. Form errors pair `{colors.semantic-danger}` border with caption text and `aria-invalid="true"`.
+- **Reduced motion.** As specified in Motion — all reveal animations collapse to 0ms; the marquee strip pauses; press-scale on buttons is removed.
+- **Touch targets.** 44px minimum on every interactive element below the tablet breakpoint, achieved via padding (not bounding-box hacks that leave dead pixels around small visual glyphs).
+- **Form labels.** Every input has a visible `<label for="">` — no placeholder-as-label. The "Contact sales" form is the test case.

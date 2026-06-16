@@ -26,7 +26,7 @@ export function QueueBar() {
         </button>
 
         <div
-          className="transition-all duration-200 ease-in-out overflow-hidden"
+          className="transition-all duration-fast ease-motion-out overflow-hidden"
           style={{ maxHeight: expanded ? `${queuedMessages.length * 40 + 8}px` : '0px' }}
         >
           <div className="px-3 pb-2 space-y-1">

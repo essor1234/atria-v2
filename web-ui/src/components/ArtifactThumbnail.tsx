@@ -30,7 +30,7 @@ export function ArtifactThumbnail({
 
   return (
     <div
-      className={`artifact-thumbnail relative group border border-gray-200 rounded-lg overflow-hidden bg-white transition-all hover:shadow-md hover:border-gray-300 ${className}`}
+      className={`artifact-thumbnail relative group border border-gray-200 rounded-lg overflow-hidden bg-white transition-all hover:shadow-hover hover:border-gray-300 ${className}`}
       onMouseLeave={() => setShowDeleteConfirm(false)}
     >
       {/* Preview Area */}
@@ -81,18 +81,18 @@ export function ArtifactThumbnail({
         {!showDeleteConfirm ? (
           <button
             onClick={() => setShowDeleteConfirm(true)}
-            className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+            className="p-1.5 bg-red-50 hover:bg-red-100 text-semantic-danger rounded-lg transition-colors"
             title="Delete artifact"
           >
             <Trash2 className="w-4 h-4" />
           </button>
         ) : (
-          <div className="absolute top-0 right-0 bg-white border border-red-200 rounded-lg shadow-lg p-2 whitespace-nowrap">
+          <div className="absolute top-0 right-0 bg-white border border-semantic-danger rounded-lg shadow-modal p-2 whitespace-nowrap">
             <p className="text-xs text-gray-700 mb-2">Delete?</p>
             <div className="flex gap-1">
               <button
                 onClick={handleDelete}
-                className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                className="px-2 py-1 text-xs bg-semantic-danger text-white rounded hover:opacity-90"
               >
                 Yes
               </button>

@@ -55,7 +55,7 @@ export function ArtifactPanel({
             placeholder="Search artifacts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
           />
         </div>
 
@@ -196,7 +196,7 @@ export function ArtifactPanel({
                       e.stopPropagation();
                       onDelete?.(artifact.id);
                     }}
-                    className="ml-4 p-1.5 text-gray-400 hover:text-red-600 rounded transition-colors"
+                    className="ml-4 p-1.5 text-gray-400 hover:text-semantic-danger rounded transition-colors"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>

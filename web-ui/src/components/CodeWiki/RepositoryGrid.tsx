@@ -56,7 +56,7 @@ export function RepositoryGrid({ repositories, searchQuery, onSearchChange, onAd
               placeholder="Search repositories by name, language, or description..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm placeholder-gray-500"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm placeholder-gray-500"
             />
           </div>
         </div>

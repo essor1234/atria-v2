@@ -1,17 +1,19 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useCopyToClipboard } from 'usehooks-ts';
 import type { DataColumn, Message } from '../../../types';
 import { apiClient } from '../../../api/client';
 
 function SqlDisclosure({ sql }: { sql: string }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [, copyToClipboard] = useCopyToClipboard();
 
-  const copy = useCallback(() => {
-    navigator.clipboard.writeText(sql).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    });
-  }, [sql]);
+  const copy = useCallback(async () => {
+    const ok = await copyToClipboard(sql);
+    if (!ok) return;
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }, [sql, copyToClipboard]);
 
   return (
     <div className="border-b border-border-300/15 bg-bg-000/20">

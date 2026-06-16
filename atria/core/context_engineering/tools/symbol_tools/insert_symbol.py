@@ -137,16 +137,16 @@ def _insert_symbol(
         insert_line = symbol.start_line
         # Find the indentation of the symbol
         if insert_line < len(lines):
-            indent = _get_indentation(lines[insert_line])
+            _get_indentation(lines[insert_line])
         else:
-            indent = ""
+            pass
     else:  # after
         insert_line = symbol.end_line + 1
         # Use same indentation as symbol start
         if symbol.start_line < len(lines):
-            indent = _get_indentation(lines[symbol.start_line])
+            _get_indentation(lines[symbol.start_line])
         else:
-            indent = ""
+            pass
 
     # Prepare content with proper indentation
     content_lines = content.splitlines(keepends=True)

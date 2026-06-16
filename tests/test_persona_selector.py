@@ -17,7 +17,6 @@ def test_persona_name_absent_when_not_sent():
     assert persona_name is None
 
 
-from pathlib import Path
 from atria.core.personas.manager import PersonaManager, Persona
 
 

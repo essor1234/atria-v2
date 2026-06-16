@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any, Dict
 
 from fastapi import WebSocket, WebSocketDisconnect
@@ -92,12 +93,10 @@ class WebSocketManager:
             await self._handle_ask_user_response(websocket, data)
         elif msg_type == "plan_approval_response":
             await self._handle_plan_approval_response(websocket, data)
-        elif msg_type == "deep_research_taxonomy_response":
-            await self._handle_taxonomy_response(websocket, data)
-        elif msg_type == "analyze_plan_response":
-            await self._handle_plan_review_response(websocket, data)
-        elif msg_type == "analyze_clarify_response":
-            await self._handle_clarify_response(websocket, data)
+        elif msg_type == "block_event":
+            await self._handle_block_event(websocket, data)
+        elif msg_type == "block_rpc":
+            await self._handle_block_rpc(websocket, data)
         elif msg_type == "ping":
             await self.send_message(websocket, {"type": WSMessageType.PONG})
         else:
@@ -118,7 +117,9 @@ class WebSocketManager:
         session_id = data.get("data", {}).get("session_id")
         persona_name = data.get("data", {}).get("persona_name")
         # Reject persona_name with path traversal sequences
-        if persona_name and (not isinstance(persona_name, str) or "/" in persona_name or ".." in persona_name):
+        if persona_name and (
+            not isinstance(persona_name, str) or "/" in persona_name or ".." in persona_name
+        ):
             persona_name = None
 
         if not message:
@@ -385,96 +386,175 @@ class WebSocketManager:
             }
         )
 
-    async def _handle_taxonomy_response(self, websocket: WebSocket, data: Dict[str, Any]):
-        """Handle a deep research taxonomy review response from the web UI."""
-        logger.info(f"Received taxonomy response: {data}")
-        response_data = data.get("data", {})
-        request_id = response_data.get("requestId")
-        action = response_data.get("action", "accept")
-        taxonomy = response_data.get("taxonomy")
-        depth = response_data.get("depth", "standard")
-        topic = response_data.get("topic", "")
-        instructions = response_data.get("instructions", "")
+    # ------------------------------------------------------------------
+    # Custom block iframe channel
+    # ------------------------------------------------------------------
 
-        if not request_id:
-            logger.error(f"Invalid taxonomy response data: {response_data}")
-            await self.send_message(
-                websocket,
-                {
-                    "type": WSMessageType.ERROR,
-                    "data": {"message": "Invalid taxonomy response data"},
+    async def _handle_block_event(self, websocket: WebSocket, data: Dict[str, Any]) -> None:
+        """Forward an iframe-emitted event to the registered on_event handler."""
+        payload = data.get("data") or data
+        block_id = payload.get("block_id")
+        name = payload.get("name")
+        event_data = payload.get("data")
+
+        if not block_id or not name:
+            logger.warning(f"block_event missing block_id/name: {payload}")
+            return
+
+        from atria.web import ui_bridge
+
+        envelope = {"name": name, "data": event_data, "block_id": block_id}
+        handler = ui_bridge.get_block_event_handler(block_id)
+        if handler is not None:
+            try:
+                handler(envelope)
+            except Exception as exc:
+                logger.error(f"block_event handler raised: {exc}", exc_info=True)
+            return
+
+        # No local handler — the on_event was registered in a different worker.
+        # Publish on the bus so whichever worker holds the handler receives it.
+        from atria.web.bus import get_bus
+
+        bus = get_bus()
+        if bus is None:
+            logger.debug(
+                f"block_event for unknown block_id={block_id}; no bus; dropping"
+            )
+            return
+        try:
+            await bus.publish(f"atria:event:{block_id}", envelope)
+        except Exception as exc:
+            logger.error(f"block_event bus publish failed: {exc}", exc_info=True)
+
+    async def _handle_block_rpc(self, websocket: WebSocket, data: Dict[str, Any]) -> None:
+        """Dispatch an iframe RPC call against the active session's runtime."""
+        import asyncio as _asyncio
+
+        payload = data.get("data") or data
+        block_id = payload.get("block_id")
+        req_id = payload.get("req_id")
+        method = payload.get("method")
+        args = payload.get("args") or {}
+        session_id = payload.get("session_id")
+
+        async def _reply(ok: bool, *, data: Any = None, error: str = "") -> None:
+            msg = {
+                "type": "block_rpc_result",
+                "data": {
+                    "block_id": block_id,
+                    "req_id": req_id,
+                    "ok": ok,
                 },
-            )
+            }
+            if ok:
+                msg["data"]["data"] = data
+            else:
+                msg["data"]["error"] = error
+            await self.broadcast(msg)
+
+        if not block_id or not req_id or not method:
+            await _reply(False, error="missing required fields")
             return
 
+        # Allowlist check
         state = get_state()
-        success = await state.aresolve_taxonomy_review(
-            request_id, action, taxonomy, depth, topic, instructions
-        )
+        try:
+            app_config = state.config_manager.get_config()
+            allowlist = list(app_config.web.iframe_rpc.tool_allowlist or [])
+        except Exception:
+            allowlist = []
 
-        if not success:
-            logger.error(f"Taxonomy review request {request_id} not found in state")
-            await self.send_message(
-                websocket,
-                {
-                    "type": WSMessageType.ERROR,
-                    "data": {"message": f"Taxonomy review {request_id} not found"},
-                },
-            )
+        if method not in allowlist:
+            await _reply(False, error="method_not_allowed")
             return
 
-        logger.info(f"✓ Taxonomy review {request_id} resolved: action={action}, depth={depth}")
+        # Resolve runtime context (for tool.invoke / session.send_user_message)
+        from atria.web import ui_bridge
 
-    async def _handle_plan_review_response(self, websocket: WebSocket, data: Dict[str, Any]):
-        """Handle an analyze plan review response from the web UI."""
-        response_data = data.get("data", {})
-        request_id = response_data.get("requestId")
-        action = response_data.get("action", "accept")
-        instructions = response_data.get("instructions", "")
+        if not session_id:
+            session_id = await state.get_current_session_id()
+        runtime_ctx = ui_bridge.get_runtime_context(session_id) if session_id else None
 
-        if not request_id:
-            await self.send_message(
-                websocket,
-                {"type": WSMessageType.ERROR, "data": {"message": "Missing requestId"}},
-            )
-            return
+        def _run_sync() -> Dict[str, Any]:
+            """Synchronous dispatcher running off-thread with a 5s timeout."""
+            if method == "tool.invoke":
+                if runtime_ctx is None:
+                    raise RuntimeError("no active runtime context for tool.invoke")
+                tool_name = args.get("name")
+                tool_args = args.get("args") or {}
+                if not tool_name:
+                    raise ValueError("tool.invoke requires 'name'")
+                registry = runtime_ctx["tool_registry"]
+                result = registry.execute_tool(
+                    tool_name,
+                    tool_args,
+                    mode_manager=state.mode_manager,
+                    approval_manager=runtime_ctx.get("approval_manager"),
+                    undo_manager=state.undo_manager,
+                    session_manager=state.session_manager,
+                    ui_callback=runtime_ctx.get("ui_callback"),
+                )
+                return result
 
-        state = get_state()
-        success = await state.aresolve_plan_review(request_id, action, instructions or None)
+            if method == "artifact.read":
+                artifact_id = args.get("artifact_id")
+                if artifact_id is None:
+                    raise ValueError("artifact.read requires 'artifact_id'")
+                from atria.core.context_engineering.tools.context import ToolExecutionContext
+                from atria.core.context_engineering.tools.handlers.artifacts_handler import (
+                    ArtifactsHandler,
+                )
 
-        if not success:
-            await self.send_message(
-                websocket,
-                {"type": WSMessageType.ERROR, "data": {"message": f"Plan review {request_id} not found"}},
-            )
-            return
+                handler = ArtifactsHandler()
+                ctx = ToolExecutionContext(session_manager=state.session_manager)
+                return handler.read_artifact_image({"artifact_id": artifact_id}, ctx)
 
-        logger.info(f"Plan review {request_id} resolved: action={action}")
+            raise ValueError(f"unsupported method: {method}")
 
-    async def _handle_clarify_response(self, websocket: WebSocket, data: Dict[str, Any]):
-        """Handle an EXPLORE clarification response from the web UI."""
-        response_data = data.get("data", {})
-        request_id = response_data.get("requestId")
-        answers = response_data.get("answers", [])
+        async def _dispatch() -> None:
+            if method == "session.send_user_message":
+                text = args.get("text")
+                if not text or not isinstance(text, str):
+                    await _reply(False, error="session.send_user_message requires 'text'")
+                    return
+                if not session_id:
+                    await _reply(False, error="no active session")
+                    return
+                try:
+                    session = await state.session_manager.get_session_by_id(session_id)
+                    user_msg = ChatMessage(role=Role.USER, content=text)
+                    session.add_message(user_msg)
+                    await state.session_manager.save_session(session)
+                    await self.broadcast(
+                        {
+                            "type": WSMessageType.USER_MESSAGE,
+                            "data": {
+                                "role": "user",
+                                "content": text,
+                                "session_id": session_id,
+                                "injected": True,
+                            },
+                        }
+                    )
+                    await _reply(True, data={"injected": True})
+                except Exception as exc:
+                    await _reply(False, error=str(exc))
+                return
 
-        if not request_id:
-            await self.send_message(
-                websocket,
-                {"type": WSMessageType.ERROR, "data": {"message": "Missing requestId"}},
-            )
-            return
+            # tool.invoke and artifact.read run synchronously off-thread
+            try:
+                result = await _asyncio.wait_for(
+                    _asyncio.to_thread(_run_sync), timeout=5.0
+                )
+                await _reply(True, data=result)
+            except _asyncio.TimeoutError:
+                await _reply(False, error="timeout")
+            except Exception as exc:
+                logger.error(f"block_rpc {method} failed: {exc}", exc_info=True)
+                await _reply(False, error=str(exc))
 
-        state = get_state()
-        success = await state.aresolve_clarify_review(request_id, answers)
-
-        if not success:
-            await self.send_message(
-                websocket,
-                {"type": WSMessageType.ERROR, "data": {"message": f"Clarify request {request_id} not found"}},
-            )
-            return
-
-        logger.info(f"Clarify {request_id} resolved with {len(answers)} answers")
+        await _dispatch()
 
 
 # Global WebSocket manager instance

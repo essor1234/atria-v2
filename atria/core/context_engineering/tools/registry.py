@@ -187,7 +187,6 @@ class ToolRegistry:
         _skill_dirs = [
             Path.cwd() / ".atria" / "skills",
             _paths.global_skills_dir,
-            _paths.builtin_skills_dir,
         ]
         self._skill_specs: dict[str, ToolSpec] = {
             spec.name: spec
@@ -318,9 +317,9 @@ class ToolRegistry:
             "read_artifact_image": self._artifacts_handler.read_artifact_image,
         }
 
-        # Merge skill-owned tool handlers (deep_research, deep_analyze, etc.).
-        # Each skill's tools.py returned a ToolSpec; wrap its handler to match
-        # the (arguments, context) -> dict calling convention used by execute_tool.
+        # Merge skill-owned tool handlers. Each skill's tools.py returned a
+        # ToolSpec; wrap its handler to match the (arguments, context) -> dict
+        # calling convention used by execute_tool.
         for _name, _spec in self._skill_specs.items():
             self._handlers[_name] = self._make_skill_handler(_spec)
 

@@ -7,6 +7,8 @@ import { useViewerTabsStore } from '../../stores/viewerTabs';
 import { TabBar } from './TabBar';
 import { FileTree } from './FileTree';
 import { ViewerDispatcher } from './viewers';
+import { LeftPaneTabs, useLeftMode } from './LeftPaneTabs';
+import { ModuleGallery } from './ModuleGallery';
 
 const KEY_COLLAPSED = 'artifact-viewer.collapsed';
 const KEY_WIDTH = 'artifact-viewer.width';
@@ -24,6 +26,7 @@ export function ArtifactViewer() {
   const [collapsed, setCollapsed] = useLocalStorage<boolean>(KEY_COLLAPSED, false);
   const [panelWidth, setPanelWidth] = useLocalStorage<number>(KEY_WIDTH, 560);
   const [treeWidth, setTreeWidth] = useLocalStorage<number>(KEY_TREE_WIDTH, 220);
+  const [leftMode, setLeftMode] = useLeftMode();
 
   const activeTab = useViewerTabsStore(s => {
     if (!currentSessionId) return null;
@@ -86,7 +89,7 @@ export function ArtifactViewer() {
       )}
       onResize={onPanelResize}
     >
-      <div className="relative flex h-full shadow-xl" style={{ width: panelWidth }}>
+      <div className="relative flex h-full shadow-modal" style={{ width: panelWidth }}>
 
         {/* ── Left: file tree, full height ── */}
         <Resizable
@@ -106,10 +109,19 @@ export function ArtifactViewer() {
           onResize={onTreeResize}
         >
           <div
-            className="relative flex-shrink-0 h-full overflow-hidden border-r border-hairline-soft/60"
+            className="relative flex-shrink-0 h-full overflow-hidden border-r border-hairline-soft/60 flex flex-col"
             style={{ width: effectiveTreeWidth }}
           >
-            <FileTree convId={currentSessionId} />
+            <LeftPaneTabs mode={leftMode} onChange={setLeftMode} />
+            <div className="flex-1 min-h-0 overflow-hidden">
+              {leftMode === 'files'
+                ? <FileTree
+                    convId={currentSessionId}
+                    scope={{ kind: 'conv', id: convInt }}
+                    autoExpand={['.artifacts']}
+                  />
+                : <ModuleGallery convId={currentSessionId} />}
+            </div>
           </div>
         </Resizable>
 
@@ -134,9 +146,7 @@ export function ArtifactViewer() {
             {activeTab ? (
               <ViewerDispatcher
                 convId={convInt}
-                path={activeTab.path}
-                name={activeTab.name}
-                ext={activeTab.ext}
+                tab={activeTab}
               />
             ) : (
               <div className="flex flex-col items-center justify-center h-full gap-2 select-none">

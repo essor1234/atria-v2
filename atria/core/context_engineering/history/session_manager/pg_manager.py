@@ -122,13 +122,14 @@ class PgSessionManager:
 
         messages = await msg_repo.list_by_conversation(conv_id)
         row_user_id = row["user_id"]
+        _meta: dict = {"title": row["title"]} if row["title"] else {}
         session = Session(
             id=str(row["id"]),
             created_at=row["created_at"],
             updated_at=row["updated_at"] or row["created_at"],
             messages=messages,
             channel=row["mode"],
-            metadata={"title": row["title"]} if row["title"] else {},
+            metadata=_meta,
             working_directory=row["working_directory"],
             owner_id=str(row_user_id) if row_user_id is not None else None,
         )
@@ -239,6 +240,50 @@ class PgSessionManager:
         include_unowned: bool = True,
     ) -> list[SessionMetadata]:
         return await self.list_sessions(owner_id=owner_id, include_archived=include_archived)
+
+    async def delete_turn(self, session_id: str, turn_index: int) -> list[ChatMessage]:
+        """Soft-delete the contiguous slice [turn_index, next_user_index).
+
+        Raises:
+            FileNotFoundError: session unknown
+            IndexError: turn_index out of range
+            ValueError: turn_index does not point to a USER message
+        """
+        from atria.models.message import Role
+
+        try:
+            conv_id = int(session_id)
+        except ValueError:
+            raise FileNotFoundError(session_id)
+
+        _, msg_repo = await self._get_repos()
+        messages = await msg_repo.list_by_conversation(conv_id)
+
+        if turn_index < 0 or turn_index >= len(messages):
+            raise IndexError(f"turn_index {turn_index} out of range (len={len(messages)})")
+        if messages[turn_index].role != Role.USER:
+            raise ValueError(f"turn_index {turn_index} is not a USER message")
+
+        end = turn_index + 1
+        while end < len(messages) and messages[end].role != Role.USER:
+            end += 1
+
+        ids = await msg_repo.list_ids_by_conversation(conv_id)
+        # ids is the same length & order as messages (both filtered to is_deleted=False)
+        ids_to_delete = ids[turn_index:end]
+        await msg_repo.soft_delete_by_ids(ids_to_delete)
+
+        # Keep in-memory current_session in sync if it matches.
+        if self.current_session and self.current_session.id == session_id:
+            self.current_session.messages = (
+                self.current_session.messages[:turn_index]
+                + self.current_session.messages[end:]
+            )
+            remaining = self.current_session.messages
+        else:
+            remaining = messages[:turn_index] + messages[end:]
+
+        return remaining
 
     async def delete_session(self, session_id: str) -> None:
         try:

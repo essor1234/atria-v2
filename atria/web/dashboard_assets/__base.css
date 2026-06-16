@@ -1,0 +1,35 @@
+/* AtriaDash + AtriaBlock base styles. Injected into iframes. */
+:root {
+  color-scheme: light dark;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --muted: 215 16% 47%;
+  --muted-foreground: 215 16% 47%;
+  --primary: 222 47% 11%;
+  --primary-foreground: 0 0% 100%;
+  --border: 214 32% 91%;
+  --background: 0 0% 100%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 96%;
+    --muted: 215 20% 65%;
+    --muted-foreground: 215 20% 65%;
+    --primary: 210 40% 96%;
+    --primary-foreground: 222 47% 11%;
+    --border: 217 19% 27%;
+    --background: 222 47% 11%;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: hsl(var(--card-foreground));
+  background: hsl(var(--background));
+  font-size: 14px;
+  line-height: 1.5;
+}

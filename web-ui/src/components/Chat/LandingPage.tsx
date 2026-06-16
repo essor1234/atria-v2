@@ -155,7 +155,7 @@ export function LandingPage() {
           initial={reduce ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...transitions.editorial, delay: 0.45 }}
-          className="rounded-lg border border-hairline-soft bg-canvas shadow-[0_4px_16px_rgba(0,0,0,0.04)]"
+          className="rounded-lg border border-hairline-soft bg-canvas shadow-soft"
         >
           {/* Textarea */}
           <div className="px-5 pt-5 pb-2 rounded-t-2xl">
@@ -166,7 +166,7 @@ export function LandingPage() {
               onKeyDown={handleKeyDown}
               placeholder="How can I help you today?"
               disabled={isLoading || !isConnected}
-              className="w-full bg-transparent text-text-000 placeholder-text-400 resize-none border-0 focus:outline-none focus:ring-0 text-base leading-relaxed disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-transparent text-text-000 placeholder-text-400 resize-none border-0 text-base leading-relaxed disabled:opacity-50 disabled:cursor-not-allowed"
               minRows={3}
               maxRows={8}
             />
@@ -206,7 +206,7 @@ export function LandingPage() {
               </button>
 
               {showPlusMenu && (
-                <div className="absolute bottom-full left-0 mb-2 w-48 bg-bg-000 border border-border-300/20 rounded-xl shadow-lg overflow-hidden z-50 animate-fade-in">
+                <div className="absolute bottom-full left-0 mb-2 w-48 bg-bg-000 border border-border-300/20 rounded-xl shadow-soft overflow-hidden z-50 animate-fade-in">
                   <button
                     onClick={() =>
                       handleFileUpload(".png,.jpg,.jpeg,.gif,.webp")

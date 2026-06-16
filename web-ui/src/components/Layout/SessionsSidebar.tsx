@@ -96,8 +96,7 @@ export function SessionsSidebar() {
 
   const fetchSessions = async () => {
     try {
-      const response = await fetch('/api/sessions');
-      const data = await response.json();
+      const data = (await apiClient.listSessions()) as unknown as Session[];
       setSessions(data);
 
       // Group sessions by workspace
@@ -210,10 +209,7 @@ export function SessionsSidebar() {
     if (!deleteSessionId) return;
 
     try {
-      const response = await fetch(`/api/sessions/${deleteSessionId}`, { method: 'DELETE' });
-      if (!response.ok) {
-        throw new Error(`Delete failed: ${response.status}`);
-      }
+      await apiClient.deleteSession(deleteSessionId);
 
       // Clean up per-session state
       const { sessionStates: currentStates } = useChatStore.getState();
@@ -245,10 +241,7 @@ export function SessionsSidebar() {
 
       // Delete all sessions for this workspace
       for (const session of deleteWorkspace.sessions) {
-        const response = await fetch(`/api/sessions/${session.id}`, { method: 'DELETE' });
-        if (!response.ok) {
-          throw new Error(`Delete failed for session ${session.id}: ${response.status}`);
-        }
+        await apiClient.deleteSession(session.id);
 
         // Clean up per-session state
         const { sessionStates: currentStates } = useChatStore.getState();
@@ -332,7 +325,7 @@ export function SessionsSidebar() {
                   )}
 
                   {/* Tooltip */}
-                  <div className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap opacity-60 group-hover:opacity-100 pointer-events-none z-50 shadow-lg">
+                  <div data-surface="dark" className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap opacity-60 group-hover:opacity-100 pointer-events-none z-50 shadow-soft">
                     <div className="font-medium text-sm mb-1">{projectName}</div>
                     <div className="text-gray-300 text-xs">{workspace.sessions.length} session{workspace.sessions.length !== 1 ? 's' : ''}</div>
                     {hasActiveSession && <div className="text-amber-300 text-xs mt-1">Active</div>}
@@ -634,7 +627,7 @@ export function SessionsSidebar() {
           onClick={() => setDeleteSessionId(null)}
         >
           <div
-            className="bg-white p-6 rounded-xl min-w-[400px] shadow-2xl animate-scale-in"
+            className="bg-white p-6 rounded-xl min-w-[400px] shadow-modal animate-scale-in"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-semibold text-gray-900 mb-3">
@@ -654,7 +647,7 @@ export function SessionsSidebar() {
               </button>
               <button
                 onClick={confirmDeleteSession}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors"
+                className="px-4 py-2 bg-semantic-danger hover:bg-semantic-danger/90 text-white rounded-lg text-sm font-medium transition-colors"
               >
                 Delete
               </button>

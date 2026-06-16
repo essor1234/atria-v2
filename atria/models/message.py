@@ -13,6 +13,7 @@ class Role(str, Enum):
     USER = "user"
     ASSISTANT = "assistant"
     SYSTEM = "system"
+    CUSTOM_BLOCK = "custom_block"
 
 
 class InputProvenance(BaseModel):

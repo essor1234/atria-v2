@@ -100,7 +100,7 @@ function ArtifactRow({
             e.stopPropagation();
             deleteArtifact(conversationId, artifact.id);
           }}
-          className="p-0.5 rounded cursor-pointer text-text-500 hover:text-red-400 transition-colors"
+          className="p-0.5 rounded cursor-pointer text-text-500 hover:text-semantic-danger transition-colors"
           title="Remove"
         >
           <X className="w-3 h-3" />

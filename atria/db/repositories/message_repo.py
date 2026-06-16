@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from atria.db.models import Message
@@ -136,3 +136,31 @@ class MessageRepository(BaseRepository):
             except Exception:
                 continue
         return out
+
+    async def list_ids_by_conversation(self, conversation_id: int) -> list[int]:
+        """Return live (not soft-deleted) message ids in insertion order."""
+        async with self._sessionmaker() as session:
+            stmt = (
+                select(Message.id)
+                .where(
+                    Message.conversation_id == conversation_id,
+                    Message.is_deleted.is_(False),
+                )
+                .order_by(Message.id.asc())
+            )
+            result = await session.execute(stmt)
+        return [int(row[0]) for row in result.all()]
+
+    async def soft_delete_by_ids(self, ids: list[int]) -> int:
+        """Soft-delete the given message ids. Returns rows affected."""
+        if not ids:
+            return 0
+        async with self._sessionmaker() as session:
+            stmt = (
+                update(Message)
+                .where(Message.id.in_(ids), Message.is_deleted.is_(False))
+                .values(is_deleted=True)
+            )
+            result = await session.execute(stmt)
+            await session.commit()
+            return int(result.rowcount or 0)

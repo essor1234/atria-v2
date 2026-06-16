@@ -165,7 +165,7 @@ export function AskUserDialog() {
 
   return (
     <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-      <div className="bg-bg-000 rounded-xl shadow-2xl border border-border-300/15 max-w-lg w-full mx-4 animate-slide-up">
+      <div className="bg-bg-000 rounded-xl shadow-modal border border-border-300/15 max-w-lg w-full mx-4 animate-slide-up">
         {/* Header */}
         <div className="border-b border-border-300/15 px-6 py-4">
           <div className="flex items-center justify-between">
@@ -257,7 +257,7 @@ export function AskUserDialog() {
                 value={otherText}
                 onChange={e => setOtherText(e.target.value)}
                 placeholder="Type your answer..."
-                className="w-full px-4 py-2.5 border border-border-300/20 rounded-lg text-sm text-text-000 bg-bg-000 focus:outline-none focus:ring-2 focus:ring-accent-secondary-100 focus:border-accent-secondary-100 placeholder-text-500"
+                className="w-full px-4 py-2.5 border border-border-300/20 rounded-lg text-sm text-text-000 bg-bg-000 focus:border-accent-secondary-100 placeholder-text-500"
                 autoFocus
               />
             )}

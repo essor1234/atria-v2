@@ -1,6 +1,4 @@
-function cn(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(' ');
-}
+import { cn } from '../../lib/cn';
 
 export interface SegmentOption<T extends string> {
   label: string;
@@ -24,8 +22,8 @@ export function SegmentedControl<T extends string>({ options, value, onChange, c
             key={opt.value}
             onClick={() => onChange(opt.value)}
             className={cn(
-              'px-2.5 py-1 text-xs font-medium rounded-md transition-colors',
-              active ? 'bg-white text-gray-900 shadow-sm border border-gray-200' : 'text-gray-600 hover:text-gray-900'
+              'px-2.5 py-1 text-xs font-medium rounded-md transition-colors duration-fast',
+              active ? 'bg-white text-gray-900 shadow-soft border border-gray-200' : 'text-gray-600 hover:text-gray-900'
             )}
           >
             {opt.label}

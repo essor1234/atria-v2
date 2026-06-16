@@ -58,7 +58,15 @@ export interface DeepAnalyzeSubtable {
 
 
 export interface Message {
-  role: 'user' | 'assistant' | 'system' | 'tool_call' | 'tool_result' | 'thinking' | 'search_result' | 'deep_research' | 'deep_analyze' | 'image_message' | 'data_message';
+  role: 'user' | 'assistant' | 'system' | 'tool_call' | 'tool_result' | 'thinking' | 'search_result' | 'deep_research' | 'deep_analyze' | 'image_message' | 'data_message' | 'custom_block';
+  // custom_block fields
+  block_id?: string;
+  block_module?: string;
+  block_file?: string;
+  block_src?: string;
+  block_props?: Record<string, any>;
+  block_height?: number | 'auto';
+  block_title?: string;
   content: string;
   timestamp?: string;
   tool_call_id?: string;
@@ -202,7 +210,7 @@ export interface Config {
 
 // WebSocket event types
 export interface WSMessage {
-  type: 'user_message' | 'message_start' | 'message_chunk' | 'message_complete' | 'tool_call' | 'tool_result' | 'approval_required' | 'approval_resolved' | 'error' | 'pong' | 'mcp_status_update' | 'mcp_servers_update' | 'connected' | 'disconnected' | 'thinking_block' | 'thinking' | 'thinking_done' | 'search_done' | 'status_update' | 'ask_user_required' | 'ask_user_resolved' | 'session_activity' | 'plan_approval_required' | 'plan_approval_resolved' | 'plan_content' | 'subagent_start' | 'subagent_complete' | 'parallel_agents_start' | 'parallel_agents_done' | 'task_completed' | 'progress' | 'nested_tool_call' | 'nested_tool_result' | 'deep_research_taxonomy_ready' | 'deep_research_queued' | 'deep_research_start' | 'deep_research_section_start' | 'deep_research_section_done' | 'deep_research_done' | 'deep_research_error' | 'analyze.started' | 'analyze.phase' | 'analyze.subtable' | 'analyze.plan_ready' | 'analyze.clarify' | 'analyze.chart_data' | 'analyze.chart_image' | 'analyze.chart_insight' | 'analyze.section_synthesized' | 'analyze.report' | 'analyze.done' | 'analyze.failed' | 'analyze.cancelled' | 'analyze.agent_message' | 'image_message' | 'data_message';
+  type: 'user_message' | 'message_start' | 'message_chunk' | 'message_complete' | 'tool_call' | 'tool_result' | 'approval_required' | 'approval_resolved' | 'error' | 'pong' | 'mcp_status_update' | 'mcp_servers_update' | 'connected' | 'disconnected' | 'thinking_block' | 'thinking' | 'thinking_done' | 'search_done' | 'status_update' | 'ask_user_required' | 'ask_user_resolved' | 'session_activity' | 'plan_approval_required' | 'plan_approval_resolved' | 'plan_content' | 'subagent_start' | 'subagent_complete' | 'parallel_agents_start' | 'parallel_agents_done' | 'task_completed' | 'progress' | 'nested_tool_call' | 'nested_tool_result' | 'deep_research_taxonomy_ready' | 'deep_research_queued' | 'deep_research_start' | 'deep_research_section_start' | 'deep_research_section_done' | 'deep_research_done' | 'deep_research_error' | 'analyze.started' | 'analyze.phase' | 'analyze.subtable' | 'analyze.plan_ready' | 'analyze.clarify' | 'analyze.chart_data' | 'analyze.chart_image' | 'analyze.chart_insight' | 'analyze.section_synthesized' | 'analyze.report' | 'analyze.done' | 'analyze.failed' | 'analyze.cancelled' | 'analyze.agent_message' | 'image_message' | 'data_message' | 'custom_block' | 'custom_block_update' | 'custom_block_remove' | 'block_rpc_result' | 'session_messages_replaced';
   data: any;
 }
 
@@ -319,9 +327,40 @@ export interface FsListResponse {
   entries: FsEntry[];
 }
 
-export interface ViewerTab {
-  id: string;       // === path
-  path: string;     // relative to working_directory
+export type ViewerTab =
+  | {
+      kind: 'file';
+      id: string;       // === path
+      path: string;     // relative to working_directory
+      name: string;
+      ext: string;
+    }
+  | {
+      kind: 'module';
+      id: string;       // === `module:<name>`
+      name: string;     // module name
+    }
+  | {
+      kind: 'module-file';
+      id: string;       // === `module:<module>:<path>`
+      module: string;
+      path: string;     // relative to module folder
+      name: string;
+      ext: string;
+    };
+
+// File-tree / fs-API scope. Either a conversation working directory or a module folder.
+export type FsScope =
+  | { kind: 'conv'; id: number }
+  | { kind: 'module'; name: string };
+
+export function fsScopeKey(scope: FsScope): string {
+  return scope.kind === 'conv' ? `conv:${scope.id}` : `module:${scope.name}`;
+}
+
+export interface Persona {
   name: string;
-  ext: string;
+  system_prompt: string;
+  is_built_in: boolean;
+  created_at: string;
 }

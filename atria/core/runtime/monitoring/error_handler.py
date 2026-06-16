@@ -90,6 +90,7 @@ class ErrorHandler:
 
         try:
             from prompt_toolkit import prompt
+
             choice = prompt("Choice: ").lower()
 
             if choice == "r" and allow_retry:
@@ -148,6 +149,7 @@ class ErrorHandler:
 
         try:
             from prompt_toolkit import prompt
+
             response = prompt("Are you sure you want to proceed? [y/N]: ").lower()
             return response in ["y", "yes"]
         except KeyboardInterrupt:

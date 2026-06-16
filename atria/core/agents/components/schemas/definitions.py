@@ -457,9 +457,8 @@ _BUILTIN_TOOL_SCHEMAS: list[dict[str, Any]] = [
             },
         },
     },
-    # Deep research / deep analyze schemas now live in their skill folders
-    # (atria/skills/builtin/deep_research, atria/skills/builtin/deep_analyze)
-    # and are merged in via ToolSchemaBuilder(extra_schemas=...).
+    # Skill-owned schemas live in their skill folders and are merged in via
+    # ToolSchemaBuilder(extra_schemas=...).
     {
         "type": "function",
         "function": {

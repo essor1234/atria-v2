@@ -8,7 +8,6 @@
 
 import { motion, useReducedMotion, type Variants, type Transition } from 'motion/react';
 import React, { forwardRef } from 'react';
-import { ColorBlock } from './ColorBlock';
 
 /** Spec'd transitions — keep these as the only sources of truth. */
 const editorial: Transition = { duration: 0.5, ease: [0.22, 1, 0.36, 1] }; // posters
@@ -66,28 +65,6 @@ export const MotionRise = forwardRef<HTMLDivElement, MotionRiseProps>(function M
   );
 });
 
-/** A ColorBlock that rises into view on scroll, once. */
-interface MotionColorBlockProps extends React.ComponentProps<typeof ColorBlock> {
-  delay?: number;
-}
-
-export const MotionColorBlock = forwardRef<HTMLDivElement, MotionColorBlockProps>(
-  function MotionColorBlock({ delay = 0, tone, bleed, density, ...rest }, ref) {
-    const reduce = useReducedMotion();
-    return (
-      <motion.div
-        ref={ref}
-        initial={reduce ? false : { opacity: 0, y: 22 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.15 }}
-        transition={reduce ? { duration: 0 } : { ...editorial, delay }}
-      >
-        <ColorBlock tone={tone} bleed={bleed} density={density} {...rest} />
-      </motion.div>
-    );
-  }
-);
-
 /** A tactile pill — primary CTA with whileTap + whileHover micro-scale. */
 interface MotionPillProps extends React.ComponentProps<typeof motion.button> {
   variant?: 'primary' | 'secondary';
@@ -99,7 +76,7 @@ export const MotionPill = forwardRef<HTMLButtonElement, MotionPillProps>(functio
 ) {
   const reduce = useReducedMotion();
   const base =
-    'inline-flex items-center justify-center rounded-pill text-btn px-6 py-[10px] font-sans transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:opacity-40 disabled:cursor-not-allowed';
+    'inline-flex items-center justify-center whitespace-nowrap rounded-pill text-btn px-6 py-[10px] font-sans transition-colors duration-fast active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed';
   const v = variant === 'primary'
     ? 'bg-ink text-inverse-ink'
     : 'bg-canvas text-ink border border-hairline-soft hover:border-ink';

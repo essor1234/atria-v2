@@ -2,12 +2,20 @@
  * Edit MCP Server Modal
  *
  * Modal for editing existing MCP server configurations.
- * Follows DRY by reusing form components from AddMCPServerModal.
+ * Reuses shared form fields from mcpFormFields.
  */
 
 import { useState, useEffect } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
 import type { MCPServer, MCPServerUpdateRequest } from '../../types/mcp';
+import {
+  ModalHeader,
+  ModalFooter,
+  ErrorMessage,
+  TextField,
+  CheckboxField,
+  ArgumentsList,
+  EnvironmentVariables,
+} from './mcpFormFields';
 
 interface EditMCPServerModalProps {
   isOpen: boolean;
@@ -29,14 +37,10 @@ export function EditMCPServerModal({ isOpen, server, onClose, onSubmit }: EditMC
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Args management
   const [argInput, setArgInput] = useState('');
-
-  // Env management
   const [envKey, setEnvKey] = useState('');
   const [envValue, setEnvValue] = useState('');
 
-  // Initialize form data when server changes
   useEffect(() => {
     if (server) {
       setFormData({
@@ -90,19 +94,13 @@ export function EditMCPServerModal({ isOpen, server, onClose, onSubmit }: EditMC
 
   const addArg = () => {
     if (argInput.trim()) {
-      setFormData(prev => prev ? ({
-        ...prev,
-        args: [...prev.args, argInput.trim()],
-      }) : null);
+      setFormData(prev => prev ? ({ ...prev, args: [...prev.args, argInput.trim()] }) : null);
       setArgInput('');
     }
   };
 
   const removeArg = (index: number) => {
-    setFormData(prev => prev ? ({
-      ...prev,
-      args: prev.args.filter((_, i) => i !== index),
-    }) : null);
+    setFormData(prev => prev ? ({ ...prev, args: prev.args.filter((_, i) => i !== index) }) : null);
   };
 
   const addEnvVar = () => {
@@ -127,191 +125,69 @@ export function EditMCPServerModal({ isOpen, server, onClose, onSubmit }: EditMC
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">Edit MCP Server</h2>
-            <p className="text-sm text-gray-500 mt-0.5">{server.name}</p>
-          </div>
-          <button
-            aria-label="Close dialog"
-            type="button"
-            onClick={handleClose}
-            disabled={isSubmitting}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
-          >
-            <XMarkIcon className="w-5 h-5" />
-          </button>
-        </div>
+      <div className="bg-white rounded-2xl shadow-modal w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
+        <ModalHeader
+          title="Edit MCP Server"
+          subtitle={server.name}
+          onClose={handleClose}
+          disabled={isSubmitting}
+        />
 
-        {/* Content */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6">
           <div className="space-y-4">
-            {error && (
-              <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-800">{error}</p>
-              </div>
-            )}
+            {error && <ErrorMessage message={error} />}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Command <span className="text-block-coral">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.command}
-                onChange={(e) => setFormData(prev => prev ? ({ ...prev, command: e.target.value }) : null)}
-                required
-                disabled={isSubmitting}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
-              />
-            </div>
+            <TextField
+              label="Command"
+              value={formData.command}
+              onChange={(value) => setFormData(prev => prev ? ({ ...prev, command: value }) : null)}
+              required
+              disabled={isSubmitting}
+            />
 
-            {/* Arguments */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Arguments</label>
-              <div className="space-y-2">
-                {formData.args.map((arg, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={arg}
-                      readOnly
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-mono text-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeArg(index)}
-                      disabled={isSubmitting}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                    >
-                      <XMarkIcon className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={argInput}
-                    onChange={(e) => setArgInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addArg())}
-                    placeholder="Add argument..."
-                    disabled={isSubmitting}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent disabled:bg-gray-50"
-                  />
-                  <button
-                    type="button"
-                    onClick={addArg}
-                    disabled={isSubmitting || !argInput.trim()}
-                    className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    Add
-                  </button>
-                </div>
-              </div>
-            </div>
+            <ArgumentsList
+              args={formData.args}
+              argInput={argInput}
+              onArgInputChange={setArgInput}
+              onAddArg={addArg}
+              onRemoveArg={removeArg}
+              disabled={isSubmitting}
+            />
 
-            {/* Environment Variables */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Environment Variables</label>
-              <div className="space-y-2">
-                {Object.entries(formData.env).map(([key, value]) => (
-                  <div key={key} className="flex items-center gap-2">
-                    <span className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm font-mono text-gray-700">
-                      {key}
-                    </span>
-                    <span className="text-gray-400">=</span>
-                    <input
-                      type="text"
-                      value={value}
-                      readOnly
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-mono text-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeEnvVar(key)}
-                      disabled={isSubmitting}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                    >
-                      <XMarkIcon className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={envKey}
-                    onChange={(e) => setEnvKey(e.target.value)}
-                    placeholder="KEY"
-                    disabled={isSubmitting}
-                    className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-mono text-sm disabled:bg-gray-50"
-                  />
-                  <span className="text-gray-400">=</span>
-                  <input
-                    type="text"
-                    value={envValue}
-                    onChange={(e) => setEnvValue(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addEnvVar())}
-                    placeholder="value"
-                    disabled={isSubmitting}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent font-mono text-sm disabled:bg-gray-50"
-                  />
-                  <button
-                    type="button"
-                    onClick={addEnvVar}
-                    disabled={isSubmitting || !envKey.trim() || !envValue.trim()}
-                    className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    Add
-                  </button>
-                </div>
-              </div>
-            </div>
+            <EnvironmentVariables
+              env={formData.env}
+              envKey={envKey}
+              envValue={envValue}
+              onEnvKeyChange={setEnvKey}
+              onEnvValueChange={setEnvValue}
+              onAddEnv={addEnvVar}
+              onRemoveEnv={removeEnvVar}
+              disabled={isSubmitting}
+            />
 
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.auto_start}
-                onChange={(e) => setFormData(prev => prev ? ({ ...prev, auto_start: e.target.checked }) : null)}
-                disabled={isSubmitting}
-                className="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900 disabled:opacity-50"
-              />
-              <span className="text-sm text-gray-700">Enable auto-start on launch</span>
-            </label>
+            <CheckboxField
+              label="Enable auto-start on launch"
+              checked={formData.auto_start}
+              onChange={(checked) => setFormData(prev => prev ? ({ ...prev, auto_start: checked }) : null)}
+              disabled={isSubmitting}
+            />
 
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.enabled}
-                onChange={(e) => setFormData(prev => prev ? ({ ...prev, enabled: e.target.checked }) : null)}
-                disabled={isSubmitting}
-                className="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900 disabled:opacity-50"
-              />
-              <span className="text-sm text-gray-700">Enable this server</span>
-            </label>
+            <CheckboxField
+              label="Enable this server"
+              checked={formData.enabled}
+              onChange={(checked) => setFormData(prev => prev ? ({ ...prev, enabled: checked }) : null)}
+              disabled={isSubmitting}
+            />
           </div>
         </form>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
-          <button
-            type="button"
-            onClick={handleClose}
-            disabled={isSubmitting}
-            className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="px-4 py-2 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-50"
-          >
-            {isSubmitting ? 'Saving...' : 'Save Changes'}
-          </button>
-        </div>
+        <ModalFooter
+          onClose={handleClose}
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          submitLabel="Save Changes"
+          submittingLabel="Saving..."
+        />
       </div>
     </div>
   );

@@ -320,7 +320,7 @@ class ToolProcessingMixin:
                     )
                     break
 
-        # Auto-complete when a background task was queued (e.g. deep_research).
+        # Auto-complete when a background task was queued.
         # Breaks the loop immediately — agent must NOT continue searching.
         for tool_call in tool_calls:
             tc_result = tool_results_by_id.get(tool_call["id"], {})

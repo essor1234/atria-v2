@@ -1,0 +1,948 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Warehouse</title>
+  <link rel="stylesheet" href="__base.css" />
+  <link rel="preconnect" href="https://rsms.me" crossorigin />
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" />
+  <style>
+    /* ── Editorial token bridge — re-projects shadcn vars onto the web-ui
+         design system (ink/canvas/hairline/blocks). Keeps the iframe visually
+         consistent with the host app. ──────────────────────────────────── */
+    :root {
+      --ink: 0 0% 0%;
+      --canvas: 0 0% 100%;
+      --surface-soft: 40 22% 96%;
+      --hairline: 0 0% 12%;
+      --hairline-soft: 0 0% 88%;
+      --muted-ink: 0 0% 38%;
+
+      --block-lime:  72 70% 78%;
+      --block-coral:   8 80% 78%;
+      --block-cream: 38 60% 92%;
+      --block-mint:  150 50% 86%;
+
+      --semantic-danger: 0 70% 45%;
+      --semantic-warn:   38 92% 42%;
+      --semantic-success: 142 68% 28%;
+
+      --motion-fast: 160ms;
+      --motion-base: 240ms;
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      font-family: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
+      font-feature-settings: 'kern' 1, 'cv11' 1, 'ss01' 1;
+      -webkit-font-smoothing: antialiased;
+      font-weight: 320;
+      color: hsl(var(--ink));
+      background: hsl(var(--canvas));
+    }
+    body { padding: 28px 24px 40px; }
+
+    .wrap {
+      max-width: 1040px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ── Eyebrow / typography helpers ─────────────────────────────── */
+    .eyebrow {
+      font-family: 'JetBrains Mono', SF Mono, Menlo, monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 11px;
+      font-weight: 500;
+      color: hsl(var(--ink));
+    }
+    .mono { font-family: 'JetBrains Mono', SF Mono, Menlo, monospace; font-variant-numeric: tabular-nums; }
+    h1, h2, h3 { font-weight: 540; letter-spacing: -0.01em; margin: 0; }
+
+    /* ── Top bar ──────────────────────────────────────────────────── */
+    header.top {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid hsl(var(--hairline));
+    }
+    header.top .title h1 {
+      font-size: 28px;
+      letter-spacing: -0.02em;
+    }
+    header.top .title .crumb {
+      display: block;
+      margin-bottom: 6px;
+      color: hsl(var(--muted-ink));
+    }
+    header.top .title .sub {
+      margin-top: 6px;
+      font-size: 13px;
+      color: hsl(var(--muted-ink));
+    }
+    .toolbar { display: flex; gap: 8px; align-items: center; }
+
+    /* ── Buttons ──────────────────────────────────────────────────── */
+    button {
+      font: inherit;
+      cursor: pointer;
+      background: hsl(var(--ink));
+      color: hsl(var(--canvas));
+      border: 1px solid hsl(var(--ink));
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1;
+      transition: background var(--motion-fast) var(--ease-out),
+                  color var(--motion-fast) var(--ease-out),
+                  border-color var(--motion-fast) var(--ease-out),
+                  opacity var(--motion-fast) var(--ease-out);
+    }
+    button.secondary {
+      background: transparent;
+      color: hsl(var(--ink));
+      border-color: hsl(var(--hairline));
+    }
+    button.secondary:hover:not(:disabled) {
+      background: hsl(var(--surface-soft));
+    }
+    button:hover:not(:disabled) { opacity: 0.88; }
+    button:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px hsl(var(--canvas)), 0 0 0 4px hsl(var(--ink));
+    }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── KPI grid ─────────────────────────────────────────────────── */
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0;
+      border: 1px solid hsl(var(--hairline));
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    @media (max-width: 760px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 420px) { .kpis { grid-template-columns: 1fr; } }
+
+    .kpi {
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: hsl(var(--canvas));
+      border-right: 1px solid hsl(var(--hairline-soft));
+      border-bottom: 1px solid hsl(var(--hairline-soft));
+      position: relative;
+    }
+    .kpi:nth-child(4n), .kpi:last-child { border-right: 0; }
+    @media (max-width: 760px) {
+      .kpi:nth-child(2n) { border-right: 0; }
+      .kpi { border-right: 1px solid hsl(var(--hairline-soft)); }
+    }
+    .kpi .label { color: hsl(var(--muted-ink)); }
+    .kpi .value {
+      font-size: 30px;
+      font-weight: 540;
+      letter-spacing: -0.025em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.05;
+    }
+    .kpi .delta { font-size: 12px; color: hsl(var(--muted-ink)); }
+    .kpi.accent-lime  { background: hsl(var(--block-lime) / 0.35); }
+    .kpi.accent-coral { background: hsl(var(--block-coral) / 0.45); }
+    .kpi.accent-coral .value { color: hsl(var(--semantic-danger)); }
+    .kpi.accent-cream { background: hsl(var(--block-cream) / 0.6); }
+    .kpi.accent-mint  { background: hsl(var(--block-mint) / 0.5); }
+
+    /* ── Filter row ──────────────────────────────────────────────── */
+    .filter {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .filter input {
+      flex: 1;
+      font: inherit;
+      font-size: 14px;
+      padding: 10px 14px;
+      border: 1px solid hsl(var(--hairline-soft));
+      border-radius: 8px;
+      background: hsl(var(--canvas));
+      color: hsl(var(--ink));
+      outline: none;
+      transition: border-color var(--motion-fast) var(--ease-out),
+                  box-shadow var(--motion-fast) var(--ease-out);
+    }
+    .filter input::placeholder { color: hsl(var(--ink) / 0.4); }
+    .filter input:focus {
+      border-color: hsl(var(--ink));
+      box-shadow: 0 0 0 3px hsl(var(--ink) / 0.08);
+    }
+    .filter .count { color: hsl(var(--muted-ink)); font-size: 12px; white-space: nowrap; }
+
+    /* ── Inventory table ─────────────────────────────────────────── */
+    .panel {
+      border: 1px solid hsl(var(--hairline));
+      background: hsl(var(--canvas));
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .panel > header {
+      padding: 14px 18px;
+      border-bottom: 1px solid hsl(var(--hairline-soft));
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .panel > header h2 { font-size: 13px; letter-spacing: 0.01em; }
+    .panel > header .hint { font-size: 11px; color: hsl(var(--muted-ink)); }
+
+    .row-head, .row {
+      display: grid;
+      grid-template-columns:
+        minmax(0, 2.2fr)         /* meta (sku + name) */
+        minmax(80px, 1fr)        /* location */
+        minmax(70px, 90px)       /* price */
+        minmax(60px, 80px)       /* qty */
+        minmax(120px, auto)      /* stepper */
+        minmax(140px, 1fr);      /* updated */
+      align-items: center;
+      gap: 14px;
+      padding: 12px 18px;
+    }
+    .row-head {
+      background: hsl(var(--surface-soft));
+      border-bottom: 1px solid hsl(var(--hairline-soft));
+    }
+    .row-head span {
+      font-family: 'JetBrains Mono', SF Mono, Menlo, monospace;
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: hsl(var(--muted-ink));
+    }
+    .row-head .num { text-align: right; }
+
+    .row { border-bottom: 1px solid hsl(var(--hairline-soft)); }
+    .row:last-child { border-bottom: 0; }
+    .row:hover { background: hsl(var(--surface-soft) / 0.6); }
+
+    .row .meta { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+    .row .sku  { font-family: 'JetBrains Mono', SF Mono, Menlo, monospace; font-size: 11px; color: hsl(var(--muted-ink)); letter-spacing: 0.04em; }
+    .row .name { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .row .loc { font-size: 13px; color: hsl(var(--ink)); display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+    .row .loc svg { flex: 0 0 12px; opacity: 0.55; }
+    .row .loc span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .row .price { font-family: 'JetBrains Mono', SF Mono, Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 13px; text-align: right; color: hsl(var(--ink)); }
+
+    .row .qty-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+    .row .qty {
+      font-family: 'JetBrains Mono', SF Mono, Menlo, monospace;
+      font-variant-numeric: tabular-nums;
+      font-size: 17px;
+      font-weight: 540;
+      line-height: 1.1;
+    }
+    .row .qty.low { color: hsl(var(--semantic-danger)); }
+    .row .reorder { font-size: 10.5px; color: hsl(var(--muted-ink)); font-family: 'JetBrains Mono', SF Mono, Menlo, monospace; }
+
+    .row .updated { font-size: 12px; color: hsl(var(--muted-ink)); font-variant-numeric: tabular-nums; text-align: right; }
+
+    /* Stepper — hairline pill, no scale shift */
+    .stepper {
+      display: inline-flex;
+      border: 1px solid hsl(var(--hairline-soft));
+      border-radius: 999px;
+      overflow: hidden;
+      background: hsl(var(--canvas));
+      justify-self: end;
+    }
+    .stepper button {
+      background: transparent;
+      color: hsl(var(--ink));
+      border: 0;
+      border-radius: 0;
+      padding: 0;
+      width: 32px;
+      height: 28px;
+      font-size: 14px;
+      font-weight: 540;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .stepper button + button { border-left: 1px solid hsl(var(--hairline-soft)); }
+    .stepper button:hover:not(:disabled) { background: hsl(var(--surface-soft)); opacity: 1; }
+    .stepper button:focus-visible {
+      box-shadow: 0 0 0 2px hsl(var(--canvas)) inset, 0 0 0 4px hsl(var(--ink)) inset;
+      outline: none;
+    }
+
+    /* Low-stock chip — quiet coral pill */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 9px 3px 8px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', SF Mono, Menlo, monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: hsl(var(--block-coral) / 0.55);
+      color: hsl(var(--ink));
+    }
+    .chip .dot { width: 5px; height: 5px; border-radius: 50%; background: hsl(var(--semantic-danger)); }
+
+    /* ── Compact row layout for narrow widths ────────────────────── */
+    @media (max-width: 820px) {
+      .row-head, .row {
+        grid-template-columns: minmax(0, 1.6fr) minmax(60px, 80px) minmax(110px, auto);
+        gap: 10px;
+      }
+      .row-head .col-loc, .row-head .col-price, .row-head .col-updated,
+      .row .loc, .row .price, .row .updated { display: none; }
+    }
+
+    /* ── Empty / error states ────────────────────────────────────── */
+    .empty {
+      padding: 48px 16px 56px;
+      text-align: center;
+      color: hsl(var(--muted-ink));
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .empty svg { opacity: 0.4; }
+
+    .err {
+      min-height: 18px;
+      font-size: 12px;
+      color: hsl(var(--semantic-danger));
+      padding: 0 2px;
+    }
+
+    /* ── Footer summary strip ────────────────────────────────────── */
+    .footer-strip {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 12px 18px;
+      border: 1px solid hsl(var(--hairline-soft));
+      border-radius: 10px;
+      background: hsl(var(--surface-soft));
+      font-size: 12px;
+      color: hsl(var(--muted-ink));
+    }
+    .footer-strip strong { color: hsl(var(--ink)); font-weight: 540; }
+
+    /* ── Inline add/edit modal ───────────────────────────────────── */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: hsl(var(--ink) / 0.35);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+      z-index: 50;
+    }
+    .modal-backdrop[hidden] { display: none; }
+    .modal {
+      background: hsl(var(--canvas));
+      border: 1px solid hsl(var(--hairline));
+      border-radius: 14px;
+      width: min(520px, 100%);
+      box-shadow: 0 20px 60px hsl(var(--ink) / 0.18);
+      display: flex; flex-direction: column;
+      max-height: 100%;
+      overflow: hidden;
+    }
+    .modal-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 18px;
+      border-bottom: 1px solid hsl(var(--hairline-soft));
+    }
+    .modal-head h3 {
+      margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.01em;
+    }
+    .icon-btn {
+      background: transparent; border: 0; color: hsl(var(--muted-ink));
+      font-size: 22px; line-height: 1; padding: 4px 8px; border-radius: 8px;
+      cursor: pointer;
+    }
+    .icon-btn:hover { background: hsl(var(--surface-soft)); color: hsl(var(--ink)); }
+    .modal-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 14px;
+      padding: 18px 20px 20px;
+      overflow: auto;
+    }
+    .modal-form label {
+      display: flex; flex-direction: column; gap: 5px;
+      font-size: 12px; font-weight: 500; color: hsl(var(--label-ink, var(--muted-ink)));
+    }
+    .modal-form input {
+      font: inherit;
+      color: hsl(var(--ink));
+      background: hsl(var(--canvas));
+      border: 1px solid hsl(var(--hairline));
+      border-radius: 8px;
+      padding: 9px 11px;
+      font-size: 13px;
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+    }
+    .modal-form input:focus {
+      outline: none;
+      border-color: hsl(var(--ink));
+      box-shadow: 0 0 0 3px hsl(var(--ink) / 0.08);
+    }
+    .modal-error {
+      grid-column: 1 / -1;
+      color: hsl(var(--semantic-danger, 0 72% 41%));
+      background: hsl(var(--semantic-danger, 0 72% 41%) / 0.08);
+      border: 1px solid hsl(var(--semantic-danger, 0 72% 41%) / 0.25);
+      border-radius: 8px;
+      padding: 8px 11px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .modal-actions {
+      grid-column: 1 / -1;
+      display: flex; justify-content: flex-end; gap: 10px;
+      padding-top: 8px;
+      border-top: 1px solid hsl(var(--hairline-soft));
+      margin-top: 4px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="root">
+    <header class="top">
+      <div class="title">
+        <span class="eyebrow crumb">Module · Warehouse</span>
+        <h1>Inventory</h1>
+        <div class="sub">Live stock levels, locations, value & reorder signals.</div>
+      </div>
+      <div class="toolbar">
+        <button type="button" class="secondary" id="refresh" aria-label="Refresh inventory">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:6px;"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 4v6h-6"/></svg>
+          Refresh
+        </button>
+        <button type="button" id="add" aria-label="Add inventory item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:6px;"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          Add item
+        </button>
+      </div>
+    </header>
+
+    <!-- Inline add/edit dialog. Runs inventory.py directly via AtriaDash.run; -->
+    <!-- never pushes the form back into the chat surface. -->
+    <div class="modal-backdrop" id="dlg-backdrop" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dlg-title">
+        <header class="modal-head">
+          <h3 id="dlg-title">New inventory item</h3>
+          <button type="button" class="icon-btn" id="dlg-close" aria-label="Close">×</button>
+        </header>
+        <form id="dlg-form" class="modal-form" novalidate>
+          <label>SKU
+            <input id="f-sku" name="sku" autocomplete="off" required />
+          </label>
+          <label>Name
+            <input id="f-name" name="name" autocomplete="off" required />
+          </label>
+          <label>Location
+            <input id="f-location" name="location" placeholder="A1-03" autocomplete="off" />
+          </label>
+          <label>Quantity
+            <input id="f-quantity" name="quantity" type="number" min="0" step="1" required />
+          </label>
+          <label>Unit price
+            <input id="f-unit_price" name="unit_price" type="number" min="0" step="0.01" required />
+          </label>
+          <label>Reorder level
+            <input id="f-reorder_level" name="reorder_level" type="number" min="0" step="1" required />
+          </label>
+          <div class="modal-error" id="dlg-error" role="alert" hidden></div>
+          <div class="modal-actions">
+            <button type="button" class="secondary" id="dlg-cancel">Cancel</button>
+            <button type="submit" id="dlg-submit">Save item</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <section class="kpis" id="kpis" aria-label="Inventory KPIs">
+      <div class="kpi">
+        <span class="eyebrow label">SKUs</span>
+        <div class="value mono" id="kpi-skus">—</div>
+        <div class="delta" id="kpi-skus-sub">distinct items</div>
+      </div>
+      <div class="kpi accent-mint">
+        <span class="eyebrow label">Units on hand</span>
+        <div class="value mono" id="kpi-units">—</div>
+        <div class="delta" id="kpi-units-sub">total quantity</div>
+      </div>
+      <div class="kpi accent-cream">
+        <span class="eyebrow label">Inventory value</span>
+        <div class="value mono" id="kpi-value">—</div>
+        <div class="delta" id="kpi-value-sub">qty × unit price</div>
+      </div>
+      <div class="kpi accent-coral" id="kpi-low-card">
+        <span class="eyebrow label">Low stock</span>
+        <div class="value mono" id="kpi-low">—</div>
+        <div class="delta" id="kpi-low-sub">at or below reorder</div>
+      </div>
+    </section>
+
+    <div class="filter">
+      <input id="q" type="search" autocomplete="off" placeholder="Filter by SKU, name or location…" aria-label="Filter inventory" />
+      <span class="count" id="rowcount" aria-live="polite"></span>
+    </div>
+
+    <div class="err" id="err" role="alert"></div>
+
+    <section class="panel" aria-label="Stock by SKU">
+      <header>
+        <h2>Stock by SKU</h2>
+        <span class="hint">Use −/+ to adjust quantity · click + Add item for new stock</span>
+      </header>
+      <div class="row-head" role="row">
+        <span class="col-item">Item</span>
+        <span class="col-loc">Location</span>
+        <span class="col-price num">Unit price</span>
+        <span class="col-qty num">Qty</span>
+        <span class="col-adj num">Adjust</span>
+        <span class="col-updated num">Updated</span>
+      </div>
+      <div id="rows"></div>
+    </section>
+
+    <div class="footer-strip" id="footer-strip" hidden></div>
+  </div>
+
+  <script src="__bridge.js"></script>
+  <script>
+    (function () {
+      var state = { items: [], low: [], query: "" };
+      var inflight = 0;
+
+      var el = {
+        skus: document.getElementById("kpi-skus"),
+        units: document.getElementById("kpi-units"),
+        value: document.getElementById("kpi-value"),
+        low: document.getElementById("kpi-low"),
+        lowSub: document.getElementById("kpi-low-sub"),
+        lowCard: document.getElementById("kpi-low-card"),
+        rows: document.getElementById("rows"),
+        rowcount: document.getElementById("rowcount"),
+        footer: document.getElementById("footer-strip"),
+        err: document.getElementById("err"),
+        refresh: document.getElementById("refresh"),
+        add: document.getElementById("add"),
+        q: document.getElementById("q"),
+      };
+
+      function fmtMoney(n) {
+        if (!isFinite(n)) return "—";
+        return "$" + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      function fmtPrice(n) {
+        if (!isFinite(n)) return "—";
+        return "$" + n.toFixed(2);
+      }
+      function fmtRelative(iso) {
+        if (!iso) return "—";
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return iso;
+        var secs = Math.round((Date.now() - d.getTime()) / 1000);
+        if (secs < 60) return secs + "s ago";
+        var mins = Math.round(secs / 60);
+        if (mins < 60) return mins + "m ago";
+        var hrs = Math.round(mins / 60);
+        if (hrs < 24) return hrs + "h ago";
+        var days = Math.round(hrs / 24);
+        if (days < 30) return days + "d ago";
+        return d.toISOString().slice(0, 10);
+      }
+
+      function setErr(msg) { el.err.textContent = msg || ""; }
+
+      function setInflight(delta) {
+        inflight += delta;
+        var busy = inflight > 0;
+        el.refresh.disabled = busy;
+        el.add.disabled = busy;
+        document.querySelectorAll(".stepper button").forEach(function (b) { b.disabled = busy; });
+      }
+
+      function reportSize() {
+        var h = Math.max(
+          document.body.scrollHeight,
+          document.documentElement.scrollHeight,
+          document.getElementById("root").offsetHeight + 48
+        );
+        AtriaDash.resize(h);
+      }
+
+      function render() {
+        var items = state.items || [];
+        var lowSet = {};
+        (state.low || []).forEach(function (s) { lowSet[s] = true; });
+
+        // ── aggregates over the full set ──
+        var totalUnits = 0;
+        var totalValue = 0;
+        items.forEach(function (r) {
+          var q = parseInt(r.quantity, 10);
+          var p = parseFloat(r.unit_price);
+          if (!isNaN(q)) totalUnits += q;
+          if (!isNaN(q) && !isNaN(p)) totalValue += q * p;
+        });
+        var lowCount = (state.low || []).length;
+
+        el.skus.textContent = String(items.length);
+        el.units.textContent = totalUnits.toLocaleString();
+        el.value.textContent = fmtMoney(totalValue);
+        el.low.textContent = String(lowCount);
+        el.lowSub.textContent = lowCount === 0
+          ? "all healthy"
+          : "at or below reorder";
+
+        // sidebar badge — warning when anything is low
+        AtriaDash.setBadge(
+          lowCount > 0 ? { count: lowCount, severity: "warning" } : null
+        );
+
+        // ── filter ──
+        var q = state.query.trim().toLowerCase();
+        var filtered = !q ? items : items.filter(function (r) {
+          return (r.sku || "").toLowerCase().indexOf(q) !== -1
+              || (r.name || "").toLowerCase().indexOf(q) !== -1
+              || (r.location || "").toLowerCase().indexOf(q) !== -1;
+        });
+
+        el.rowcount.textContent = q
+          ? filtered.length + " of " + items.length
+          : items.length + " item" + (items.length === 1 ? "" : "s");
+
+        // ── rows ──
+        el.rows.innerHTML = "";
+        if (filtered.length === 0) {
+          var empty = document.createElement("div");
+          empty.className = "empty";
+          var icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+          icon.setAttribute("width", "28");
+          icon.setAttribute("height", "28");
+          icon.setAttribute("viewBox", "0 0 24 24");
+          icon.setAttribute("fill", "none");
+          icon.setAttribute("stroke", "currentColor");
+          icon.setAttribute("stroke-width", "1.4");
+          icon.setAttribute("stroke-linecap", "round");
+          icon.setAttribute("stroke-linejoin", "round");
+          icon.innerHTML = '<path d="M3 7l9-4 9 4"/><path d="M3 7v10l9 4 9-4V7"/><path d="M3 7l9 4 9-4"/><path d="M12 11v10"/>';
+          empty.appendChild(icon);
+          var msg = document.createElement("div");
+          msg.textContent = items.length === 0
+            ? "No items yet — click + Add item to get started."
+            : "Nothing matches “" + state.query + "”.";
+          empty.appendChild(msg);
+          el.rows.appendChild(empty);
+          el.footer.hidden = true;
+          reportSize();
+          return;
+        }
+
+        filtered.forEach(function (r) {
+          var qty = parseInt(r.quantity, 10);
+          var price = parseFloat(r.unit_price);
+          var reorder = parseInt(r.reorder_level, 10);
+          var isLow = !!lowSet[r.sku];
+
+          var row = document.createElement("div");
+          row.className = "row";
+          row.setAttribute("role", "row");
+
+          // meta — sku + name
+          var meta = document.createElement("div");
+          meta.className = "meta";
+          var sku = document.createElement("span");
+          sku.className = "sku";
+          sku.textContent = r.sku;
+          var name = document.createElement("span");
+          name.className = "name";
+          name.textContent = r.name || "(unnamed)";
+          meta.appendChild(sku);
+          meta.appendChild(name);
+
+          // location
+          var loc = document.createElement("div");
+          loc.className = "loc";
+          loc.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-7-7.58-7-12a7 7 0 1 1 14 0c0 4.42-7 12-7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+          var locText = document.createElement("span");
+          locText.textContent = r.location || "—";
+          loc.appendChild(locText);
+
+          // price
+          var price$ = document.createElement("div");
+          price$.className = "price";
+          price$.textContent = fmtPrice(price);
+
+          // qty + low chip + reorder hint
+          var qWrap = document.createElement("div");
+          qWrap.className = "qty-wrap";
+          var qEl = document.createElement("div");
+          qEl.className = "qty" + (isLow ? " low" : "");
+          qEl.textContent = isNaN(qty) ? "—" : String(qty);
+          qWrap.appendChild(qEl);
+          if (isLow) {
+            var chip = document.createElement("span");
+            chip.className = "chip";
+            chip.innerHTML = '<span class="dot"></span>LOW';
+            qWrap.appendChild(chip);
+          } else if (!isNaN(reorder)) {
+            var hint = document.createElement("span");
+            hint.className = "reorder";
+            hint.textContent = "reorder ≤ " + reorder;
+            qWrap.appendChild(hint);
+          }
+
+          // stepper
+          var stepper = document.createElement("div");
+          stepper.className = "stepper";
+          var minus = document.createElement("button");
+          minus.type = "button";
+          minus.textContent = "−";
+          minus.setAttribute("aria-label", "Decrease " + r.sku);
+          minus.addEventListener("click", function () { adjust(r.sku, -1); });
+          if (!isNaN(qty) && qty <= 0) minus.disabled = true;
+          var plus = document.createElement("button");
+          plus.type = "button";
+          plus.textContent = "+";
+          plus.setAttribute("aria-label", "Increase " + r.sku);
+          plus.addEventListener("click", function () { adjust(r.sku, 1); });
+          stepper.appendChild(minus);
+          stepper.appendChild(plus);
+
+          // updated
+          var upd = document.createElement("div");
+          upd.className = "updated";
+          upd.textContent = fmtRelative(r.updated_at);
+          upd.title = r.updated_at || "";
+
+          row.appendChild(meta);
+          row.appendChild(loc);
+          row.appendChild(price$);
+          row.appendChild(qWrap);
+          row.appendChild(stepper);
+          row.appendChild(upd);
+          el.rows.appendChild(row);
+        });
+
+        // footer summary
+        if (items.length > 0) {
+          el.footer.hidden = false;
+          el.footer.innerHTML =
+            '<span>Showing <strong>' + filtered.length + '</strong> of <strong>' + items.length + '</strong> SKUs</span>' +
+            '<span>Total units: <strong>' + totalUnits.toLocaleString() + '</strong></span>' +
+            '<span>Inventory value: <strong>' + fmtMoney(totalValue) + '</strong></span>' +
+            '<span>Low stock: <strong>' + lowCount + '</strong></span>';
+        } else {
+          el.footer.hidden = true;
+        }
+
+        if (inflight > 0) {
+          document.querySelectorAll(".stepper button").forEach(function (b) { b.disabled = true; });
+        }
+        reportSize();
+      }
+
+      function load() {
+        setInflight(1);
+        AtriaDash.json("inventory.py", ["list", "--json"])
+          .then(function (data) {
+            state.items = (data && data.items) || [];
+            state.low = (data && data.low_stock) || [];
+            setErr("");
+            render();
+          })
+          .catch(function (err) {
+            setErr("Failed to load inventory: " + (err && err.message ? err.message : err));
+            render();
+          })
+          .then(function () { setInflight(-1); });
+      }
+
+      function adjust(sku, delta) {
+        setInflight(1);
+        AtriaDash.run("inventory.py", ["adjust", "--sku", sku, "--delta", String(delta)])
+          .then(function (res) {
+            if (res.exit_code !== 0) {
+              throw new Error(res.stderr || ("non-zero exit " + res.exit_code));
+            }
+            setErr("");
+            return AtriaDash.json("inventory.py", ["list", "--json"]).then(function (data) {
+              state.items = (data && data.items) || [];
+              state.low = (data && data.low_stock) || [];
+              render();
+            });
+          })
+          .catch(function (err) {
+            setErr("Adjust failed: " + (err && err.message ? err.message : err));
+          })
+          .then(function () { setInflight(-1); render(); });
+      }
+
+      el.refresh.addEventListener("click", load);
+
+      // ── Inline add-item dialog ─────────────────────────────────────
+      // Dashboard actions run scripts directly via AtriaDash.run; they
+      // intentionally do NOT push messages back into the chat surface.
+      var dlg = {
+        backdrop: document.getElementById("dlg-backdrop"),
+        form: document.getElementById("dlg-form"),
+        close: document.getElementById("dlg-close"),
+        cancel: document.getElementById("dlg-cancel"),
+        submit: document.getElementById("dlg-submit"),
+        error: document.getElementById("dlg-error"),
+        fields: {
+          sku: document.getElementById("f-sku"),
+          name: document.getElementById("f-name"),
+          location: document.getElementById("f-location"),
+          quantity: document.getElementById("f-quantity"),
+          unit_price: document.getElementById("f-unit_price"),
+          reorder_level: document.getElementById("f-reorder_level"),
+        },
+      };
+
+      function dlgSetError(msg) {
+        if (!msg) {
+          dlg.error.hidden = true;
+          dlg.error.textContent = "";
+          return;
+        }
+        dlg.error.textContent = msg;
+        dlg.error.hidden = false;
+      }
+
+      function dlgReset() {
+        Object.keys(dlg.fields).forEach(function (k) { dlg.fields[k].value = ""; });
+        dlgSetError("");
+        dlg.submit.disabled = false;
+      }
+
+      function dlgOpen() {
+        dlgReset();
+        dlg.backdrop.hidden = false;
+        setTimeout(function () { dlg.fields.sku.focus(); }, 0);
+        reportSize();
+      }
+
+      function dlgClose() {
+        dlg.backdrop.hidden = true;
+        reportSize();
+      }
+
+      function dlgRead() {
+        var d = {};
+        Object.keys(dlg.fields).forEach(function (k) { d[k] = dlg.fields[k].value.trim(); });
+        return d;
+      }
+
+      function dlgValidate(d) {
+        if (!d.sku) return "SKU is required.";
+        var existing = (state.items || []).some(function (it) {
+          return String(it.sku).toLowerCase() === d.sku.toLowerCase();
+        });
+        if (existing) return "SKU already exists — pick a different one.";
+        if (!d.name) return "Name is required.";
+        if (d.quantity === "" || isNaN(+d.quantity) || +d.quantity < 0)
+          return "Quantity must be a non-negative number.";
+        if (d.unit_price === "" || isNaN(+d.unit_price) || +d.unit_price < 0)
+          return "Unit price must be a non-negative number.";
+        if (d.reorder_level === "" || isNaN(+d.reorder_level) || +d.reorder_level < 0)
+          return "Reorder level must be a non-negative number.";
+        return "";
+      }
+
+      el.add.addEventListener("click", dlgOpen);
+      dlg.close.addEventListener("click", dlgClose);
+      dlg.cancel.addEventListener("click", dlgClose);
+      dlg.backdrop.addEventListener("click", function (ev) {
+        if (ev.target === dlg.backdrop) dlgClose();
+      });
+      document.addEventListener("keydown", function (ev) {
+        if (!dlg.backdrop.hidden && ev.key === "Escape") dlgClose();
+      });
+
+      dlg.form.addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        var d = dlgRead();
+        var err = dlgValidate(d);
+        if (err) { dlgSetError(err); return; }
+        dlgSetError("");
+        dlg.submit.disabled = true;
+        setInflight(1);
+        AtriaDash.run("inventory.py", [
+          "add",
+          "--sku", d.sku,
+          "--name", d.name,
+          "--location", d.location || "",
+          "--quantity", String(parseInt(d.quantity, 10)),
+          "--unit-price", String(parseFloat(d.unit_price)),
+          "--reorder-level", String(parseInt(d.reorder_level, 10)),
+        ])
+          .then(function (res) {
+            if (res.exit_code !== 0) {
+              throw new Error(res.stderr || ("non-zero exit " + res.exit_code));
+            }
+            dlgClose();
+            return AtriaDash.json("inventory.py", ["list", "--json"]).then(function (data) {
+              state.items = (data && data.items) || [];
+              state.low = (data && data.low_stock) || [];
+              setErr("");
+              render();
+            });
+          })
+          .catch(function (e) {
+            dlgSetError("Add failed: " + (e && e.message ? e.message : e));
+          })
+          .then(function () { setInflight(-1); dlg.submit.disabled = false; });
+      });
+      el.q.addEventListener("input", function () {
+        state.query = el.q.value;
+        render();
+      });
+
+      AtriaDash.onChange(function (_paths) { load(); });
+      AtriaDash.onVisibility(function (visible) { if (visible) load(); });
+
+      if (typeof ResizeObserver !== "undefined") {
+        new ResizeObserver(reportSize).observe(document.body);
+      }
+      window.addEventListener("load", reportSize);
+
+      load();
+      AtriaDash.ready();
+    })();
+  </script>
+</body>
+</html>

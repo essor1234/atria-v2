@@ -11,6 +11,8 @@ import { SettingsModal } from '../components/Settings/SettingsModal';
 import { ToastContainer } from '../components/ui/Toast';
 import { ArtifactViewer } from '../components/ArtifactViewer/ArtifactViewer';
 import { useChatStore } from '../stores/chat';
+import { useModulesStore } from '../stores/modules';
+import { ModuleDashboardView } from '../components/ModuleDashboard/ModuleDashboardView';
 
 export function ChatPage() {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
@@ -18,6 +20,7 @@ export function ChatPage() {
 
   const settingsModalOpen = useChatStore(state => state.settingsModalOpen);
   const closeSettingsModal = useChatStore(state => state.closeSettingsModal);
+  const activeModuleDashboard = useModulesStore(s => s.activeModuleDashboard);
 
   const openCommandPalette = useCallback(() => setCommandPaletteOpen(true), []);
   const closeCommandPalette = useCallback(() => setCommandPaletteOpen(false), []);
@@ -30,7 +33,13 @@ export function ChatPage() {
       <div className="flex-1 flex overflow-hidden">
         <ProjectSidebar />
         <main className="flex-1 flex flex-col overflow-hidden bg-bg-000">
-          <ChatInterface />
+          {activeModuleDashboard
+            ? <ModuleDashboardView moduleName={activeModuleDashboard} />
+            : (
+              <>
+                <ChatInterface />
+              </>
+            )}
         </main>
         <ArtifactViewer />
       </div>

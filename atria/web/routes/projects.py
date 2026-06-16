@@ -184,5 +184,3 @@ async def delete_conversation(
     state = get_state()
     await state.session_manager.delete_session(conversation_id)
     return {"ok": True}
-
-

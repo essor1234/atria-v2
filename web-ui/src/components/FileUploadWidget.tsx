@@ -139,7 +139,7 @@ export function FileUploadWidget({
         <div
           className={`border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer ${
             isDragging
-              ? 'border-blue-400 bg-blue-50 shadow-md'
+              ? 'border-blue-400 bg-blue-50 shadow-soft'
               : 'border-gray-300 hover:border-gray-400'
           }`}
           onClick={handleClick}
@@ -176,7 +176,7 @@ export function FileUploadWidget({
                   {progress[file.name] !== undefined && (
                     <div className="flex-shrink-0 ml-2 w-16 h-1 bg-gray-200 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-blue-500 transition-all duration-300"
+                        className="h-full bg-blue-500 transition-all duration-base"
                         style={{ width: `${progress[file.name]}%` }}
                       />
                     </div>
@@ -185,7 +185,7 @@ export function FileUploadWidget({
                     <button
                       onClick={() => handleRemoveFile(index)}
                       disabled={uploading}
-                      className="flex-shrink-0 ml-2 p-1 text-gray-400 hover:text-red-500 disabled:opacity-50"
+                      className="flex-shrink-0 ml-2 p-1 text-gray-400 hover:text-semantic-danger disabled:opacity-50"
                     >
                       ✕
                     </button>
@@ -201,13 +201,13 @@ export function FileUploadWidget({
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start justify-between">
+          <div className="bg-red-50 border border-semantic-danger rounded-lg p-3 flex items-start justify-between">
             <div>
-              <p className="text-sm font-medium text-red-800">{error}</p>
+              <p className="text-sm font-medium text-semantic-danger">{error}</p>
             </div>
             <button
               onClick={clearError}
-              className="text-red-400 hover:text-red-600"
+              className="text-semantic-danger hover:opacity-80"
             >
               ✕
             </button>

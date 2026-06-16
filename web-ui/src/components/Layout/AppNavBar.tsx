@@ -160,7 +160,7 @@ export function AppNavBar() {
               {menuOpen && (
                 <div
                   role="menu"
-                  className="absolute right-0 mt-2 w-64 rounded-md border border-hairline-soft bg-canvas shadow-lg overflow-hidden z-50"
+                  className="absolute right-0 mt-2 w-64 rounded-md border border-hairline-soft bg-canvas shadow-soft overflow-hidden z-50"
                 >
                   <div className="px-3 py-2.5 border-b border-hairline-soft">
                     <div className="flex items-center gap-2">

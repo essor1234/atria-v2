@@ -146,7 +146,7 @@ export function InputBox() {
   return (
     <div className="bg-canvas border-t border-hairline-soft/50 px-4 py-3">
       <div className="w-full relative">
-        <div className="rounded-xl border border-hairline-soft bg-canvas focus-within:border-ink/20 focus-within:shadow-[0_2px_12px_rgba(0,0,0,0.06)] transition-all">
+        <div className="rounded-xl border border-hairline-soft bg-canvas focus-within:border-ink/20 focus-within:shadow-soft transition-all duration-fast">
           <div className="flex gap-2 px-2 py-1.5 items-center">
             <input
               ref={fileInputRef}

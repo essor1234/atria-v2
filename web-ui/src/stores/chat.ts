@@ -179,6 +179,23 @@ function expandMessages(rawMessages: Message[]): Message[] {
       });
     }
 
+    if (msg.role === 'custom_block') {
+      const meta = msg.metadata || {};
+      expanded.push({
+        role: 'custom_block',
+        content: meta.title || msg.content || '',
+        block_id: meta.block_id,
+        block_module: meta.module,
+        block_file: meta.block,
+        block_src: meta.src,
+        block_props: meta.props || {},
+        block_height: meta.height ?? 'auto',
+        block_title: meta.title,
+        timestamp: msg.timestamp,
+      });
+      continue;
+    }
+
     if (msg.tool_calls && msg.tool_calls.length > 0) {
       if (msg.content && msg.content.trim()) {
         expanded.push({
@@ -222,6 +239,7 @@ interface ChatState {
   loadSession: (sessionId: string) => Promise<void>;
   sendMessage: (content: string) => Promise<void>;
   clearChat: () => Promise<void>;
+  deleteTurn: (sessionId: string, turnIndex: number) => Promise<void>;
   setConnected: (connected: boolean) => void;
   respondToApproval: (approvalId: string, approved: boolean, autoApprove?: boolean) => void;
   setHasWorkspace: (hasWorkspace: boolean) => void;
@@ -268,7 +286,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
   openSettingsModal: () => set({ settingsModalOpen: true }),
   closeSettingsModal: () => set({ settingsModalOpen: false }),
-
   loadSession: async (sessionId: string) => {
     console.log(`[Frontend] Loading session ${sessionId}`);
 
@@ -393,6 +410,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
           }),
         }));
       }
+    }
+  },
+
+  deleteTurn: async (sessionId: string, turnIndex: number) => {
+    try {
+      const result = await apiClient.deleteSessionTurn(sessionId, turnIndex);
+      const messages = expandMessages((result.messages || []) as Message[]);
+      set(state => ({
+        ...patchSession(state, sessionId, { messages, error: null }),
+      }));
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Failed to delete turn';
+      useToastStore.getState().addToast(msg, 'error');
     }
   },
 
@@ -759,6 +789,83 @@ wsClient.on('data_message', (message) => {
       ],
     });
   });
+});
+
+wsClient.on('custom_block', (message) => {
+  const sid = resolveSessionId(message.data);
+  if (!sid) return;
+
+  useChatStore.setState(state => {
+    const sessionState = getSessionState(state.sessionStates, sid);
+    return patchSession(state, sid, {
+      messages: [
+        ...sessionState.messages,
+        {
+          role: 'custom_block' as const,
+          content: message.data.title || '',
+          block_id: message.data.block_id,
+          block_module: message.data.module,
+          block_file: message.data.block,
+          block_src: message.data.src,
+          block_props: message.data.props || {},
+          block_height: message.data.height ?? 'auto',
+          block_title: message.data.title,
+          timestamp: new Date().toISOString(),
+        },
+      ],
+    });
+  });
+});
+
+wsClient.on('custom_block_update', (message) => {
+  const sid = resolveSessionId(message.data);
+  if (!sid) return;
+  const blockId = message.data.block_id;
+  if (!blockId) return;
+
+  useChatStore.setState(state => {
+    const sessionState = getSessionState(state.sessionStates, sid);
+    const idx = sessionState.messages.findIndex(
+      m => m.role === 'custom_block' && m.block_id === blockId,
+    );
+    if (idx < 0) return {};
+    const updated = [...sessionState.messages];
+    const prev = updated[idx];
+    updated[idx] = {
+      ...prev,
+      block_props: { ...(prev.block_props || {}), ...(message.data.props || {}) },
+      ...(message.data.height !== undefined ? { block_height: message.data.height } : {}),
+      ...(message.data.title !== undefined ? { block_title: message.data.title } : {}),
+    };
+    return patchSession(state, sid, { messages: updated });
+  });
+});
+
+wsClient.on('custom_block_remove', (message) => {
+  const sid = resolveSessionId(message.data);
+  if (!sid) return;
+  const blockId = message.data.block_id;
+  if (!blockId) return;
+
+  useChatStore.setState(state => {
+    const sessionState = getSessionState(state.sessionStates, sid);
+    return patchSession(state, sid, {
+      messages: sessionState.messages.filter(
+        m => !(m.role === 'custom_block' && m.block_id === blockId),
+      ),
+    });
+  });
+});
+
+wsClient.on('block_rpc_result', (message) => {
+  const detail = {
+    block_id: message.data?.block_id,
+    req_id: message.data?.req_id,
+    ok: message.data?.ok ?? !message.data?.error,
+    data: message.data?.data,
+    error: message.data?.error,
+  };
+  window.dispatchEvent(new CustomEvent('block-rpc-result', { detail }));
 });
 
 wsClient.on('status_update', (message) => {
@@ -1444,4 +1551,29 @@ wsClient.on('analyze.cancelled', (message) => {
   if (!job_id) return;
 
   upsertDeepAnalyzeMessage(sid, job_id, prev => ({ ...prev, da_status: 'cancelled' }));
+});
+
+// File-based modules: refresh the modules store when SKILL.md / script.py
+// changes on disk (watcher → WS broadcast). Lazy-imported to avoid a
+// circular dependency between chat and modules stores.
+wsClient.on('modules.changed', () => {
+  import('./modules').then(({ useModulesStore }) => {
+    useModulesStore.getState().refresh();
+  });
+});
+
+// Session messages were replaced server-side (e.g. a turn was deleted).
+// Envelope is top-level: { type, session_id, messages }. Broadcast to all
+// clients, so we filter by session_id and ignore unknown sessions.
+wsClient.on('session_messages_replaced', (message) => {
+  const payload = message as any;
+  const sid: string | undefined = payload.session_id;
+  const rawMessages: any[] = payload.messages || [];
+  if (!sid) return;
+  const state = useChatStore.getState();
+  if (!state.sessionStates[sid]) return;
+  const messages = expandMessages(rawMessages as Message[]);
+  useChatStore.setState(s => ({
+    ...patchSession(s, sid, { messages }),
+  }));
 });

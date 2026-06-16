@@ -322,7 +322,7 @@ class SnapshotManager:
             cwd=self._project_dir,
         )
         if result.returncode != 0:
-            error_msg = result.stderr.strip() or f"git command failed: {' '.join(args)}"
+            result.stderr.strip() or f"git command failed: {' '.join(args)}"
             raise subprocess.CalledProcessError(
                 result.returncode, cmd, result.stdout, result.stderr
             )

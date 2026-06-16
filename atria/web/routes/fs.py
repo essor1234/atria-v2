@@ -8,7 +8,6 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-
 from atria.db.connection import get_sessionmaker
 from atria.db.repositories.conversation_repo import ConversationRepository
 from atria.web.dependencies.auth import require_authenticated_user

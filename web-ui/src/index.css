@@ -31,7 +31,25 @@
   /* Accent + semantic */
   --accent-magenta: 330 90% 55%;
   --semantic-success: 142 68% 28%;
+  --semantic-danger: 0 70% 45%;
   --overlay-scrim: 0 0% 0%;
+
+  /* Focus ring — ink on light; flipped to canvas on dark surfaces. */
+  --focus-ring: var(--ink);
+
+  /* Motion tokens — keep CSS in sync with DESIGN.md Motion section. */
+  --motion-instant: 80ms;
+  --motion-fast: 160ms;
+  --motion-base: 240ms;
+  --motion-slow: 480ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Dark surfaces (navy block, inverse-canvas footer/marquee) flip the focus ring. */
+[data-surface="dark"], .surface-dark {
+  --focus-ring: var(--canvas);
 }
 
 @layer base {
@@ -63,9 +81,51 @@
   button, [role="button"] { cursor: pointer; }
   button:disabled, [role="button"][aria-disabled="true"] { cursor: not-allowed; }
 
+  /* Brand selection — lime on light, coral on dark. Browser default blue clashes with every block. */
   ::selection {
-    background-color: hsl(var(--ink));
-    color: hsl(var(--inverse-ink));
+    background-color: hsl(var(--block-lime));
+    color: hsl(var(--ink));
+  }
+  [data-surface="dark"] ::selection, .surface-dark ::selection {
+    background-color: hsl(var(--block-coral));
+    color: hsl(var(--ink));
+  }
+
+  /* Keyboard focus — never the browser-default blue. */
+  :focus { outline: none; }
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--canvas)), 0 0 0 4px hsl(var(--focus-ring));
+    border-radius: inherit;
+  }
+
+  /* Pills never wrap — a two-line CTA reads as broken. */
+  .pill, [data-pill] { white-space: nowrap; }
+
+  /* Hairlines render at 1 device pixel on Retina. */
+  @media (min-resolution: 2dppx) {
+    .hairline-1px { border-width: 0.5px; }
+  }
+
+  /* Brand scrollbar — quiet, never OS-default. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--hairline)) transparent;
+  }
+  *::-webkit-scrollbar { width: 6px; height: 6px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--hairline));
+    border-radius: 9999px;
+  }
+
+  /* Reduced motion — collapse reveals, pause marquee, remove press-scale. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
   /* Editorial display type — tight tracking baked into the size tokens; this

@@ -184,10 +184,8 @@ class FileToolHandler:
 
         file_path = sanitize_path(args["file_path"])
 
-        # Redirect large tabular reads to deep_analyze. Loading a 100k-row CSV
-        # into the agent's context window blows past the input-token limit and
-        # is also the wrong tool — deep_analyze profiles + summarises the file
-        # without putting raw rows in context.
+        # Guard large tabular reads — loading a 100k-row CSV into the agent's
+        # context window blows past the input-token limit.
         suffix = Path(file_path).suffix.lower()
         if suffix in {".csv", ".xlsx", ".tsv", ".parquet"} and args.get("offset") is None:
             try:
@@ -200,11 +198,9 @@ class FileToolHandler:
                     "success": False,
                     "error": (
                         f"{Path(file_path).name} is {size // 1024} KB. Reading the whole file "
-                        f"would exceed the context window. Use the `deep_analyze` tool instead "
-                        f"to profile this tabular data and produce sub-tables / charts / a "
-                        f"PDF report. Call: deep_analyze(file_path='{file_path}'). If you only "
-                        f"need a quick peek at the schema, call read_file again with "
-                        f"max_lines=20 to sample the header."
+                        f"would exceed the context window. Call read_file again with "
+                        f"max_lines=20 to sample the header, or use a dedicated tabular "
+                        f"analysis tool."
                     ),
                     "output": None,
                 }

@@ -31,10 +31,10 @@ const calloutStyles = {
     Icon: CheckCircleIcon,
   },
   error: {
-    container: 'bg-red-50 border-red-200',
-    icon: 'text-red-600',
-    title: 'text-red-900',
-    text: 'text-red-800',
+    container: 'bg-red-50 border-semantic-danger/30',
+    icon: 'text-semantic-danger',
+    title: 'text-semantic-danger',
+    text: 'text-semantic-danger',
     Icon: XCircleIcon,
   },
 };

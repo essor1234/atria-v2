@@ -1,13 +1,14 @@
-import { useEffect, useState, Suspense, lazy } from 'react';
+import { useEffect, useMemo, useState, Suspense, lazy } from 'react';
 import Papa from 'papaparse';
 import { apiClient } from '../../../api/client';
 import { DataTable } from './DataTable';
+import { fsScopeKey, type FsScope } from '../../../types';
 
 const MonacoViewer = lazy(() =>
   import('./MonacoViewer').then(m => ({ default: m.MonacoViewer })),
 );
 
-interface Props { convId: number; path: string }
+interface Props { scope: FsScope; path: string }
 
 interface Parsed {
   columns: string[];
@@ -15,7 +16,8 @@ interface Parsed {
   total: number;
 }
 
-export function CsvViewer({ convId, path }: Props) {
+export function CsvViewer({ scope, path }: Props) {
+  const scopeKey = useMemo(() => fsScopeKey(scope), [scope]);
   const [state, setState] = useState<
     { kind: 'loading' } | { kind: 'ok'; data: Parsed } | { kind: 'error'; msg: string }
   >({ kind: 'loading' });
@@ -23,7 +25,7 @@ export function CsvViewer({ convId, path }: Props) {
   useEffect(() => {
     let cancelled = false;
     setState({ kind: 'loading' });
-    apiClient.readFsText(convId, path).then(text => {
+    apiClient.readFsText(scope, path).then(text => {
       const result = Papa.parse<string[]>(text, { skipEmptyLines: true });
       if (cancelled) return;
       if (result.errors.length > 0 && result.data.length === 0) {
@@ -38,7 +40,7 @@ export function CsvViewer({ convId, path }: Props) {
       if (!cancelled) setState({ kind: 'error', msg: String(e) });
     });
     return () => { cancelled = true; };
-  }, [convId, path]);
+  }, [scopeKey, path]);
 
   if (state.kind === 'loading') {
     return <div className="p-4 text-xs font-mono text-ink/45">Parsing CSV…</div>;
@@ -51,7 +53,7 @@ export function CsvViewer({ convId, path }: Props) {
         </div>
         <div className="flex-1">
           <Suspense fallback={<div className="p-4 text-xs font-mono text-ink/45">Loading…</div>}>
-            <MonacoViewer convId={convId} path={path} />
+            <MonacoViewer scope={scope} path={path} />
           </Suspense>
         </div>
       </div>

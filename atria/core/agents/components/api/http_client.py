@@ -56,6 +56,23 @@ class AgentHttpClient:
         self._headers = headers
         self._client = httpx.Client(headers=headers, timeout=self.TIMEOUT)
 
+    def close(self) -> None:
+        """Release the underlying connection pool."""
+        self._client.close()
+
+    def __enter__(self) -> "AgentHttpClient":
+        return self
+
+    def __exit__(self, *exc: Any) -> None:
+        self.close()
+
+    def __del__(self) -> None:
+        # Best-effort safety net for callers that forget to close().
+        try:
+            self._client.close()
+        except Exception:
+            pass
+
     def _get_retry_delay(self, response: httpx.Response, attempt: int) -> float:
         """Determine retry delay from Retry-After header or default backoff.
 

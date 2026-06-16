@@ -129,7 +129,7 @@ function StatusIndicator({ status, isProcessing }: StatusIndicatorProps) {
     connected: { color: 'bg-green-500', label: 'Connected' },
     disconnected: { color: 'bg-gray-400', label: 'Disconnected' },
     connecting: { color: 'bg-yellow-500', label: 'Connecting' },
-    error: { color: 'bg-red-500', label: 'Error' },
+    error: { color: 'bg-semantic-danger', label: 'Error' },
   };
 
   const config = statusConfig[status];
@@ -298,7 +298,7 @@ function ActionButton({ onClick, disabled, variant, children }: ActionButtonProp
   const variants = {
     primary: 'text-white bg-gray-900 hover:bg-gray-800',
     secondary: 'text-gray-700 bg-gray-100 hover:bg-gray-200',
-    danger: 'text-red-700 bg-red-50 hover:bg-red-100',
+    danger: 'text-semantic-danger bg-red-50 hover:bg-red-100',
   };
 
   return (

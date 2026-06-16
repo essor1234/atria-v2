@@ -99,6 +99,27 @@ class PlaybookConfig(BaseModel):
     cache_file: Optional[str] = None  # Path to embedding cache file (None = session-based default)
 
 
+class IframeRpcConfig(BaseModel):
+    """RPC settings for custom-block iframes (push_block)."""
+
+    tool_allowlist: list[str] = Field(default_factory=list)
+
+
+class BusConfig(BaseModel):
+    """Cross-process message bus for routing push_block / block_event when the
+    WS owner and the publisher are different worker processes."""
+
+    kind: str = "in_memory"  # "in_memory" | "redis"
+    redis_url: str = "redis://localhost:6379/0"
+
+
+class WebConfig(BaseModel):
+    """Web-UI specific settings."""
+
+    iframe_rpc: IframeRpcConfig = Field(default_factory=IframeRpcConfig)
+    bus: BusConfig = Field(default_factory=BusConfig)
+
+
 class ModelVariant(BaseModel):
     """A named model configuration variant."""
 
@@ -167,6 +188,9 @@ class AppConfig(BaseModel):
 
     # Model variants
     model_variants: dict[str, ModelVariant] = Field(default_factory=dict)
+
+    # Web UI nested settings (iframe RPC, etc.)
+    web: WebConfig = Field(default_factory=WebConfig)
 
     # Paths - using APP_DIR_NAME constant for consistency
     atria_dir: str = f"~/{APP_DIR_NAME}"

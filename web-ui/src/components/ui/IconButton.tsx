@@ -1,8 +1,5 @@
 import React from 'react';
-
-function cn(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(' ');
-}
+import { cn } from '../../lib/cn';
 
 interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'sm' | 'md';
@@ -34,7 +31,7 @@ export function IconButton({
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-canvas',
+        'inline-flex items-center justify-center rounded-full transition-colors duration-fast',
         sizes,
         variants,
         className,

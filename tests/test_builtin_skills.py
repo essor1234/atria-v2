@@ -5,7 +5,6 @@ from __future__ import annotations
 import textwrap
 from pathlib import Path
 
-from atria.core.paths import get_paths
 from atria.core.skills import SkillLoader
 
 SAMPLE_SKILL = textwrap.dedent(
@@ -21,39 +20,6 @@ SAMPLE_SKILL = textwrap.dedent(
     It has enough content to verify loading works correctly.
 """
 )
-
-
-class TestBuiltinSkillsDir:
-    """Test that Paths.builtin_skills_dir resolves correctly."""
-
-    def test_builtin_skills_dir_resolves(self):
-        """builtin_skills_dir should point to swecli/skills/builtin/."""
-        paths = get_paths()
-        expected = Path(__file__).parent.parent / "swecli" / "skills" / "builtin"
-        assert paths.builtin_skills_dir.resolve() == expected.resolve()
-
-    def test_builtin_skills_dir_exists(self):
-        """The builtin skills directory should exist in the package."""
-        paths = get_paths()
-        assert paths.builtin_skills_dir.exists()
-
-
-class TestGetSkillDirsIncludesBuiltin:
-    """Test that get_skill_dirs() includes builtin dir at the end."""
-
-    def test_paths_get_skill_dirs_includes_builtin(self):
-        """Paths.get_skill_dirs() should include builtin dir as last entry."""
-        paths = get_paths()
-        dirs = paths.get_skill_dirs()
-        assert len(dirs) >= 1
-        assert dirs[-1] == paths.builtin_skills_dir
-
-    def test_builtin_is_lowest_priority(self):
-        """Builtin dir should be at end of list (lowest priority)."""
-        paths = get_paths()
-        dirs = paths.get_skill_dirs()
-        # builtin should always be last
-        assert dirs[-1] == paths.builtin_skills_dir
 
 
 class TestSkillPriorityOverride:

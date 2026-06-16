@@ -22,7 +22,7 @@ const STATUS_COLORS = {
   clarifying:     'text-sky-400',
   plan_reviewing: 'text-purple-400',
   done:           'text-emerald-400',
-  error:          'text-red-400',
+  error:          'text-semantic-danger',
   cancelled:      'text-text-400',
 } as const;
 
@@ -66,12 +66,12 @@ function ItemRow({ name, status, error, suffix }: { name: string; status: 'done'
       {status === 'done' ? (
         <Check className="w-3 h-3 text-emerald-400 flex-shrink-0" strokeWidth={2.5} />
       ) : (
-        <X className="w-3 h-3 text-red-400 flex-shrink-0" strokeWidth={2.5} />
+        <X className="w-3 h-3 text-semantic-danger flex-shrink-0" strokeWidth={2.5} />
       )}
       <span className={`flex-1 truncate ${status === 'done' ? 'text-text-200' : 'text-text-400 line-through'}`}>{name}</span>
       {suffix && <span className="text-text-500 flex-shrink-0">{suffix}</span>}
       {status === 'failed' && error && (
-        <span className="text-red-400/80 text-[10px] truncate max-w-[16ch]" title={error}>{error}</span>
+        <span className="text-semantic-danger/80 text-[10px] truncate max-w-[16ch]" title={error}>{error}</span>
       )}
     </div>
   );
@@ -162,7 +162,7 @@ function ClarifyPanel({ message }: { message: Message }) {
               disabled={submitted}
               rows={2}
               placeholder="Your answer (leave blank to skip)…"
-              className="w-full px-2.5 py-1.5 text-xs font-mono bg-bg-000/60 border border-border-300/20 rounded text-text-200 placeholder:text-text-500 focus:outline-none focus:border-sky-500/50 resize-y disabled:opacity-50"
+              className="w-full px-2.5 py-1.5 text-xs font-mono bg-bg-000/60 border border-border-300/20 rounded text-text-200 placeholder:text-text-500 focus:border-sky-500/50 resize-y disabled:opacity-50"
             />
           </div>
         ))}
@@ -478,7 +478,7 @@ export function DeepAnalyzeBlock({ message }: Props) {
       {/* Status stripe */}
       <div className={
         da_status === 'done'           ? 'h-0.5 bg-emerald-500/60' :
-        da_status === 'error'          ? 'h-0.5 bg-red-500/60' :
+        da_status === 'error'          ? 'h-0.5 bg-semantic-danger/60' :
         da_status === 'cancelled'      ? 'h-0.5 bg-text-500/40' :
         da_status === 'plan_reviewing' ? 'h-0.5 bg-purple-500/40' :
         da_status === 'clarifying'     ? 'h-0.5 bg-sky-500/40' :
@@ -486,7 +486,7 @@ export function DeepAnalyzeBlock({ message }: Props) {
       }>
         {da_status === 'running' && (
           <div
-            className="h-full bg-accent-main-100 transition-all duration-500"
+            className="h-full bg-accent-main-100 transition-all duration-slow"
             style={{ width: `${Math.max((doneCount / PHASES.length) * 100, 3)}%` }}
           />
         )}
@@ -516,7 +516,7 @@ export function DeepAnalyzeBlock({ message }: Props) {
 
       {/* Error message */}
       {da_status === 'error' && da_error && (
-        <div className="mx-4 mb-3 px-3 py-2 text-xs text-red-400 font-mono bg-red-500/5 border border-red-500/30 rounded-md">
+        <div className="mx-4 mb-3 px-3 py-2 text-xs text-semantic-danger font-mono bg-semantic-danger/5 border border-semantic-danger/30 rounded-md">
           {da_failed_phase && <span className="font-semibold mr-1">{da_failed_phase}:</span>}
           {da_error}
         </div>

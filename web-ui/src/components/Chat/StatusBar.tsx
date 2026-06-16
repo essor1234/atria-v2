@@ -28,7 +28,7 @@ export function StatusBar() {
 
   if (!status) return null;
 
-  const pillBase = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition-colors select-none hover:scale-105';
+  const pillBase = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition-colors select-none hover:scale-105 active:scale-[0.98] whitespace-nowrap';
 
   return (
     <div className="flex items-center gap-2 flex-wrap">

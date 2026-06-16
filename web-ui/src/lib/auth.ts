@@ -48,7 +48,7 @@ export function resetAllStores(): void {
   // File explorer / viewer tabs are keyed by conv id; wipe them
   // so a fresh login doesn't leak the previous user's directory tree.
   useFileExplorerStore.setState({
-    treesByConv: {},
+    treesByScope: {},
   });
 
   useViewerTabsStore.setState({

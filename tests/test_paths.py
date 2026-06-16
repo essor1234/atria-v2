@@ -269,42 +269,35 @@ class TestPathsHelpers:
     """Test helper methods."""
 
     def test_get_skill_dirs_empty(self, tmp_path, monkeypatch):
-        """Test get_skill_dirs returns only builtin when no user dirs exist."""
+        """Test get_skill_dirs returns empty list when no user dirs exist."""
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.delenv(ENV_ATRIA_DIR, raising=False)
         reset_paths()
         paths = Paths(working_dir=tmp_path / "project")
-        dirs = paths.get_skill_dirs()
-        # Only builtin skills dir (always exists as part of the package)
-        assert len(dirs) == 1
-        assert dirs[0] == paths.builtin_skills_dir
+        assert paths.get_skill_dirs() == []
 
     def test_get_skill_dirs_with_global(self, tmp_path, monkeypatch):
-        """Test get_skill_dirs returns global dir before builtin."""
+        """Test get_skill_dirs returns the global dir when it exists."""
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.delenv(ENV_ATRIA_DIR, raising=False)
         reset_paths()
 
-        # Create global skills dir
         global_skills = tmp_path / ".atria" / "skills"
         global_skills.mkdir(parents=True)
 
         paths = Paths(working_dir=tmp_path / "project")
         dirs = paths.get_skill_dirs()
 
-        assert len(dirs) == 2
-        assert dirs[0] == global_skills
-        assert dirs[1] == paths.builtin_skills_dir  # Builtin last
+        assert dirs == [global_skills]
 
     def test_get_skill_dirs_project_priority(self, tmp_path, monkeypatch):
-        """Test get_skill_dirs returns project dir first, builtin last."""
+        """Test get_skill_dirs returns project dir first, then global."""
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.delenv(ENV_ATRIA_DIR, raising=False)
         reset_paths()
 
         project_dir = tmp_path / "project"
 
-        # Create both global and project skills dirs
         global_skills = tmp_path / ".atria" / "skills"
         global_skills.mkdir(parents=True)
         project_skills = project_dir / ".atria" / "skills"
@@ -313,10 +306,7 @@ class TestPathsHelpers:
         paths = Paths(working_dir=project_dir)
         dirs = paths.get_skill_dirs()
 
-        assert len(dirs) == 3
-        assert dirs[0] == project_skills  # Project first
-        assert dirs[1] == global_skills  # Global second
-        assert dirs[2] == paths.builtin_skills_dir  # Builtin last
+        assert dirs == [project_skills, global_skills]
 
     def test_get_agents_dirs_empty(self, tmp_path, monkeypatch):
         """Test get_agents_dirs returns empty list when no dirs exist."""

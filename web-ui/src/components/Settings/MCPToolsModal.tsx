@@ -6,6 +6,7 @@
  */
 
 import { useState, useMemo, useEffect } from 'react';
+import { useCopyToClipboard } from 'usehooks-ts';
 import { XMarkIcon, MagnifyingGlassIcon, ClipboardIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { WrenchScrewdriverIcon } from '@heroicons/react/24/solid';
 import { Search } from 'lucide-react';
@@ -22,6 +23,7 @@ export function MCPToolsModal({ isOpen, serverName, tools, onClose }: MCPToolsMo
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTool, setSelectedTool] = useState<MCPTool | null>(null);
   const [copiedText, setCopiedText] = useState<string | null>(null);
+  const [, copyToClipboard] = useCopyToClipboard();
 
   // Reset state when modal opens or tools change
   useEffect(() => {
@@ -55,15 +57,16 @@ export function MCPToolsModal({ isOpen, serverName, tools, onClose }: MCPToolsMo
 
   if (!isOpen) return null;
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+  const handleCopy = async (text: string) => {
+    const ok = await copyToClipboard(text);
+    if (!ok) return;
     setCopiedText(text);
     setTimeout(() => setCopiedText(null), 2000);
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-content h-[85vh] flex flex-col overflow-hidden animate-slide-up">
+      <div className="bg-white rounded-2xl shadow-modal w-full max-w-content h-[85vh] flex flex-col overflow-hidden animate-slide-up">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
           <div>
@@ -92,7 +95,7 @@ export function MCPToolsModal({ isOpen, serverName, tools, onClose }: MCPToolsMo
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search tools by name or description..."
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg bg-white"
             />
           </div>
         </div>
@@ -124,7 +127,7 @@ export function MCPToolsModal({ isOpen, serverName, tools, onClose }: MCPToolsMo
                 tool={selectedTool}
                 serverName={serverName}
                 copiedText={copiedText}
-                onCopy={copyToClipboard}
+                onCopy={handleCopy}
               />
             ) : (
               <div className="flex items-center justify-center h-full text-gray-400">
@@ -181,7 +184,7 @@ function ToolListItem({ tool, isSelected, onClick }: ToolListItemProps) {
       onClick={onClick}
       className={`w-full text-left p-3 rounded-lg transition-all ${
         isSelected
-          ? 'bg-white shadow-md border border-gray-200'
+          ? 'bg-white shadow-soft border border-gray-200'
           : 'hover:bg-white/50 border border-transparent'
       }`}
     >
@@ -229,7 +232,7 @@ function ToolDetails({ tool, serverName, copiedText, onCopy }: ToolDetailsProps)
       {/* Tool Header */}
       <div className="mb-6">
         <div className="flex items-start gap-3 mb-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center shadow-md flex-shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center shadow-soft flex-shrink-0">
             <WrenchScrewdriverIcon className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1">
@@ -309,7 +312,7 @@ function ParameterCard({ name, schema, isRequired }: ParameterCardProps) {
         <div className="flex items-center gap-2">
           <code className="text-sm font-semibold text-gray-900">{name}</code>
           {isRequired && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-semantic-danger">
               Required
             </span>
           )}

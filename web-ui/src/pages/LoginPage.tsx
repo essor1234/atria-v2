@@ -83,12 +83,12 @@ export function LoginPage() {
                 placeholder="you@example.com"
                 required
                 autoFocus
-                className="w-full bg-canvas text-ink placeholder:text-ink/30 rounded-md border border-hairline-soft px-4 py-3 text-body-sm outline-none focus:border-ink focus:ring-2 focus:ring-ink"
+                className="w-full bg-canvas text-ink placeholder:text-ink/30 rounded-md border border-hairline-soft px-4 py-3 text-body-sm outline-none"
               />
             </label>
 
             {error && (
-              <p className="mt-3 text-body-sm text-block-coral font-[540]">{error}</p>
+              <p className="mt-3 text-body-sm text-semantic-danger font-[540]">{error}</p>
             )}
 
             <motion.button
@@ -97,7 +97,7 @@ export function LoginPage() {
               whileHover={reduce || loading || !email ? undefined : { scale: 1.01 }}
               whileTap={reduce || loading || !email ? undefined : { scale: 0.98 }}
               transition={transitions.tactile}
-              className="mt-8 w-full rounded-pill bg-ink text-inverse-ink text-btn px-6 py-3 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="mt-8 w-full rounded-pill bg-ink text-inverse-ink text-btn px-6 py-3 active:scale-[0.98] whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {loading ? 'Signing in…' : 'Continue'}
             </motion.button>

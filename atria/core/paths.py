@@ -18,10 +18,13 @@ Example:
 
 from __future__ import annotations
 
+import logging
 import os
 from functools import cached_property
 from pathlib import Path
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 # ============================================================================
 # Constants
@@ -138,8 +141,10 @@ class Paths:
         if not target.exists() and legacy.exists() and legacy.is_dir():
             try:
                 legacy.rename(target)
-            except OSError:
-                pass
+            except OSError as exc:
+                # Cross-device rename, permissions, etc. — keep going with the
+                # new path so the app can still start; data stays in legacy.
+                logger.warning("failed to migrate %s -> %s: %s", legacy, target, exc)
         return target
 
     @cached_property
@@ -213,14 +218,6 @@ class Paths:
         Default: ~/.atria/skills/
         """
         return self.global_dir / SKILLS_DIR_NAME
-
-    @cached_property
-    def builtin_skills_dir(self) -> Path:
-        """Get built-in skills directory shipped with the package.
-
-        Default: <package_root>/skills/builtin/
-        """
-        return Path(__file__).parent.parent / "skills" / "builtin"
 
     @cached_property
     def global_agents_dir(self) -> Path:
@@ -505,9 +502,6 @@ class Paths:
             dirs.append(self.global_skills_dir)
         # Bundle skills are handled separately by PluginManager.get_plugin_skills()
         # to allow for proper source attribution
-        # Built-in skills (lowest priority - can be overridden by all above)
-        if self.builtin_skills_dir.exists():
-            dirs.append(self.builtin_skills_dir)
         return dirs
 
     def get_agents_dirs(self) -> list[Path]:

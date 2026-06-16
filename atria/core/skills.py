@@ -115,19 +115,55 @@ class SkillLoader:
                     )
                     skills[full_name] = metadata
 
+        # Bridge: surface file-based modules as invokable skills. Each
+        # ``<modules_root>/<name>/SKILL.md`` becomes a skill named ``<name>``
+        # (description derived from the first non-empty paragraph). Real
+        # ``.atria/skills/`` entries with the same name still win, because
+        # they were processed above and we don't overwrite here.
+        try:
+            from atria.core.modules.registry import get_registry
+
+            for module in get_registry().all():
+                if module.name in skills:
+                    continue
+                skill_md_path = module.dir / "SKILL.md"
+                if not skill_md_path.is_file():
+                    continue
+                description = self._extract_module_description(module.skill_md, module.name)
+                skills[module.name] = SkillMetadata(
+                    name=module.name,
+                    description=description,
+                    namespace="default",
+                    path=skill_md_path,
+                    source="module",
+                )
+        except Exception as exc:  # noqa: BLE001 — registry must never break skill discovery
+            logger.debug("module-to-skill bridge skipped: %s", exc)
+
         # Cache metadata for later lookup
         self._metadata_cache = skills
 
         return list(skills.values())
 
+    @staticmethod
+    def _extract_module_description(skill_md: str, fallback_name: str) -> str:
+        """Pull a 1-line description out of a module's SKILL.md.
+
+        Strategy: the first non-empty, non-heading line. Modules don't carry
+        YAML frontmatter, so we sniff the body.
+        """
+        for raw in skill_md.splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#"):
+                continue
+            return line[:200]
+        return f"Module: {fallback_name}"
+
     def _detect_source(self, skill_dir: Path) -> str:
-        """Detect if skill directory is user-global, project-local, or builtin."""
+        """Detect if skill directory is user-global or project-local."""
         global_skills_dir = get_paths().global_skills_dir
         if skill_dir == global_skills_dir or str(skill_dir).startswith(str(global_skills_dir)):
             return "user-global"
-        builtin_dir = get_paths().builtin_skills_dir
-        if skill_dir == builtin_dir or str(skill_dir).startswith(str(builtin_dir)):
-            return "builtin"
         return "project"
 
     def load_skill(self, name: str) -> LoadedSkill | None:

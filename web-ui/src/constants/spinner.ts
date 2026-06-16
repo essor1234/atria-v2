@@ -2,9 +2,6 @@
  * Terminal-inspired spinner constants for elegant UI animations
  */
 
-// Braille dots spinner frames from terminal implementation
-export const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
-
 // Thinking verbs list from terminal implementation
 export const THINKING_VERBS = [
   "Thinking",
@@ -106,13 +103,4 @@ export const THINKING_VERBS = [
   "Ideating",
   "Brainstorming",
   "Hypothesizing",
-];
-
-// Color gradient for spinner (CSS classes)
-export const SPINNER_COLORS = [
-  "text-cyan-500",
-  "text-sky-500",
-  "text-blue-500",
-  "text-indigo-500",
-  "text-cyan-600",
 ];

@@ -53,6 +53,7 @@ class PDFTool(BaseTool):
         try:
             # Strip @ mention prefixes from path components (e.g. @.artifacts → .artifacts)
             from atria.core.context_engineering.tools.path_utils import sanitize_path
+
             file_path = sanitize_path(file_path)
             # Resolve path
             path = Path(file_path)
@@ -202,7 +203,7 @@ class PDFTool(BaseTool):
         ]
 
         # Combined pattern
-        combined_pattern = "|".join(f"({p})" for p in section_patterns)
+        "|".join(f"({p})" for p in section_patterns)
 
         sections = []
         lines = content.split("\n")

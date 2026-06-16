@@ -10,7 +10,7 @@ function formatCost(cost: number): string {
 
 function getContextColor(pct: number): string {
   const remaining = 100 - pct;
-  if (remaining < 25) return "bg-red-500/10 text-red-600 border-red-500/20";
+  if (remaining < 25) return "bg-semantic-danger/10 text-semantic-danger border-semantic-danger/20";
   if (remaining < 50)
     return "bg-yellow-500/10 text-yellow-600 border-yellow-500/20";
   return "bg-emerald-500/10 text-emerald-700 border-emerald-500/20";
@@ -25,7 +25,6 @@ export function TopBar({ onOpenCommandPalette }: TopBarProps) {
   const status = useChatStore((state) => state.status);
   const isConnected = useChatStore((state) => state.isConnected);
   const toggleSidebar = useChatStore((state) => state.toggleSidebar);
-
   // Load initial config on mount
   useEffect(() => {
     const loadStatus = async () => {

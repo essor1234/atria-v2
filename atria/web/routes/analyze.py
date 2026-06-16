@@ -66,7 +66,11 @@ async def get_table_data(
     for col in col_names:
         values = [r.get(col) for r in rows]
         non_null = [v for v in values if v is not None]
-        col_type = "number" if non_null and all(isinstance(v, (int, float)) for v in non_null) else "string"
+        col_type = (
+            "number"
+            if non_null and all(isinstance(v, (int, float)) for v in non_null)
+            else "string"
+        )
         columns.append({"name": col, "type": col_type})
 
     return {"columns": columns, "rows": rows}

@@ -43,7 +43,7 @@ export function ModelSlot({
     <div className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-white to-gray-50">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md flex-shrink-0">
+        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-soft flex-shrink-0">
           {icon}
         </div>
         <div className="flex-1">
@@ -76,7 +76,7 @@ export function ModelSlot({
                 onModelChange(provider.models[0].id);
               }
             }}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white"
           >
             {optional && (
               <option value="">{notSetText}</option>
@@ -98,7 +98,7 @@ export function ModelSlot({
             <select
               value={selectedModel || ''}
               onChange={(e) => onModelChange(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white"
               disabled={availableModels.length === 0}
             >
               {availableModels.map(model => (

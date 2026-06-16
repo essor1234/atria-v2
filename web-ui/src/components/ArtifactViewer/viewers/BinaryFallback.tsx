@@ -1,7 +1,6 @@
 import { File as FileIcon, Download } from 'lucide-react';
 
 interface Props {
-  convId: number;
   path: string;
   size?: number;
   url: string;

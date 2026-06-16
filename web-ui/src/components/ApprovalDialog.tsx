@@ -62,7 +62,7 @@ export function ApprovalDialog() {
 
   return (
     <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-      <div className="bg-bg-000 rounded-xl shadow-2xl border border-border-300/15 max-w-2xl w-full mx-4 max-h-[85vh] flex flex-col animate-slide-up">
+      <div className="bg-bg-000 rounded-xl shadow-modal border border-border-300/15 max-w-2xl w-full mx-4 max-h-[85vh] flex flex-col animate-slide-up">
         {/* Header */}
         <div className="border-b border-border-300/15 px-6 py-4 flex-shrink-0">
           <h2 className="text-lg font-semibold text-text-000">Approval Required</h2>
@@ -144,7 +144,7 @@ export function ApprovalDialog() {
             {/* Option 1: Yes, run this command — mint color block */}
             <button
               onClick={handleApprove}
-              className="w-full px-4 py-3.5 text-body-sm text-left bg-block-mint rounded-lg hover:brightness-95 transition-all flex items-center gap-3 group"
+              className="w-full px-4 py-3.5 text-body-sm text-left bg-block-mint rounded-lg hover:brightness-95 active:scale-[0.98] transition-all flex items-center gap-3 group whitespace-nowrap"
             >
               <div className="w-7 h-7 rounded-full bg-ink/10 group-hover:bg-ink/15 flex items-center justify-center text-ink font-mono font-semibold text-xs">
                 1
@@ -155,7 +155,7 @@ export function ApprovalDialog() {
             {/* Option 2: Yes, and auto-approve — lilac color block */}
             <button
               onClick={handleApproveAll}
-              className="w-full px-4 py-3.5 text-body-sm text-left bg-block-lilac rounded-lg hover:brightness-95 transition-all flex items-center gap-3 group"
+              className="w-full px-4 py-3.5 text-body-sm text-left bg-block-lilac rounded-lg hover:brightness-95 active:scale-[0.98] transition-all flex items-center gap-3 group"
             >
               <div className="w-7 h-7 rounded-full bg-ink/10 group-hover:bg-ink/15 flex items-center justify-center text-ink font-mono font-semibold text-xs">
                 2
@@ -169,7 +169,7 @@ export function ApprovalDialog() {
             {/* Option 3: No, cancel — coral color block */}
             <button
               onClick={handleDeny}
-              className="w-full px-4 py-3.5 text-body-sm text-left bg-block-coral rounded-lg hover:brightness-95 transition-all flex items-center gap-3 group"
+              className="w-full px-4 py-3.5 text-body-sm text-left bg-block-coral rounded-lg hover:brightness-95 active:scale-[0.98] transition-all flex items-center gap-3 group whitespace-nowrap"
             >
               <div className="w-7 h-7 rounded-full bg-ink/10 group-hover:bg-ink/15 flex items-center justify-center text-ink font-mono font-semibold text-xs">
                 3

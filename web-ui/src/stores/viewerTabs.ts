@@ -9,16 +9,45 @@ interface TabSlice {
 interface ViewerTabsState {
   tabsByConv: Record<string, TabSlice>;
   openTab: (convId: string, path: string) => void;
+  openModuleTab: (convId: string, name: string) => void;
+  openModuleFileTab: (convId: string, module: string, path: string) => void;
   closeTab: (convId: string, id: string) => void;
   setActive: (convId: string, id: string) => void;
   clearConv: (convId: string) => void;
 }
 
-function tabFromPath(path: string): ViewerTab {
+function extOf(path: string): { name: string; ext: string } {
   const name = path.split('/').pop() || path;
   const dot = name.lastIndexOf('.');
   const ext = dot >= 0 ? name.slice(dot).toLowerCase() : '';
-  return { id: path, path, name, ext };
+  return { name, ext };
+}
+
+function tabFromPath(path: string): ViewerTab {
+  const { name, ext } = extOf(path);
+  return { kind: 'file', id: path, path, name, ext };
+}
+
+function tabFromModule(name: string): ViewerTab {
+  return { kind: 'module', id: `module:${name}`, name };
+}
+
+function tabFromModuleFile(module: string, path: string): ViewerTab {
+  const { name, ext } = extOf(path);
+  return {
+    kind: 'module-file',
+    id: `module:${module}:${path}`,
+    module,
+    path,
+    name,
+    ext,
+  };
+}
+
+function openTabIn(slice: TabSlice, tab: ViewerTab): TabSlice {
+  const existing = slice.tabs.find(t => t.id === tab.id);
+  if (existing) return { ...slice, activeId: tab.id };
+  return { tabs: [...slice.tabs, tab], activeId: tab.id };
 }
 
 export const useViewerTabsStore = create<ViewerTabsState>((set, get) => ({
@@ -26,16 +55,20 @@ export const useViewerTabsStore = create<ViewerTabsState>((set, get) => ({
 
   openTab: (convId, path) => {
     const slice = get().tabsByConv[convId] ?? { tabs: [], activeId: null };
-    const existing = slice.tabs.find(t => t.id === path);
-    if (existing) {
-      set({ tabsByConv: { ...get().tabsByConv, [convId]: { ...slice, activeId: path } } });
-      return;
-    }
-    const tab = tabFromPath(path);
+    set({ tabsByConv: { ...get().tabsByConv, [convId]: openTabIn(slice, tabFromPath(path)) } });
+  },
+
+  openModuleTab: (convId, name) => {
+    const slice = get().tabsByConv[convId] ?? { tabs: [], activeId: null };
+    set({ tabsByConv: { ...get().tabsByConv, [convId]: openTabIn(slice, tabFromModule(name)) } });
+  },
+
+  openModuleFileTab: (convId, module, path) => {
+    const slice = get().tabsByConv[convId] ?? { tabs: [], activeId: null };
     set({
       tabsByConv: {
         ...get().tabsByConv,
-        [convId]: { tabs: [...slice.tabs, tab], activeId: tab.id },
+        [convId]: openTabIn(slice, tabFromModuleFile(module, path)),
       },
     });
   },

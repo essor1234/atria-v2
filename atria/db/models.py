@@ -169,7 +169,7 @@ class PendingReview(Base):
     )
     resolved_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     request_id: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
-    # One of: 'approval' | 'ask_user' | 'plan_approval' | 'taxonomy_review'
+    # One of: 'approval' | 'ask_user' | 'plan_approval'
     kind: Mapped[str] = mapped_column(String(32), nullable=False)
     session_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     user_id: Mapped[Optional[int]] = mapped_column(

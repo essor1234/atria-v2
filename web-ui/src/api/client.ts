@@ -1,314 +1,355 @@
-import type { Message, Session, Project, Conversation, Artifact } from '../types';
+import type { Message, Session, Project, Conversation, Artifact, FsScope } from '../types';
+import type { Persona } from '../types';
 
 const API_BASE = '/api';
 
+function fsPath(scope: FsScope): string {
+  return scope.kind === 'conv'
+    ? `/conversations/${scope.id}/fs`
+    : `/modules/${encodeURIComponent(scope.name)}/fs`;
+}
+
+function fsBase(scope: FsScope): string {
+  return `${API_BASE}${fsPath(scope)}`;
+}
+
+interface RequestOptions {
+  method?: string;
+  body?: unknown;
+  query?: Record<string, string | number | boolean | undefined>;
+  raw?: boolean;
+}
+
+async function apiError(response: Response): Promise<Error> {
+  try {
+    const data = await response.json();
+    if (data && typeof data === 'object' && 'detail' in data && data.detail) {
+      return new Error(String(data.detail));
+    }
+  } catch {
+    // ignore non-JSON bodies
+  }
+  return new Error(`API error: ${response.status} ${response.statusText}`);
+}
+
+function buildQuery(query?: RequestOptions['query']): string {
+  if (!query) return '';
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(query)) {
+    if (v === undefined) continue;
+    params.set(k, String(v));
+  }
+  const qs = params.toString();
+  return qs ? `?${qs}` : '';
+}
+
+async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
+  const { method = 'GET', body, query, raw } = opts;
+  const init: RequestInit = { method, credentials: 'include' };
+  if (body !== undefined) {
+    init.headers = { 'Content-Type': 'application/json' };
+    init.body = JSON.stringify(body);
+  }
+  const response = await fetch(`${API_BASE}${path}${buildQuery(query)}`, init);
+  if (!response.ok) throw await apiError(response);
+  if (raw) return response as unknown as T;
+  if (response.status === 204) return undefined as T;
+  return response.json();
+}
+
 class APIClient {
   // Chat endpoints
-  async sendQuery(message: string, sessionId?: string): Promise<{ status: string; message: string }> {
-    const response = await fetch(`${API_BASE}/chat/query`, {
+  sendQuery(message: string, sessionId?: string) {
+    return request<{ status: string; message: string }>('/chat/query', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, sessionId }),
+      body: { message, sessionId },
     });
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
   }
 
-  async getMessages(): Promise<Message[]> {
-    const response = await fetch(`${API_BASE}/chat/messages`);
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
+  getMessages() {
+    return request<Message[]>('/chat/messages');
   }
 
-  async clearChat(): Promise<{ status: string; message: string }> {
-    const response = await fetch(`${API_BASE}/chat/clear`, {
-      method: 'DELETE',
-    });
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
+  clearChat() {
+    return request<{ status: string; message: string }>('/chat/clear', { method: 'DELETE' });
   }
 
   async fetchChartImage(pngPath: string): Promise<string> {
-    const qs = new URLSearchParams({ path: pngPath });
-    const response = await fetch(`${API_BASE}/analyze/chart-image?${qs.toString()}`);
-    if (!response.ok) throw new Error(`chart-image error: ${response.statusText}`);
-    const { src } = await response.json();
-    return src as string;
+    const { src } = await request<{ src: string }>('/analyze/chart-image', {
+      query: { path: pngPath },
+    });
+    return src;
   }
 
-  async fetchTableData(dbPath: string, tableName: string, limit = 50000): Promise<{ columns: import('../types').DataColumn[]; rows: Record<string, any>[] }> {
-    const qs = new URLSearchParams({ db_path: dbPath, table: tableName, limit: String(limit) });
-    const response = await fetch(`${API_BASE}/analyze/table-data?${qs.toString()}`);
-    if (!response.ok) throw new Error(`table-data error: ${response.statusText}`);
-    return response.json();
+  fetchTableData(dbPath: string, tableName: string, limit = 50000) {
+    return request<{ columns: import('../types').DataColumn[]; rows: Record<string, any>[] }>(
+      '/analyze/table-data',
+      { query: { db_path: dbPath, table: tableName, limit } },
+    );
   }
 
   // Generic GET method for any endpoint
-  async get<T = any>(endpoint: string): Promise<T> {
-    const response = await fetch(`${API_BASE}${endpoint}`);
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
+  get<T = any>(endpoint: string) {
+    return request<T>(endpoint);
   }
 
-  async interruptTask(): Promise<{ status: string; message: string }> {
-    const response = await fetch(`${API_BASE}/chat/interrupt`, {
-      method: 'POST',
-    });
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
+  interruptTask() {
+    return request<{ status: string; message: string }>('/chat/interrupt', { method: 'POST' });
   }
 
   // Session endpoints
-  async listSessions(): Promise<Session[]> {
-    const response = await fetch(`${API_BASE}/sessions`);
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
+  listSessions() {
+    return request<Session[]>('/sessions');
   }
 
-  async getCurrentSession(): Promise<Session> {
-    const response = await fetch(`${API_BASE}/sessions/current`);
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
+  getCurrentSession() {
+    return request<Session>('/sessions/current');
   }
 
-  async resumeSession(sessionId: string): Promise<{ status: string; message: string }> {
-    const response = await fetch(`${API_BASE}/sessions/${sessionId}/resume`, {
+  resumeSession(sessionId: string) {
+    return request<{ status: string; message: string }>(`/sessions/${sessionId}/resume`, {
       method: 'POST',
     });
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
   }
 
-  async exportSession(sessionId: string): Promise<any> {
-    const response = await fetch(`${API_BASE}/sessions/${sessionId}/export`);
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
+  exportSession(sessionId: string) {
+    return request<any>(`/sessions/${sessionId}/export`);
   }
 
-  async verifyPath(path: string): Promise<{ exists: boolean; is_directory: boolean; path?: string; error?: string }> {
-    const response = await fetch(`${API_BASE}/sessions/verify-path`, {
+  verifyPath(path: string) {
+    return request<{ exists: boolean; is_directory: boolean; path?: string; error?: string }>(
+      '/sessions/verify-path',
+      { method: 'POST', body: { path } },
+    );
+  }
+
+  browseDirectory(path: string = '', showHidden: boolean = false) {
+    return request<{
+      current_path: string;
+      parent_path: string | null;
+      directories: Array<{ name: string; path: string }>;
+      error: string | null;
+    }>('/sessions/browse-directory', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path }),
+      body: { path, show_hidden: showHidden },
     });
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
-  }
-
-  async browseDirectory(path: string = '', showHidden: boolean = false): Promise<{
-    current_path: string;
-    parent_path: string | null;
-    directories: Array<{ name: string; path: string }>;
-    error: string | null;
-  }> {
-    const response = await fetch(`${API_BASE}/sessions/browse-directory`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path, show_hidden: showHidden }),
-    });
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
   }
 
   async getSessionMessages(sessionId: string): Promise<Message[]> {
-    const response = await fetch(`${API_BASE}/sessions/${sessionId}/messages`);
-    if (!response.ok) {
-      if (response.status === 404) return [];
-      throw new Error(`API error: ${response.statusText}`);
+    try {
+      return await request<Message[]>(`/sessions/${sessionId}/messages`);
+    } catch (err) {
+      if (err instanceof Error && /404/.test(err.message)) return [];
+      throw err;
     }
-    return response.json();
   }
 
-  async createSession(workspace: string): Promise<{ status: string; message: string; session: any }> {
-    const response = await fetch(`${API_BASE}/sessions/create`, {
+  createSession(workspace: string) {
+    return request<{ status: string; message: string; session: any }>('/sessions/create', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ workspace }),
+      body: { workspace },
     });
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
+  }
+
+  deleteSession(sessionId: string) {
+    return request<void>(`/sessions/${sessionId}`, { method: 'DELETE' });
+  }
+
+  deleteSessionTurn(sessionId: string, turnIndex: number) {
+    return request<{ deleted: number; messages: any[] }>(
+      `/sessions/${sessionId}/turns/${turnIndex}`,
+      { method: 'DELETE' },
+    );
   }
 
   // Session model endpoints
-  async getSessionModel(sessionId: string): Promise<Record<string, string>> {
-    const response = await fetch(`${API_BASE}/sessions/${sessionId}/model`);
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
+  getSessionModel(sessionId: string) {
+    return request<Record<string, string>>(`/sessions/${sessionId}/model`);
   }
 
-  async updateSessionModel(sessionId: string, overlay: Record<string, string | null>): Promise<{ status: string; message: string }> {
-    const response = await fetch(`${API_BASE}/sessions/${sessionId}/model`, {
+  updateSessionModel(sessionId: string, overlay: Record<string, string | null>) {
+    return request<{ status: string; message: string }>(`/sessions/${sessionId}/model`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(overlay),
+      body: overlay,
     });
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
   }
 
-  async clearSessionModel(sessionId: string): Promise<{ status: string; message: string }> {
-    const response = await fetch(`${API_BASE}/sessions/${sessionId}/model`, {
+  clearSessionModel(sessionId: string) {
+    return request<{ status: string; message: string }>(`/sessions/${sessionId}/model`, {
       method: 'DELETE',
     });
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
   }
 
   // Config endpoints
-  async getConfig(): Promise<any> {
-    const response = await fetch(`${API_BASE}/config`);
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
+  getConfig() {
+    return request<any>('/config');
   }
 
-  async updateConfig(config: any): Promise<{ status: string; message: string }> {
-    const response = await fetch(`${API_BASE}/config`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(config),
-    });
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
+  updateConfig(config: any) {
+    return request<{ status: string; message: string }>('/config', { method: 'PUT', body: config });
   }
 
-  async listProviders(): Promise<any[]> {
-    const response = await fetch(`${API_BASE}/config/providers`);
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
+  listProviders() {
+    return request<any[]>('/config/providers');
   }
 
-  async setMode(mode: string): Promise<{ status: string; message: string }> {
-    const response = await fetch(`${API_BASE}/config/mode`, {
+  setMode(mode: string) {
+    return request<{ status: string; message: string }>('/config/mode', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode }),
+      body: { mode },
     });
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
   }
 
-  async setAutonomy(level: string): Promise<{ status: string; message: string }> {
-    const response = await fetch(`${API_BASE}/config/autonomy`, {
+  setAutonomy(level: string) {
+    return request<{ status: string; message: string }>('/config/autonomy', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ level }),
+      body: { level },
     });
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
   }
 
-  async setThinkingLevel(level: string): Promise<{ status: string; message: string }> {
-    const response = await fetch(`${API_BASE}/config/thinking`, {
+  setThinkingLevel(level: string) {
+    return request<{ status: string; message: string }>('/config/thinking', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ level }),
+      body: { level },
     });
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
   }
 
   // File listing
-  async listFiles(query?: string): Promise<{ files: Array<{ path: string; name: string; is_file: boolean }> }> {
-    const url = query ? `${API_BASE}/sessions/files?query=${encodeURIComponent(query)}` : `${API_BASE}/sessions/files`;
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
+  listFiles(query?: string) {
+    return request<{ files: Array<{ path: string; name: string; is_file: boolean }> }>(
+      '/sessions/files',
+      { query: query ? { query } : undefined },
+    );
   }
 
   // Bridge mode
   async getBridgeInfo(): Promise<{ bridge_mode: boolean; session_id: string | null }> {
-    const response = await fetch(`${API_BASE}/sessions/bridge-info`);
-    if (!response.ok) return { bridge_mode: false, session_id: null };
-    return response.json();
+    try {
+      return await request<{ bridge_mode: boolean; session_id: string | null }>(
+        '/sessions/bridge-info',
+      );
+    } catch {
+      return { bridge_mode: false, session_id: null };
+    }
   }
 
   // Health check
-  async health(): Promise<{ status: string; service: string }> {
-    const response = await fetch(`${API_BASE}/health`);
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
+  health() {
+    return request<{ status: string; service: string }>('/health');
   }
 
   // Auth
-  async login(email: string): Promise<{ username: string; email: string | null; role: string }> {
-    const response = await fetch(`${API_BASE}/auth/login`, {
+  login(email: string) {
+    return request<{ username: string; email: string | null; role: string }>('/auth/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
+      body: { email },
     });
-    if (!response.ok) throw new Error((await response.json()).detail ?? response.statusText);
-    return response.json();
   }
 
   async logout(): Promise<void> {
-    await fetch(`${API_BASE}/auth/logout`, { method: 'POST' });
+    try {
+      await request<void>('/auth/logout', { method: 'POST' });
+    } catch {
+      // ignore — logout is best-effort
+    }
   }
 
   async me(): Promise<{ username: string; email: string | null; role: string } | null> {
-    const response = await fetch(`${API_BASE}/auth/me`);
-    if (response.status === 401) return null;
-    if (!response.ok) return null;
-    return response.json();
+    try {
+      return await request<{ username: string; email: string | null; role: string }>('/auth/me');
+    } catch {
+      return null;
+    }
+  }
+
+  // ── Personas ─────────────────────────────────────────────────────────────
+
+  listPersonas() {
+    return request<Persona[]>('/personas');
+  }
+
+  createPersona(persona: Persona) {
+    return request<Persona>('/personas', { method: 'POST', body: persona });
+  }
+
+  updatePersona(name: string, persona: Persona) {
+    return request<Persona>(`/personas/${encodeURIComponent(name)}`, {
+      method: 'PUT',
+      body: persona,
+    });
+  }
+
+  deletePersona(name: string) {
+    return request<void>(`/personas/${encodeURIComponent(name)}`, { method: 'DELETE' });
+  }
+
+  // ── Module bridge ────────────────────────────────────────────────────────
+
+  pushBlock(sessionId: string | null, moduleName: string, block: string, props: Record<string, unknown>) {
+    return request<void>('/blocks/push', {
+      method: 'POST',
+      body: { session_id: sessionId, module: moduleName, block, props },
+    });
+  }
+
+  async runModuleScript(
+    moduleName: string,
+    payload: { script: string; args: unknown[]; stdin?: unknown; timeout_ms?: number },
+  ): Promise<{ ok: true; data: any } | { ok: false; status: number; message: string }> {
+    const init: RequestInit = {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    };
+    const response = await fetch(
+      `${API_BASE}/modules/${encodeURIComponent(moduleName)}/run`,
+      init,
+    );
+    if (!response.ok) {
+      const message = await response.text().catch(() => response.statusText);
+      return { ok: false, status: response.status, message: message || response.statusText };
+    }
+    return { ok: true, data: await response.json() };
   }
 
   // ── Project endpoints ────────────────────────────────────────────────────
 
-  async listProjects(): Promise<Project[]> {
-    const res = await fetch(`${API_BASE}/projects`);
-    if (!res.ok) throw new Error(`listProjects: ${res.statusText}`);
-    return res.json();
+  listProjects() {
+    return request<Project[]>('/projects');
   }
 
-  async createProject(name: string): Promise<Project> {
-    const res = await fetch(`${API_BASE}/projects`, {
+  createProject(name: string) {
+    return request<Project>('/projects', { method: 'POST', body: { name } });
+  }
+
+  deleteProject(projectId: string) {
+    return request<void>(`/projects/${projectId}`, { method: 'DELETE' });
+  }
+
+  listConversations(projectId: string) {
+    return request<Conversation[]>(`/projects/${projectId}/conversations`);
+  }
+
+  createConversation(projectId: string, name: string) {
+    return request<Conversation>(`/projects/${projectId}/conversations`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name }),
+      body: { name },
     });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error((err as any).detail || `createProject: ${res.statusText}`);
-    }
-    return res.json();
   }
 
-  async deleteProject(projectId: string): Promise<void> {
-    const res = await fetch(`${API_BASE}/projects/${projectId}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error(`deleteProject: ${res.statusText}`);
-  }
-
-  async listConversations(projectId: string): Promise<Conversation[]> {
-    const res = await fetch(`${API_BASE}/projects/${projectId}/conversations`);
-    if (!res.ok) throw new Error(`listConversations: ${res.statusText}`);
-    return res.json();
-  }
-
-  async createConversation(projectId: string, name: string): Promise<Conversation> {
-    const res = await fetch(`${API_BASE}/projects/${projectId}/conversations`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name }),
+  deleteConversation(projectId: string, conversationId: string) {
+    return request<void>(`/projects/${projectId}/conversations/${conversationId}`, {
+      method: 'DELETE',
     });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error((err as any).detail || `createConversation: ${res.statusText}`);
-    }
-    return res.json();
-  }
-
-  async deleteConversation(projectId: string, conversationId: string): Promise<void> {
-    const res = await fetch(`${API_BASE}/projects/${projectId}/conversations/${conversationId}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error(`deleteConversation: ${res.statusText}`);
   }
 
   // Artifacts
-  async listArtifacts(conversationId: number): Promise<Artifact[]> {
-    const response = await fetch(`${API_BASE}/artifacts?conversation_id=${conversationId}`);
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
+  listArtifacts(conversationId: number) {
+    return request<Artifact[]>('/artifacts', { query: { conversation_id: conversationId } });
   }
 
-  async createArtifact(data: {
+  createArtifact(data: {
     project_id: number;
     conversation_id?: number;
     type: string;
@@ -316,66 +357,101 @@ class APIClient {
     payload_ref?: string;
     source_mode?: string;
     pinned?: boolean;
-  }): Promise<Artifact> {
-    const response = await fetch(`${API_BASE}/artifacts`, {
+  }) {
+    return request<Artifact>('/artifacts', { method: 'POST', body: data });
+  }
+
+  updateArtifact(
+    artifactId: number,
+    data: { title?: string; pinned?: boolean; payload_ref?: string },
+  ) {
+    return request<Artifact>(`/artifacts/${artifactId}`, { method: 'PATCH', body: data });
+  }
+
+  deleteArtifact(artifactId: number) {
+    return request<void>(`/artifacts/${artifactId}`, { method: 'DELETE' });
+  }
+
+  scanArtifacts(conversationId: number) {
+    return request<Artifact[]>('/artifacts/scan', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      query: { conversation_id: conversationId },
     });
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
   }
 
-  async updateArtifact(artifactId: number, data: { title?: string; pinned?: boolean; payload_ref?: string }): Promise<Artifact> {
-    const response = await fetch(`${API_BASE}/artifacts/${artifactId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
-  }
-
-  async deleteArtifact(artifactId: number): Promise<void> {
-    const response = await fetch(`${API_BASE}/artifacts/${artifactId}`, { method: 'DELETE' });
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-  }
-
-  async scanArtifacts(conversationId: number): Promise<Artifact[]> {
-    const response = await fetch(`${API_BASE}/artifacts/scan?conversation_id=${conversationId}`, { method: 'POST' });
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    return response.json();
-  }
-
-  // Filesystem (artifact viewer)
-  async listFs(
-    conversationId: number,
+  // Filesystem (artifact viewer + module editor)
+  listFs(
+    scope: FsScope,
     path: string,
     showHidden: boolean,
   ): Promise<import('../types').FsListResponse> {
-    const qs = new URLSearchParams({ path, show_hidden: String(showHidden) });
-    const response = await fetch(
-      `${API_BASE}/conversations/${conversationId}/fs/list?${qs.toString()}`,
+    const query: Record<string, string> = { path };
+    if (scope.kind === 'conv') query.show_hidden = String(showHidden);
+    return request<import('../types').FsListResponse>(
+      `${fsPath(scope)}/list`,
+      { query },
     );
-    if (!response.ok) throw new Error(`API error: ${response.status} ${response.statusText}`);
-    return response.json();
   }
 
-  async readFsText(conversationId: number, path: string): Promise<string> {
-    const response = await fetch(this.readFsUrl(conversationId, path));
+  async readFsText(scope: FsScope, path: string): Promise<string> {
+    const response = await fetch(this.readFsUrl(scope, path), { credentials: 'include' });
     if (!response.ok) throw new Error(`API error: ${response.status}`);
     return response.text();
   }
 
-  async readFsBlob(conversationId: number, path: string): Promise<Blob> {
-    const response = await fetch(this.readFsUrl(conversationId, path));
+  async readFsBlob(scope: FsScope, path: string): Promise<Blob> {
+    const response = await fetch(this.readFsUrl(scope, path), { credentials: 'include' });
     if (!response.ok) throw new Error(`API error: ${response.status}`);
     return response.blob();
   }
 
-  readFsUrl(conversationId: number, path: string): string {
+  readFsUrl(scope: FsScope, path: string): string {
     const qs = new URLSearchParams({ path });
-    return `${API_BASE}/conversations/${conversationId}/fs/read?${qs.toString()}`;
+    return `${fsBase(scope)}/read?${qs.toString()}`;
+  }
+
+  writeFsText(scope: FsScope, path: string, content: string): Promise<void> {
+    if (scope.kind !== 'module') {
+      throw new Error('writeFsText only supported for module scope');
+    }
+    return request<void>(`${fsPath(scope)}/write`, {
+      method: 'PUT',
+      body: { path, content },
+    });
+  }
+
+  deleteFsFile(scope: FsScope, path: string): Promise<void> {
+    if (scope.kind !== 'module') {
+      throw new Error('deleteFsFile only supported for module scope');
+    }
+    return request<void>(`${fsPath(scope)}/file`, {
+      method: 'DELETE',
+      query: { path },
+    });
+  }
+
+  mkdirFs(scope: FsScope, path: string): Promise<void> {
+    if (scope.kind !== 'module') throw new Error('mkdirFs only supported for module scope');
+    return request<void>(`${fsPath(scope)}/mkdir`, {
+      method: 'POST',
+      body: { path },
+    });
+  }
+
+  touchFs(scope: FsScope, path: string): Promise<void> {
+    if (scope.kind !== 'module') throw new Error('touchFs only supported for module scope');
+    return request<void>(`${fsPath(scope)}/touch`, {
+      method: 'POST',
+      body: { path },
+    });
+  }
+
+  renameFs(scope: FsScope, from: string, to: string): Promise<void> {
+    if (scope.kind !== 'module') throw new Error('renameFs only supported for module scope');
+    return request<void>(`${fsPath(scope)}/rename`, {
+      method: 'POST',
+      body: { from, to },
+    });
   }
 }
 

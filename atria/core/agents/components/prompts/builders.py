@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any, TYPE_CHECKING
 
 from atria.core.agents.prompts import load_prompt
@@ -10,6 +11,24 @@ if TYPE_CHECKING:
     from atria.core.skills import SkillLoader
     from atria.core.agents.subagents.manager import SubAgentManager
     from .environment import EnvironmentContext
+
+logger = logging.getLogger(__name__)
+
+
+def _build_skill_block_safe() -> str:
+    """Render the active-modules SKILL block, swallowing any registry errors.
+
+    The file-based module registry is lazy-loaded and watcher-refreshed; a
+    failure here must not break the entire system prompt.
+    """
+    try:
+        from atria.core.modules.registry import get_registry
+        from atria.core.modules.prompt import build_skill_block
+
+        return build_skill_block(get_registry())
+    except Exception as exc:  # noqa: BLE001 — best-effort
+        logger.warning("module SKILL block build failed: %s", exc)
+        return ""
 
 
 class BasePromptBuilder:
@@ -141,6 +160,14 @@ class BasePromptBuilder:
 
         modular_sections = composer.compose(context)
 
+        # Append the active-modules SKILL block (dynamic; comes from the file-based
+        # module registry, not a template file).
+        skill_block = _build_skill_block_safe()
+        if skill_block:
+            modular_sections = (
+                f"{modular_sections}\n\n{skill_block}" if modular_sections else skill_block
+            )
+
         # Combine core prompt + modular sections
         return f"{core_prompt}\n\n{modular_sections}" if modular_sections else core_prompt
 
@@ -174,6 +201,14 @@ class BasePromptBuilder:
         }
 
         stable_sections, dynamic_sections = composer.compose_two_part(context)
+
+        # Append the active-modules SKILL block to the DYNAMIC part — module
+        # contents change at runtime via the watcher and must not be cached.
+        skill_block = _build_skill_block_safe()
+        if skill_block:
+            dynamic_sections = (
+                f"{dynamic_sections}\n\n{skill_block}" if dynamic_sections else skill_block
+            )
 
         # Core prompt is always stable
         if stable_sections:

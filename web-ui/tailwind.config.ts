@@ -35,6 +35,8 @@ export default {
 
         // Semantic
         'semantic-success': 'hsl(var(--semantic-success) / <alpha-value>)',
+        'semantic-danger':  'hsl(var(--semantic-danger) / <alpha-value>)',
+        'focus-ring':       'hsl(var(--focus-ring) / <alpha-value>)',
 
         // Legacy aliases — remap to mono palette so un-migrated components stay on-brand.
         bg: {
@@ -134,6 +136,25 @@ export default {
         '4.5xl': '58rem',
         'content': '1280px',
       },
+      boxShadow: {
+        // Per DESIGN.md Shadow Tokens — keep in sync.
+        'soft':       '0 4px 16px rgba(0,0,0,0.06)',
+        'hover':      '0 8px 24px rgba(0,0,0,0.08)',
+        'modal':      '0 24px 64px rgba(0,0,0,0.18)',
+        'focus-ring': '0 0 0 2px hsl(var(--canvas)), 0 0 0 4px hsl(var(--focus-ring))',
+      },
+      transitionDuration: {
+        // Per DESIGN.md Motion tokens.
+        'instant': '80ms',
+        'fast':    '160ms',
+        'base':    '240ms',
+        'slow':    '480ms',
+      },
+      transitionTimingFunction: {
+        'motion-out':    'cubic-bezier(0.2, 0, 0, 1)',
+        'motion-in':     'cubic-bezier(0.4, 0, 1, 1)',
+        'motion-spring': 'cubic-bezier(0.16, 1, 0.3, 1)',
+      },
       animation: {
         'slide-up': 'slide-up 0.3s ease-out',
         'fade-in': 'fade-in 0.2s ease-out',
@@ -144,6 +165,8 @@ export default {
         'border-breathe': 'border-breathe 2.5s ease-in-out infinite',
         'pulse-dot': 'pulse-dot 1.4s ease-in-out infinite',
         'content-fade': 'content-fade 0.15s ease-out',
+        'marquee': 'marquee 30s linear infinite',
+        'reveal':  'reveal 480ms cubic-bezier(0.16, 1, 0.3, 1) both',
       },
       keyframes: {
         'slide-up': {
@@ -181,6 +204,14 @@ export default {
         'content-fade': {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
+        },
+        'marquee': {
+          '0%':   { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
+        'reveal': {
+          '0%':   { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
       },
     },

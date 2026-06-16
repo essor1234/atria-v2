@@ -187,7 +187,7 @@ export function MCPSettings() {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="px-5 py-2 text-sm font-[480] text-inverse-ink bg-ink rounded-pill hover:bg-ink/90 transition-colors"
+          className="px-5 py-2 text-sm font-[480] text-inverse-ink bg-ink rounded-pill hover:bg-ink/90 transition-colors active:scale-[0.98] whitespace-nowrap"
         >
           Add Server
         </button>
@@ -195,12 +195,12 @@ export function MCPSettings() {
 
       {/* Error Banner */}
       {error && (
-        <div className="flex items-center justify-between px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
+        <div className="flex items-center justify-between px-4 py-3 bg-red-50 border border-semantic-danger rounded-lg">
           <div className="flex items-center gap-3">
-            <CircleAlert className="w-5 h-5 text-red-600" />
-            <p className="text-sm text-red-800">{error}</p>
+            <CircleAlert className="w-5 h-5 text-semantic-danger" />
+            <p className="text-sm text-semantic-danger">{error}</p>
           </div>
-          <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800">
+          <button onClick={() => setError(null)} className="text-semantic-danger hover:opacity-80">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -401,7 +401,7 @@ function ServerRow({
             <button
               onClick={() => onConnect(server.name)}
               disabled={isProcessing || isConnected}
-              className="px-4 py-1.5 text-sm font-[480] text-inverse-ink bg-ink hover:bg-ink/90 rounded-pill transition-colors disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+              className="px-4 py-1.5 text-sm font-[480] text-inverse-ink bg-ink hover:bg-ink/90 rounded-pill transition-colors disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap active:scale-[0.98]"
             >
               Connect
             </button>
@@ -529,7 +529,7 @@ function DropdownMenu({ server, isProcessing, onEdit, onDelete }: DropdownMenuPr
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+        <div className="absolute right-0 mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-soft z-10 overflow-hidden">
           <button
             onClick={() => {
               onEdit(server);
@@ -545,7 +545,7 @@ function DropdownMenu({ server, isProcessing, onEdit, onDelete }: DropdownMenuPr
               onDelete(server.name);
               setIsOpen(false);
             }}
-            className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+            className="w-full px-3 py-2 text-left text-sm text-semantic-danger hover:bg-red-50 transition-colors flex items-center gap-2"
           >
             <Trash2 className="w-4 h-4" />
             Remove

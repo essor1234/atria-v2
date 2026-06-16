@@ -1,8 +1,5 @@
 import React, { forwardRef } from 'react';
-
-function cn(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(' ');
-}
+import { cn } from '../../lib/cn';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   leftIcon?: React.ReactNode;
@@ -27,7 +24,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         ref={ref}
         {...props}
         className={cn(
-          'w-full bg-canvas text-ink placeholder:text-ink/40 rounded-md border border-hairline-soft outline-none focus:ring-2 focus:ring-ink focus:ring-offset-0 focus:border-ink',
+          'w-full bg-canvas text-ink placeholder:text-ink/40 rounded-md border border-hairline-soft outline-none focus:border-ink',
           leftIcon ? 'pl-9 pr-3.5 py-3 text-[16px]' : 'px-3.5 py-3 text-[16px]'
         )}
       />

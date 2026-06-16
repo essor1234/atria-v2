@@ -37,7 +37,7 @@ export function DeleteConfirmModal({ isOpen, workspacePath, onConfirm, onCancel 
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-canvas rounded-lg border border-hairline-soft w-full max-w-md p-6 m-4"
+            className="bg-canvas rounded-lg border border-hairline-soft shadow-modal w-full max-w-md p-6 m-4"
           >
             {/* Header: coral block accent matches the destructive intent */}
             <div className="flex items-center gap-3 mb-5">
@@ -64,14 +64,14 @@ export function DeleteConfirmModal({ isOpen, workspacePath, onConfirm, onCancel 
               <button
                 onClick={onCancel}
                 disabled={isDeleting}
-                className="flex-1 px-6 py-3 rounded-pill bg-canvas text-ink border border-hairline-soft hover:border-ink text-btn disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 px-6 py-3 rounded-pill bg-canvas text-ink border border-hairline-soft hover:border-ink text-btn disabled:opacity-40 disabled:cursor-not-allowed transition-colors active:scale-[0.98] whitespace-nowrap"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirm}
                 disabled={isDeleting}
-                className="flex-1 px-6 py-3 rounded-pill bg-ink text-inverse-ink hover:bg-ink/90 text-btn disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 px-6 py-3 rounded-pill bg-ink text-inverse-ink hover:bg-ink/90 text-btn disabled:opacity-40 disabled:cursor-not-allowed transition-colors active:scale-[0.98] whitespace-nowrap"
               >
                 {isDeleting ? 'Deleting…' : 'Delete'}
               </button>

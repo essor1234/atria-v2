@@ -94,7 +94,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-canvas rounded-lg w-full max-w-content h-[85vh] flex flex-col overflow-hidden border border-hairline-soft">
+            className="bg-canvas rounded-lg shadow-modal w-full max-w-content h-[85vh] flex flex-col overflow-hidden border border-hairline-soft">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <div>

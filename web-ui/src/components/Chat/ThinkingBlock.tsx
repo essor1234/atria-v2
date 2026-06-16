@@ -37,12 +37,12 @@ export function ThinkingBlock({ content, level, isActive }: ThinkingBlockProps) 
           <span className="text-[11px] text-ink/30 font-mono">· {level}</span>
         )}
         <ChevronDown
-          className={`w-3 h-3 text-ink/30 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+          className={`w-3 h-3 text-ink/30 transition-transform duration-fast ${isExpanded ? 'rotate-180' : ''}`}
         />
       </button>
 
       <div
-        className="overflow-hidden transition-all duration-300 ease-in-out"
+        className="overflow-hidden transition-all duration-base ease-motion-out"
         style={{ maxHeight: isExpanded ? `${contentHeight + 16}px` : '0px' }}
       >
         <div ref={contentRef} className="mt-2 ml-4 border-l border-hairline-soft pl-3 pb-2">

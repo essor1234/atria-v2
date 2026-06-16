@@ -25,3 +25,4 @@ tiktoken==0.12.0
 tomli==2.0.1
 transformers==4.57.1
 uvicorn==0.29.0
+watchdog>=4.0

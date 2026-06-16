@@ -299,19 +299,25 @@ def test_type_inference_all_types(tmp_path: Path) -> None:
 # ---------------- URL tests ----------------
 
 
-class _FakeResponse:
-    def __init__(self, data: bytes, content_type: str = "text/csv") -> None:
-        self._buf = io.BytesIO(data)
-        self.headers = {"Content-Type": content_type}
+def _httpx_mock(data: bytes, content_type: str = "text/csv"):
+    """Patch ``send_data_tool.httpx.stream`` so the response body is ``data``."""
+    import httpx
 
-    def read(self, n: int = -1) -> bytes:
-        return self._buf.read(n)
+    def _handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, headers={"Content-Type": content_type}, content=data)
 
-    def __enter__(self) -> "_FakeResponse":
-        return self
+    transport = httpx.MockTransport(_handler)
 
-    def __exit__(self, *exc: Any) -> None:
-        self._buf.close()
+    def _patched_stream(method: str, url: str, **kwargs: Any):
+        kwargs.pop("follow_redirects", None)
+        timeout = kwargs.pop("timeout", None)
+        client = httpx.Client(transport=transport, timeout=timeout)
+        return client.stream(method, url, **kwargs)
+
+    return patch(
+        "atria.core.context_engineering.tools.implementations.send_data_tool.httpx.stream",
+        side_effect=_patched_stream,
+    )
 
 
 def test_url_happy_path_csv() -> None:
@@ -319,7 +325,7 @@ def test_url_happy_path_csv() -> None:
     ctx, cb = _ctx_with_callback()
     csv_bytes = CSV_PATH.read_bytes()
 
-    with patch("urllib.request.urlopen", return_value=_FakeResponse(csv_bytes, "text/csv")):
+    with _httpx_mock(csv_bytes, "text/csv"):
         result = handler.send(
             {
                 "url": "https://example.com/sales.csv",
@@ -341,7 +347,7 @@ def test_url_size_limit_aborts() -> None:
     big = b"a,b\n" + (b"x,1\n" * (3 * 1024 * 1024))
     assert len(big) > 10 * 1024 * 1024
 
-    with patch("urllib.request.urlopen", return_value=_FakeResponse(big, "text/csv")):
+    with _httpx_mock(big, "text/csv"):
         result = handler.send(
             {
                 "url": "https://example.com/big.csv",

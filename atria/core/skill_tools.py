@@ -48,10 +48,8 @@ class SkillToolContext:
     # emit in one place closes the race where the user could respond
     # before the pending entry exists.
     review_callback: Callable[[str, str, dict[str, Any]], dict[str, Any]] | None = None
-    # Clarification Q&A callback used by deep_analyze EXPLORE phase.
-    # Signature mirrors review_callback: (job_id, request_id, payload) -> result.
-    # Payload contains {"type": "analyze.clarify", "questions": [...], "domain_brief": str, "iteration": int}.
-    # Result must contain {"answers": [{"id": str, "answer": str}, ...]}.
+    # Clarification Q&A callback. Mirrors review_callback signature:
+    # (job_id, request_id, payload) -> result with {"answers": [...]}.
     clarify_callback: Callable[[str, str, dict[str, Any]], dict[str, Any]] | None = None
     # Per-message persistence hook for clarification round-trip. Receives a payload
     # like {"role": "assistant"|"user", "content": str, "metadata": dict}; the bridge

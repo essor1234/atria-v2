@@ -193,9 +193,15 @@ class Session(BaseModel):
 
             messages_to_convert = self.messages[cutoff_index:]
 
-        # Convert selected messages to API format
+        # Convert selected messages to API format.
+        # UI-only roles (e.g. ``custom_block``) are persisted for replay but
+        # must not be sent to the LLM — chat completion APIs only accept
+        # user/assistant/system/tool.
+        _LLM_ROLES = {"user", "assistant", "system", "tool"}
         result = []
         for msg in messages_to_convert:
+            if msg.role.value not in _LLM_ROLES:
+                continue
             raw_content = None
             if msg.metadata and "raw_content" in msg.metadata:
                 raw_content = msg.metadata["raw_content"]

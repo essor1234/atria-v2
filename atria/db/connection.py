@@ -3,15 +3,19 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
 from typing import Optional
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
+
+logger = logging.getLogger(__name__)
 
 _engine: Optional[AsyncEngine] = None
 _sessionmaker: Optional[async_sessionmaker[AsyncSession]] = None
@@ -77,9 +81,15 @@ async def close_engine() -> None:
 
 
 async def init_schema() -> None:
-    """Create all tables defined on Base.metadata if they do not exist."""
+    """Create all tables defined on Base.metadata if they do not exist; drop legacy module tables."""
     from atria.db.models import Base
 
     engine = await get_engine()
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Legacy DB-backed modules system removed; drop its tables if present.
+        for _legacy in ("module_tasks", "module_tools", "modules"):
+            try:
+                await conn.execute(text(f"DROP TABLE IF EXISTS {_legacy} CASCADE"))
+            except Exception as _drop_err:
+                logger.warning("Failed to drop legacy table %s: %s", _legacy, _drop_err)

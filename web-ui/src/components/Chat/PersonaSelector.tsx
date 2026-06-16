@@ -1,13 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { User, X, ChevronDown, Settings } from 'lucide-react';
 import { useChatStore } from '../../stores/chat';
-
-interface Persona {
-  name: string;
-  system_prompt: string;
-  is_built_in: boolean;
-  created_at: string;
-}
+import { apiClient } from '../../api/client';
+import type { Persona } from '../../types';
 
 export function PersonaSelector() {
   const [open, setOpen] = useState(false);
@@ -27,12 +22,9 @@ export function PersonaSelector() {
   useEffect(() => {
     if (!open || cachedRef.current) return;
     cachedRef.current = true;
-    fetch('/api/personas')
-      .then(r => {
-        if (!r.ok) throw new Error('Failed');
-        return r.json();
-      })
-      .then((data: Persona[]) => setPersonas(data))
+    apiClient
+      .listPersonas()
+      .then((data) => setPersonas(data))
       .catch(() => setFetchError(true));
   }, [open]);
 
@@ -59,7 +51,7 @@ export function PersonaSelector() {
   };
 
   const pillBase =
-    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition-colors select-none hover:scale-105';
+    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition-colors select-none hover:scale-105 active:scale-[0.98] whitespace-nowrap';
   const pillStyle = 'bg-bg-400/40 text-text-200 border-gray-300 hover:bg-bg-400/60';
 
   return (
@@ -90,9 +82,9 @@ export function PersonaSelector() {
       </button>
 
       {open && (
-        <div className="absolute bottom-full mb-2 left-0 z-50 min-w-[180px] max-h-64 overflow-y-auto rounded-lg border border-gray-300 bg-bg-300 shadow-lg py-1">
+        <div className="absolute bottom-full mb-2 left-0 z-50 min-w-[180px] max-h-64 overflow-y-auto rounded-lg border border-gray-300 bg-bg-300 shadow-soft py-1">
           {fetchError ? (
-            <p className="px-3 py-2 text-xs text-red-400">Could not load personas</p>
+            <p className="px-3 py-2 text-xs text-semantic-danger">Could not load personas</p>
           ) : personas.length === 0 ? (
             <div className="px-3 py-2 text-xs text-text-200/60">
               <p>No personas yet</p>

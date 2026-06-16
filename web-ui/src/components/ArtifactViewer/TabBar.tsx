@@ -1,4 +1,4 @@
-import { X, FileText, Code2, Image as ImageIcon, BarChart3, File as FileIcon } from 'lucide-react';
+import { X, FileText, Code2, Image as ImageIcon, BarChart3, File as FileIcon, Package } from 'lucide-react';
 import { useViewerTabsStore } from '../../stores/viewerTabs';
 import { pickRenderer } from './viewers/extensions';
 import type { ViewerTab } from '../../types';
@@ -9,6 +9,7 @@ interface Props {
 }
 
 function iconFor(tab: ViewerTab) {
+  if (tab.kind === 'module') return Package;
   const kind = pickRenderer(tab.ext);
   if (kind === 'markdown') return FileText;
   if (kind === 'monaco') return Code2;
@@ -47,7 +48,13 @@ export function TabBar({ convId, onCollapse: _onCollapse }: Props) {
             }`}
             role="tab"
             aria-selected={isActive}
-            title={tab.path}
+            title={
+              tab.kind === 'file'
+                ? tab.path
+                : tab.kind === 'module-file'
+                  ? `${tab.module}/${tab.path}`
+                  : `module: ${tab.name}`
+            }
           >
             <Icon className={`w-3 h-3 flex-shrink-0 ${isActive ? 'text-sky-400/80' : 'text-ink/40'}`} />
             <span className="truncate max-w-[140px]">{tab.name}</span>

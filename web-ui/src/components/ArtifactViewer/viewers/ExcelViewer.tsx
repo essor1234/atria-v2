@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { apiClient } from '../../../api/client';
 import { DataTable } from './DataTable';
 import { BinaryFallback } from './BinaryFallback';
+import { fsScopeKey, type FsScope } from '../../../types';
 
-interface Props { convId: number; path: string }
+interface Props { scope: FsScope; path: string }
 
 interface Sheet {
   name: string;
@@ -12,16 +13,17 @@ interface Sheet {
   rows: (string | number | null)[][];
 }
 
-export function ExcelViewer({ convId, path }: Props) {
+export function ExcelViewer({ scope, path }: Props) {
   const [sheets, setSheets] = useState<Sheet[] | null>(null);
   const [active, setActive] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const scopeKey = useMemo(() => fsScopeKey(scope), [scope]);
 
   useEffect(() => {
     let cancelled = false;
     setSheets(null);
     setError(null);
-    apiClient.readFsBlob(convId, path).then(async blob => {
+    apiClient.readFsBlob(scope, path).then(async blob => {
       const buf = await blob.arrayBuffer();
       try {
         const wb = XLSX.read(buf, { type: 'array' });
@@ -38,10 +40,10 @@ export function ExcelViewer({ convId, path }: Props) {
       }
     }).catch(e => { if (!cancelled) setError(String(e)); });
     return () => { cancelled = true; };
-  }, [convId, path]);
+  }, [scopeKey, path]);
 
   if (error) {
-    return <BinaryFallback convId={convId} path={path} url={apiClient.readFsUrl(convId, path)} />;
+    return <BinaryFallback path={path} url={apiClient.readFsUrl(scope, path)} />;
   }
   if (sheets === null) {
     return <div className="p-4 text-xs font-mono text-ink/45">Parsing workbook…</div>;

@@ -1,0 +1,10 @@
+{
+  "display_name": "Warehouse",
+  "tooltip": "Inventory, SKUs, low-stock signals",
+  "icon": "icon.svg",
+  "dashboard": {
+    "title": "Warehouse · Inventory",
+    "default_height": 760,
+    "badge_color": "warning"
+  }
+}

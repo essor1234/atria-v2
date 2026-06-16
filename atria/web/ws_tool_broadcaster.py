@@ -66,9 +66,9 @@ class WebSocketToolBroadcaster:
         self.working_dir = Path(working_dir).resolve() if working_dir else None
         self.session_id = session_id
 
-        # Wire skill-tool broadcaster — handles deep_research, deep_analyze,
-        # and any future skill that emits typed events. Each skill's tools.py
-        # decides which events it emits; we fan them out by event type.
+        # Wire skill-tool broadcaster — any skill that emits typed events
+        # routes through here. Each skill's tools.py decides which events
+        # it emits; we fan them out by event type.
         skill_ctx = getattr(tool_registry, "skill_ctx", None)
         if skill_ctx is not None:
             skill_ctx.broadcaster = self._broadcast_skill_event
@@ -152,60 +152,21 @@ class WebSocketToolBroadcaster:
             logger.error(f"Tool: {tool_name}, Args: {arguments}")
 
     def _broadcast_skill_event(self, event: Dict[str, Any]) -> None:
-        """Route a skill-emitted event to the appropriate per-skill broadcast."""
+        """Broadcast a skill-emitted event over the WS as-is."""
         etype = event.get("type", "")
-        if etype.startswith("deep_research"):
-            self._broadcast_deep_research_event(event)
-        elif etype.startswith("analyze."):
-            self._broadcast_deep_analyze_event(event)
-        else:
-            try:
-                payload = self._make_json_safe(
-                    {
-                        "type": etype or "skill_event",
-                        "data": {**event, "session_id": self.session_id},
-                    }
-                )
-                future = asyncio.run_coroutine_threadsafe(
-                    self.ws_manager.broadcast(payload), self.loop
-                )
-                future.result(timeout=5)
-            except Exception as e:  # noqa: BLE001
-                logger.error(f"Failed to broadcast skill event: {e}")
-
-    def _broadcast_deep_research_event(self, event: Dict[str, Any]) -> None:
-        """Broadcast any deep_research_* event from the background pipeline thread."""
         try:
             payload = self._make_json_safe(
                 {
-                    "type": event.get("type", "deep_research_progress"),
+                    "type": etype or "skill_event",
                     "data": {**event, "session_id": self.session_id},
                 }
             )
             future = asyncio.run_coroutine_threadsafe(
-                self.ws_manager.broadcast(payload),
-                self.loop,
+                self.ws_manager.broadcast(payload), self.loop
             )
             future.result(timeout=5)
         except Exception as e:  # noqa: BLE001
-            logger.error(f"❌ Failed to broadcast deep_research event: {e}")
-
-    def _broadcast_deep_analyze_event(self, event: Dict[str, Any]) -> None:
-        """Broadcast any deep_analyze_* event from the background pipeline thread."""
-        try:
-            payload = self._make_json_safe(
-                {
-                    "type": event.get("type", "deep_analyze_progress"),
-                    "data": {**event, "session_id": self.session_id},
-                }
-            )
-            future = asyncio.run_coroutine_threadsafe(
-                self.ws_manager.broadcast(payload),
-                self.loop,
-            )
-            future.result(timeout=5)
-        except Exception as e:  # noqa: BLE001
-            logger.error(f"❌ Failed to broadcast deep_analyze event: {e}")
+            logger.error(f"Failed to broadcast skill event: {e}")
 
     def _broadcast_search_done(self, result: Dict[str, Any]) -> None:
         """Broadcast search_done event with query and result list."""
@@ -298,6 +259,17 @@ class WebSocketToolBroadcaster:
         atria_home = Path.home() / ".atria"
         if resolved.is_absolute() and str(resolved).startswith(str(atria_home)):
             return None
+        # Always allow reads/writes inside the active modules root — modules are
+        # source-tracked skills the agent legitimately needs to invoke regardless
+        # of the active session workspace.
+        try:
+            from atria.core.modules.registry import resolve_modules_root
+
+            modules_root = str(resolve_modules_root())
+            if resolved.is_absolute() and str(resolved).startswith(modules_root):
+                return None
+        except Exception:  # noqa: BLE001 — guard must not fail open on unrelated errors
+            pass
         if not is_within_workspace(resolved, self.working_dir):
             return (
                 f"Access denied: '{raw_path}' is outside the project workspace "

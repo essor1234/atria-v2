@@ -487,7 +487,7 @@ class MCPCommands(CommandHandler):
             self.print_info("Reloading configuration...")
 
             # Reload configuration
-            config = self.mcp_manager.load_configuration()
+            self.mcp_manager.load_configuration()
 
             # Show summary
             servers = self.mcp_manager.list_servers()

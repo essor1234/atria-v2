@@ -199,8 +199,7 @@ def filter_and_repair_messages(messages: list[ChatMessage]) -> list[ChatMessage]
 
     for msg in messages:
         # Take a snapshot to detect repairs
-        original_content = msg.content
-        original_tools = len(msg.tool_calls)
+        len(msg.tool_calls)
 
         fixed = repair_message(msg)
         if fixed is None:
