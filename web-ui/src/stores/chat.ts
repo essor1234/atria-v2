@@ -17,6 +17,7 @@ const DEFAULT_SESSION: PerSessionState = {
   progressMessage: null,
   queuedMessages: [],
   selectedPersona: null,
+  draft: '',
 };
 
 function getSessionState(states: Record<string, PerSessionState>, id: string): PerSessionState {
@@ -254,6 +255,7 @@ interface ChatState {
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   setSelectedPersona: (personaName: string | null) => void;
+  setDraft: (sessionId: string, text: string) => void;
   openSettingsModal: () => void;
   closeSettingsModal: () => void;
 }
@@ -283,6 +285,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
         ...patchSession(state, sessionId, { selectedPersona: personaName }),
       }));
     }
+  },
+  setDraft: (sessionId: string, text: string) => {
+    if (!sessionId) return;
+    set(state => ({ ...patchSession(state, sessionId, { draft: text }) }));
   },
   openSettingsModal: () => set({ settingsModalOpen: true }),
   closeSettingsModal: () => set({ settingsModalOpen: false }),

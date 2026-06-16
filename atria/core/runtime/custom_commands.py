@@ -21,6 +21,8 @@ import logging
 import re
 from pathlib import Path
 
+from atria.core.paths import atria_dir
+
 logger = logging.getLogger(__name__)
 
 
@@ -84,7 +86,7 @@ class CustomCommandLoader:
             dirs.append((local, "project"))
 
         # User-global commands
-        global_dir = Path.home() / ".atria" / "commands"
+        global_dir = atria_dir() / "commands"
         if global_dir.exists() and global_dir.is_dir():
             dirs.append((global_dir, "global"))
 

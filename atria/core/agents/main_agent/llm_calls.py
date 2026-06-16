@@ -1,11 +1,17 @@
 """LLM API call methods."""
 
+import logging
 from typing import Any, Optional
 
 from atria.core.agents.components.api.configuration import (
     build_max_tokens_param,
     build_temperature_param,
 )
+
+_logger = logging.getLogger(__name__)
+
+# HTTP statuses worth retrying on the fallback model (transient / model-specific).
+_RETRYABLE_STATUS = {404, 408, 409, 425, 429, 500, 502, 503, 504}
 
 
 class LlmCallsMixin:
@@ -192,52 +198,85 @@ class LlmCallsMixin:
         # Always use auto tool_choice - no more force_think
         tool_choice = "auto"
 
-        payload = {
-            "model": model_id,
-            "messages": self._clean_messages(messages),
-            "tools": tool_schemas,
-            "tool_choice": tool_choice,
-            **build_temperature_param(model_id, self.config.temperature),
-            **build_max_tokens_param(model_id, self.config.max_tokens),
-        }
+        cleaned_messages = self._clean_messages(messages)
 
-        result = http_client.post_json(payload, task_monitor=task_monitor)
-        if not result.success or result.response is None:
-            return {
-                "success": False,
-                "error": result.error or "Unknown error",
-                "interrupted": result.interrupted,
+        # Try the primary model, then the configured fallback (same endpoint).
+        candidates = [model_id]
+        fallback = getattr(self.config, "fallback_model", "") or ""
+        if fallback and fallback != model_id:
+            candidates.append(fallback)
+
+        last_error = "Unknown error"
+        for idx, candidate in enumerate(candidates):
+            has_next = idx < len(candidates) - 1
+            payload = {
+                "model": candidate,
+                "messages": cleaned_messages,
+                "tools": tool_schemas,
+                "tool_choice": tool_choice,
+                **build_temperature_param(candidate, self.config.temperature),
+                **build_max_tokens_param(candidate, self.config.max_tokens),
             }
 
-        response = result.response
-        if response.status_code != 200:
+            result = http_client.post_json(payload, task_monitor=task_monitor)
+
+            # Never fall back on a user interrupt.
+            if result.interrupted:
+                return {
+                    "success": False,
+                    "error": result.error or "Interrupted",
+                    "interrupted": True,
+                }
+
+            if not result.success or result.response is None:
+                last_error = result.error or "Unknown error"
+                if has_next:
+                    _logger.warning(
+                        "LLM call failed on %s (%s); falling back to %s",
+                        candidate, last_error, candidates[idx + 1],
+                    )
+                    continue
+                return {"success": False, "error": last_error}
+
+            response = result.response
+            if response.status_code != 200:
+                last_error = f"API Error {response.status_code}: {response.text}"
+                if has_next and response.status_code in _RETRYABLE_STATUS:
+                    _logger.warning(
+                        "Model %s returned HTTP %s; falling back to %s",
+                        candidate, response.status_code, candidates[idx + 1],
+                    )
+                    continue
+                return {"success": False, "error": last_error}
+
+            response_data = response.json()
+            choice = response_data["choices"][0]
+            message_data = choice["message"]
+
+            raw_content = message_data.get("content")
+            cleaned_content = self._response_cleaner.clean(raw_content) if raw_content else None
+
+            # Extract reasoning_content for OpenAI reasoning models (o1, o3, etc.)
+            # This is the native thinking/reasoning trace from models like o1-preview
+            reasoning_content = message_data.get("reasoning_content")
+
+            if task_monitor and "usage" in response_data:
+                usage = response_data["usage"]
+                total_tokens = usage.get("total_tokens", 0)
+                if total_tokens > 0:
+                    task_monitor.update_tokens(total_tokens)
+
+            if idx > 0:
+                _logger.info("LLM call succeeded on fallback model %s", candidate)
+
             return {
-                "success": False,
-                "error": f"API Error {response.status_code}: {response.text}",
+                "success": True,
+                "message": message_data,
+                "content": cleaned_content,
+                "tool_calls": message_data.get("tool_calls"),
+                "reasoning_content": reasoning_content,  # Native thinking trace from model
+                "usage": response_data.get("usage"),
+                "model_used": candidate,
             }
 
-        response_data = response.json()
-        choice = response_data["choices"][0]
-        message_data = choice["message"]
-
-        raw_content = message_data.get("content")
-        cleaned_content = self._response_cleaner.clean(raw_content) if raw_content else None
-
-        # Extract reasoning_content for OpenAI reasoning models (o1, o3, etc.)
-        # This is the native thinking/reasoning trace from models like o1-preview
-        reasoning_content = message_data.get("reasoning_content")
-
-        if task_monitor and "usage" in response_data:
-            usage = response_data["usage"]
-            total_tokens = usage.get("total_tokens", 0)
-            if total_tokens > 0:
-                task_monitor.update_tokens(total_tokens)
-
-        return {
-            "success": True,
-            "message": message_data,
-            "content": cleaned_content,
-            "tool_calls": message_data.get("tool_calls"),
-            "reasoning_content": reasoning_content,  # Native thinking trace from model
-            "usage": response_data.get("usage"),
-        }
+        return {"success": False, "error": last_error}

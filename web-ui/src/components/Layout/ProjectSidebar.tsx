@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
+import { useLocalStorage } from "usehooks-ts";
+import { ResizeHandle } from "../ui/ResizeHandle";
 import { useChatStore } from "../../stores/chat";
 import { useModulesStore } from "../../stores/modules";
 import { useProjectsStore } from "../../stores/projects";
@@ -54,6 +56,7 @@ export function ProjectSidebar() {
     projectId?: string;
   } | null>(null);
   const [creatingChat, setCreatingChat] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useLocalStorage<number>("sidebar.width", 256);
 
   const reduce = useReducedMotion();
 
@@ -155,8 +158,18 @@ export function ProjectSidebar() {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         data-surface="dark"
-        className="w-64 flex flex-col bg-bg-100 border-r border-border-300/15 overflow-hidden"
+        style={{ width: sidebarWidth }}
+        className="relative flex-shrink-0 flex flex-col bg-bg-100 border-r border-border-300/15 overflow-hidden"
       >
+        {/* Drag the right edge to resize the sidebar (kept within bounds — aside is overflow-hidden) */}
+        <ResizeHandle
+          side="right"
+          width={sidebarWidth}
+          min={200}
+          max={480}
+          onResize={setSidebarWidth}
+          className="absolute top-0 bottom-0 right-0 w-2 cursor-col-resize hover:bg-sky-400/30 transition-colors z-30"
+        />
         {/* Header: collapse + New Chat + New Project + Settings */}
         <div className="flex items-center justify-between px-3 py-2.5 border-b border-border-300/10">
           <button

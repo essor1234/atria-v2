@@ -21,6 +21,7 @@ from typing import Any
 from atria.core.agents.components.api.configuration import build_temperature_param
 from atria.core.agents.prompts.loader import load_prompt
 from atria.core.context_engineering.retrieval.token_monitor import ContextTokenMonitor
+from atria.core.paths import atria_dir
 from atria.models.config import AppConfig
 
 logger = logging.getLogger(__name__)
@@ -415,7 +416,7 @@ class ContextCompactor:
             Path to the archive file, or None if archival failed.
         """
         sid = session_id or self._session_id or "unknown"
-        scratch_dir = Path.home() / ".atria" / "scratch" / sid
+        scratch_dir = atria_dir() / "scratch" / sid
         try:
             scratch_dir.mkdir(parents=True, exist_ok=True)
         except OSError:

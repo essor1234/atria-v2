@@ -171,3 +171,27 @@ ace/
 docs/
 figures/
 .opendev/
+
+# Agent harness / eval scaffolding (do not push)
+.superpowers/
+AGENTS.md
+claude-progress.md
+clean-state-checklist.md
+evaluator-rubric.md
+quality-document.md
+session-handoff.md
+feature_list.json
+note.txt
+terminal_info.sh
+
+# Init / run helper scripts (local only)
+init.ps1
+init.sh
+run-backend.ps1
+run-frontend.ps1
+# Top-level data-modules created at runtime. Anchored to the repo root so it does
+# NOT also match the source package atria/core/modules/.
+/modules/
+testingData
+
+*.csv

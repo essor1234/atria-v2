@@ -11,7 +11,7 @@ import mimetypes
 from contextlib import contextmanager
 from typing import Iterator, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -29,6 +29,7 @@ from atria.web.dependencies import get_modules_registry
 router = APIRouter(prefix="/api/modules", tags=["modules"])
 
 _STREAM_CHUNK = 16 * 1024
+_MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MB per file, matching artifact uploads
 
 
 class ModuleDashboardManifestOut(BaseModel):
@@ -135,6 +136,52 @@ def create_endpoint(body: ModuleCreate, reg: ModuleRegistry = Depends(get_module
         )
     reg.reload_one(body.name)
     return ModuleOut.model_validate(m)
+
+
+@router.post("/{name}/data/upload")
+async def data_upload_endpoint(
+    name: str,
+    files: List[UploadFile] = File(...),
+    rel_paths: List[str] = Form(default=[]),
+    convert_xlsx: bool = Form(True),
+    reg: ModuleRegistry = Depends(get_modules_registry),
+):
+    """Upload data files/folders into a module's data/ dir.
+
+    ``rel_paths`` is a parallel array to ``files`` carrying each file's
+    folder-relative path (e.g. from a webkitdirectory pick); when absent the
+    bare filename is used. Excel files are also converted to CSV when
+    ``convert_xlsx`` is set. SKILL.md is regenerated to describe the datasets.
+    """
+    plan: list[tuple[str, bytes]] = []
+    converted: list[str] = []
+    skipped: list[dict] = []
+
+    for i, uf in enumerate(files):
+        data = await uf.read()
+        if len(data) > _MAX_UPLOAD_BYTES:
+            raise HTTPException(413, f"{uf.filename!r} exceeds the {_MAX_UPLOAD_BYTES} byte limit")
+        rel = (rel_paths[i] if i < len(rel_paths) and rel_paths[i] else None) or uf.filename or f"file_{i}"
+        plan.append((rel, data))
+
+        if convert_xlsx and rel.lower().endswith((".xlsx", ".xlsm")):
+            try:
+                from atria.core.modules.xlsx_convert import xlsx_to_csvs
+
+                head, _, tail = rel.replace("\\", "/").rpartition("/")
+                folder = f"{head}/" if head else ""
+                stem = tail.rsplit(".", 1)[0]
+                for fname, cdata in xlsx_to_csvs(data, stem):
+                    plan.append((f"{folder}{fname}", cdata))
+                    converted.append(f"{folder}{fname}")
+            except Exception as exc:  # noqa: BLE001 — convert failure shouldn't abort the upload
+                skipped.append({"file": rel, "error": f"xlsx conversion failed: {exc}"})
+
+    with _store_errors(name):
+        written = store.write_data_files(reg.root, name, plan)
+        store.regenerate_data_skill(reg.root, name)
+    reg.reload_one(name)
+    return {"written": written, "converted": converted, "skipped": skipped}
 
 
 @router.delete("/{name}", status_code=204)

@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
-from atria.core.paths import APP_DIR_NAME
+from atria.core.paths import APP_DIR_NAME, atria_dir as _atria_home
 
 
 class ToolPermission(BaseModel):
@@ -139,6 +139,11 @@ class AppConfig(BaseModel):
     # AI model settings — OpenAI-compatible endpoint
     model: str = "gpt-4o"
 
+    # Fallback model used automatically when a call with `model` fails
+    # (transport error, rate limit, model unavailable, server error). Empty = no
+    # fallback. Same provider/endpoint as `model`.
+    fallback_model: str = ""
+
     # Optional model slots (fall back to normal model if not set)
     model_thinking: Optional[str] = None
     model_vlm: Optional[str] = None
@@ -192,10 +197,11 @@ class AppConfig(BaseModel):
     # Web UI nested settings (iframe RPC, etc.)
     web: WebConfig = Field(default_factory=WebConfig)
 
-    # Paths - using APP_DIR_NAME constant for consistency
-    atria_dir: str = f"~/{APP_DIR_NAME}"
-    session_dir: str = f"~/{APP_DIR_NAME}/sessions"
-    log_dir: str = f"~/{APP_DIR_NAME}/logs"
+    # Paths - resolved via atria_dir() so they honor the ATRIA_DIR override
+    # (default ~/.atria). Factories run at instantiation, after env is loaded.
+    atria_dir: str = Field(default_factory=lambda: str(_atria_home()))
+    session_dir: str = Field(default_factory=lambda: str(_atria_home() / "sessions"))
+    log_dir: str = Field(default_factory=lambda: str(_atria_home() / "logs"))
     command_dir: str = f"{APP_DIR_NAME}/commands"
 
     def get_api_key(self) -> str:

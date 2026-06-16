@@ -12,6 +12,8 @@ import logging
 import subprocess
 from pathlib import Path
 
+from atria.core.paths import atria_dir
+
 logger = logging.getLogger(__name__)
 
 
@@ -21,7 +23,7 @@ class SnapshotManager:
     def __init__(self, project_dir: Path):
         self._project_dir = project_dir.resolve()
         self._project_id = self._compute_project_id()
-        self._snapshot_dir = Path.home() / ".atria" / "data" / "snapshot" / self._project_id
+        self._snapshot_dir = atria_dir() / "data" / "snapshot" / self._project_id
         self._initialized = False
         self._current_snapshot_id: str | None = None
 

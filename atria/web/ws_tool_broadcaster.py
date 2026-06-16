@@ -9,6 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from atria.core.paths import atria_dir
 from atria.web.logging_config import logger
 from atria.web.protocol import WSMessageType
 from atria.core.utils.tool_result_summarizer import summarize_tool_result
@@ -254,9 +255,17 @@ class WebSocketToolBroadcaster:
             return None
         from atria.core.workspace.manager import is_within_workspace
 
-        resolved = Path(str(raw_path))
+        # Resolve relative paths against working_dir (the conversation
+        # workspace) to match how the file tools resolve them — otherwise a
+        # relative path like '.' or 'note.csv' resolves against the backend's
+        # process CWD and is wrongly rejected as outside the workspace.
+        # Fully resolve so '..' escapes can't slip past the boundary check.
+        resolved = Path(str(raw_path)).expanduser()
+        if not resolved.is_absolute():
+            resolved = self.working_dir / resolved
+        resolved = resolved.resolve()
         # Always allow reads/writes inside the atria scratch/data directory
-        atria_home = Path.home() / ".atria"
+        atria_home = atria_dir()
         if resolved.is_absolute() and str(resolved).startswith(str(atria_home)):
             return None
         # Always allow reads/writes inside the active modules root — modules are

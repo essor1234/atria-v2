@@ -25,6 +25,8 @@ RUN uv sync --frozen --no-dev
 
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
+# UTF-8 mode so logs/file writes never crash on non-ASCII (e.g. "✓" in summaries)
+ENV PYTHONUTF8=1
 
 EXPOSE 8080
 

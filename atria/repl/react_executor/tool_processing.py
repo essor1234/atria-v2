@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Dict, Optional
 if TYPE_CHECKING:
     pass
 
+from atria.core.paths import atria_dir
 from atria.core.runtime.monitoring import TaskMonitor
 from atria.db.sync import run_sync
 from atria.core.utils.tool_display import format_tool_call
@@ -22,11 +23,13 @@ _ctx_logger = logging.getLogger("swecli.context_debug")
 
 def _debug_log(message: str) -> None:
     """Write debug message to /tmp/swecli_react_debug.log."""
+    import os
+    import tempfile
     from datetime import datetime
 
-    log_file = "/tmp/swecli_react_debug.log"
+    log_file = os.path.join(tempfile.gettempdir(), "swecli_react_debug.log")
     timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
-    with open(log_file, "a") as f:
+    with open(log_file, "a", encoding="utf-8") as f:
         f.write(f"[{timestamp}] {message}\n")
 
 
@@ -722,7 +725,7 @@ class ToolProcessingMixin:
         # Determine session ID for file path
         session = run_sync(self.session_manager.get_current_session())
         session_id = session.id if session else "unknown"
-        scratch_dir = Path.home() / ".atria" / "scratch" / session_id
+        scratch_dir = atria_dir() / "scratch" / session_id
 
         try:
             scratch_dir.mkdir(parents=True, exist_ok=True)

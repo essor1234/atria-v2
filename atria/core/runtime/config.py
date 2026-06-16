@@ -79,6 +79,17 @@ class ConfigManager:
         # Substitute {env:VAR} and {file:path} references in config values
         config_data = self._substitute_variables(config_data)
 
+        # Environment overrides (highest priority) for model selection — makes
+        # ATRIA_MODEL / ATRIA_FALLBACK_MODEL / ATRIA_API_BASE_URL take effect.
+        env_overrides = {
+            "model": os.environ.get("ATRIA_MODEL"),
+            "fallback_model": os.environ.get("ATRIA_FALLBACK_MODEL"),
+            "api_base_url": os.environ.get("ATRIA_API_BASE_URL"),
+        }
+        for key, value in env_overrides.items():
+            if value:
+                config_data[key] = value
+
         # Create AppConfig with merged data
         self._config = AppConfig(**config_data)
 
@@ -117,6 +128,7 @@ class ConfigManager:
 
         user_fields = {
             "model",
+            "fallback_model",
             "model_thinking",
             "model_vlm",
             "model_critique",

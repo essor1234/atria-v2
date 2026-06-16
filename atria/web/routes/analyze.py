@@ -10,6 +10,7 @@ from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from atria.core.paths import atria_dir
 from atria.web.dependencies.auth import require_authenticated_user
 
 router = APIRouter(
@@ -28,7 +29,7 @@ def _validate_db_path(db_path: str) -> Path:
         raise HTTPException(status_code=400, detail="invalid db path")
     if not p.exists():
         raise HTTPException(status_code=404, detail="database not found")
-    atria_root = (Path.home() / ".atria").resolve()
+    atria_root = atria_dir().resolve()
     try:
         p.relative_to(atria_root)
         return p
@@ -82,7 +83,7 @@ def _validate_png_path(png_path: str) -> Path:
         raise HTTPException(status_code=400, detail="only .png files allowed")
     if not p.exists():
         raise HTTPException(status_code=404, detail="chart image not found")
-    atria_root = (Path.home() / ".atria").resolve()
+    atria_root = atria_dir().resolve()
     try:
         p.relative_to(atria_root)
         return p

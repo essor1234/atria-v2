@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 import select
 import signal
+import tempfile
 import threading
 import uuid
 from dataclasses import dataclass
@@ -84,10 +85,10 @@ class BackgroundTaskManager:
         Returns:
             Path like /tmp/atria/-Users-nghibui-codes-test-opencli/tasks/
         """
-        # Convert path to safe directory name (replace / with -)
+        # Convert path to safe directory name (replace path separators with -)
         cwd_str = str(self.working_dir.resolve())
-        safe_path = cwd_str.replace("/", "-")
-        return Path(f"/tmp/atria/{safe_path}/tasks")
+        safe_path = cwd_str.replace("/", "-").replace("\\", "-").replace(":", "-")
+        return Path(tempfile.gettempdir()) / "atria" / safe_path / "tasks"
 
     def register_task(
         self,

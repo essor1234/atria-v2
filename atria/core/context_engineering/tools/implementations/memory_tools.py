@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+from atria.core.paths import atria_dir
+
 logger = logging.getLogger(__name__)
 
 
@@ -41,7 +43,7 @@ class MemoryTools:
         if project_memory.exists():
             dirs.append(project_memory)
         # User-level
-        user_memory = Path.home() / ".atria" / "memory"
+        user_memory = atria_dir() / "memory"
         if user_memory.exists():
             dirs.append(user_memory)
         return dirs
@@ -207,7 +209,7 @@ class MemoryTools:
 
         # Determine target directory
         if scope == "user":
-            target_dir = Path.home() / ".atria" / "memory"
+            target_dir = atria_dir() / "memory"
         else:
             target_dir = self._working_dir / ".atria" / "memory"
 

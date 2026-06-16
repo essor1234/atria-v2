@@ -23,6 +23,8 @@ import subprocess
 from pathlib import Path
 from typing import List, Optional
 
+from atria.core.paths import atria_dir
+
 logger = logging.getLogger(__name__)
 
 
@@ -46,7 +48,7 @@ class SnapshotManager:
         """
         self._project_dir = os.path.abspath(project_dir)
         self._project_id = _encode_project_id(self._project_dir)
-        self._shadow_dir = Path.home() / ".atria" / "snapshot" / self._project_id
+        self._shadow_dir = atria_dir() / "snapshot" / self._project_id
         self._snapshots: list[str] = []  # Stack of tree hashes (most recent last)
         self._initialized = False
 

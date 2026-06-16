@@ -9,6 +9,8 @@ import stat
 from pathlib import Path
 from typing import Optional
 
+from atria.core.paths import atria_dir
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,7 +26,7 @@ class CredentialStore:
     }
 
     def __init__(self, auth_path: Optional[Path] = None):
-        self._path = auth_path or (Path.home() / ".atria" / "auth.json")
+        self._path = auth_path or (atria_dir() / "auth.json")
         self._cache: dict | None = None
 
     def get_key(self, provider: str) -> str | None:

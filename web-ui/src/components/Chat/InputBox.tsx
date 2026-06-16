@@ -11,7 +11,6 @@ import { PersonaSelector } from './PersonaSelector';
 import { StatusBar } from './StatusBar';
 
 export function InputBox() {
-  const [input, setInput] = useState('');
   const [fileOptions, setFileOptions] = useState<DataDrivenOptionProps[]>([]);
   const [isMentionSearching, setIsMentionSearching] = useState(false);
   const mentionsRef = useRef<MentionsRef>(null);
@@ -19,6 +18,18 @@ export function InputBox() {
 
   const sendMessage = useChatStore(state => state.sendMessage);
   const currentSessionId = useChatStore(state => state.currentSessionId);
+  const setDraft = useChatStore(state => state.setDraft);
+  // Draft input is kept per-conversation in the store so it survives this
+  // component unmounting (e.g. when opening a module dashboard) and switching
+  // conversations.
+  const input = useChatStore(state => {
+    const sid = state.currentSessionId;
+    return sid ? state.sessionStates[sid]?.draft ?? '' : '';
+  });
+  const setInput = useCallback(
+    (text: string) => { if (currentSessionId) setDraft(currentSessionId, text); },
+    [currentSessionId, setDraft],
+  );
   const { upload, uploading: fileUploading } = useArtifactUpload();
   const scanArtifacts = useArtifactsStore(state => state.scanArtifacts);
 

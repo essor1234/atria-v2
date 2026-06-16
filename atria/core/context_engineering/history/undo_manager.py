@@ -82,7 +82,7 @@ class UndoManager:
                 "status": operation.status.value,
                 "id": operation.id,
             }
-            with open(log_file, "a") as f:
+            with open(log_file, "a", encoding="utf-8") as f:
                 f.write(json.dumps(record) + "\n")
         except Exception:
             pass  # Don't let logging failures break operations

@@ -1,7 +1,6 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
 import { PanelRightOpen, PanelRightClose } from 'lucide-react';
-import { Resizable, type ResizeCallbackData } from 'react-resizable';
 import { useChatStore } from '../../stores/chat';
 import { useViewerTabsStore } from '../../stores/viewerTabs';
 import { TabBar } from './TabBar';
@@ -9,6 +8,7 @@ import { FileTree } from './FileTree';
 import { ViewerDispatcher } from './viewers';
 import { LeftPaneTabs, useLeftMode } from './LeftPaneTabs';
 import { ModuleGallery } from './ModuleGallery';
+import { ResizeHandle } from '../ui/ResizeHandle';
 
 const KEY_COLLAPSED = 'artifact-viewer.collapsed';
 const KEY_WIDTH = 'artifact-viewer.width';
@@ -37,21 +37,13 @@ export function ArtifactViewer() {
 
   const effectiveTreeWidth = Math.min(treeWidth, panelWidth - 2 - MIN_VIEWER);
 
-  // Shared defaults required by bundled .d.ts (static defaultProps not inferred by TS)
-  const resizableDefaults = {
-    handleSize: [8, 8] as [number, number],
-    lockAspectRatio: false,
-    transformScale: 1,
-  };
-
-  const onPanelResize = useCallback((_: React.SyntheticEvent, data: ResizeCallbackData) => {
-    const next = data.size.width;
+  const onPanelResize = useCallback((next: number) => {
     setPanelWidth(next);
     setTreeWidth(prev => Math.min(prev, next - 2 - MIN_VIEWER));
   }, [setPanelWidth, setTreeWidth]);
 
-  const onTreeResize = useCallback((_: React.SyntheticEvent, data: ResizeCallbackData) => {
-    setTreeWidth(data.size.width);
+  const onTreeResize = useCallback((next: number) => {
+    setTreeWidth(next);
   }, [setTreeWidth]);
 
   if (!currentSessionId) return null;
@@ -72,61 +64,48 @@ export function ArtifactViewer() {
   }
 
   return (
-    // Outer panel — resizable from the left (west) edge
-    <Resizable
-      {...resizableDefaults}
-      width={panelWidth}
-      height={0}
-      axis="x"
-      minConstraints={[MIN_PANEL, 0]}
-      maxConstraints={[MAX_PANEL, Infinity]}
-      resizeHandles={['w']}
-      handle={(_, ref) => (
-        <div
-          ref={ref as React.RefObject<HTMLDivElement>}
-          className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-sky-400/25 transition-colors z-10"
-        />
-      )}
-      onResize={onPanelResize}
-    >
-      <div className="relative flex h-full shadow-modal" style={{ width: panelWidth }}>
+    <div className="relative flex h-full shadow-modal" style={{ width: panelWidth }}>
 
-        {/* ── Left: file tree, full height ── */}
-        <Resizable
-          {...resizableDefaults}
+      {/* Resize the whole panel from its left (west) edge. Parent isn't clipped
+          here, so the grab strip can straddle the border. */}
+      <ResizeHandle
+        side="left"
+        width={panelWidth}
+        min={MIN_PANEL}
+        max={MAX_PANEL}
+        onResize={onPanelResize}
+        className="absolute top-0 bottom-0 -left-1 w-2 cursor-col-resize hover:bg-sky-400/30 transition-colors z-30"
+      />
+
+      {/* ── Left: file tree, full height ── */}
+      <div
+        className="relative flex-shrink-0 h-full overflow-hidden border-r border-hairline-soft/60 flex flex-col"
+        style={{ width: effectiveTreeWidth }}
+      >
+        <LeftPaneTabs mode={leftMode} onChange={setLeftMode} />
+        <div className="flex-1 min-h-0 overflow-hidden">
+          {leftMode === 'files'
+            ? <FileTree
+                convId={currentSessionId}
+                scope={{ kind: 'conv', id: convInt }}
+                autoExpand={['.artifacts']}
+              />
+            : <ModuleGallery convId={currentSessionId} />}
+        </div>
+        {/* Resize the tree from its right edge. Kept within bounds (parent is
+            overflow-hidden) so it isn't clipped. */}
+        <ResizeHandle
+          side="right"
           width={effectiveTreeWidth}
-          height={0}
-          axis="x"
-          minConstraints={[MIN_TREE, 0]}
-          maxConstraints={[Math.min(MAX_TREE, panelWidth - 2 - MIN_VIEWER), Infinity]}
-          resizeHandles={['e']}
-          handle={(_, ref) => (
-            <div
-              ref={ref as React.RefObject<HTMLDivElement>}
-              className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-sky-400/25 transition-colors z-10"
-            />
-          )}
+          min={MIN_TREE}
+          max={Math.min(MAX_TREE, panelWidth - 2 - MIN_VIEWER)}
           onResize={onTreeResize}
-        >
-          <div
-            className="relative flex-shrink-0 h-full overflow-hidden border-r border-hairline-soft/60 flex flex-col"
-            style={{ width: effectiveTreeWidth }}
-          >
-            <LeftPaneTabs mode={leftMode} onChange={setLeftMode} />
-            <div className="flex-1 min-h-0 overflow-hidden">
-              {leftMode === 'files'
-                ? <FileTree
-                    convId={currentSessionId}
-                    scope={{ kind: 'conv', id: convInt }}
-                    autoExpand={['.artifacts']}
-                  />
-                : <ModuleGallery convId={currentSessionId} />}
-            </div>
-          </div>
-        </Resizable>
+          className="absolute top-0 bottom-0 right-0 w-2 cursor-col-resize hover:bg-sky-400/30 transition-colors z-30"
+        />
+      </div>
 
-        {/* ── Right: [tab bar | collapse btn] + viewer ── */}
-        <div className="flex flex-col flex-1 min-w-0 min-h-0 bg-canvas">
+      {/* ── Right: [tab bar | collapse btn] + viewer ── */}
+      <div className="flex flex-col flex-1 min-w-0 min-h-0 bg-canvas">
 
           {/* Tab row with collapse button pushed to far right */}
           <div className="flex items-center border-b border-hairline-soft/60 bg-surface-soft/30 flex-shrink-0 min-w-0">
@@ -160,6 +139,5 @@ export function ArtifactViewer() {
 
         </div>
       </div>
-    </Resizable>
   );
 }

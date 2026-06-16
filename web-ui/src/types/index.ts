@@ -311,6 +311,9 @@ export interface PerSessionState {
   progressMessage: string | null;
   queuedMessages: string[];
   selectedPersona?: string | null;
+  // Unsent input text, kept per-conversation so it survives navigating away
+  // (e.g. opening a module dashboard) and back.
+  draft?: string;
 }
 
 // ── Artifact Viewer ──────────────────────────────────────────────────────────
