@@ -196,9 +196,12 @@ def _starter_dashboard_html(name: str) -> str:
 
 
 def _atomic_write(path: Path, content: str) -> None:
+    _atomic_write_bytes(path, content.encode("utf-8"))
+
+
+def _atomic_write_bytes(path: Path, data: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(f".tmp-{path.name}")
-    data = content.encode("utf-8")
     # Write + fsync the file body before the atomic rename so a crash between
     # the rename and the next sync can't leave the new inode pointing at
     # unflushed (zeroed) blocks.
@@ -340,6 +343,11 @@ def read_file(root: Path, name: str, rel_path: str) -> bytes:
 def write_file(root: Path, name: str, rel_path: str, content: str) -> None:
     target = _resolve_in_module(root, name, rel_path)
     _atomic_write(target, content)
+
+
+def write_file_bytes(root: Path, name: str, rel_path: str, data: bytes) -> None:
+    target = _resolve_in_module(root, name, rel_path)
+    _atomic_write_bytes(target, data)
 
 
 def delete_file(root: Path, name: str, rel_path: str) -> None:

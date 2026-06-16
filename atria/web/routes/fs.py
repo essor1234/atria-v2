@@ -6,11 +6,21 @@ import mimetypes
 import os
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, Field
 from atria.db.connection import get_sessionmaker
 from atria.db.repositories.conversation_repo import ConversationRepository
 from atria.web.dependencies.auth import require_authenticated_user
+from atria.web.state import broadcast_to_all_clients as _broadcast
+
+
+async def _safe_broadcast(payload: dict) -> None:
+    """Best-effort broadcast — never let WS dispatch break a write."""
+    try:
+        await _broadcast(payload)
+    except Exception:
+        pass
 
 router = APIRouter(
     prefix="/api/conversations",
@@ -125,3 +135,85 @@ async def read_file(
         media_type=mime,
         headers={"Cache-Control": "no-cache", "Content-Length": str(size)},
     )
+
+
+class _WriteBody(BaseModel):
+    path: str = Field(..., min_length=1)
+    content: str
+
+
+_MAX_WRITE_BYTES: int = 25 * 1024 * 1024
+
+
+@router.put("/{conversation_id}/fs/write", status_code=204)
+async def write_file(
+    conversation_id: int,
+    body: _WriteBody,
+) -> None:
+    if len(body.content.encode("utf-8")) > _MAX_WRITE_BYTES:
+        raise HTTPException(status_code=413, detail="content too large")
+    base = await _conv_working_dir(conversation_id)
+    base_resolved = base.resolve(strict=True)
+    if body.path.startswith(("/", "\\")):
+        raise HTTPException(status_code=400, detail="absolute path not allowed")
+    target = (base_resolved / body.path).resolve(strict=False)
+    try:
+        target.relative_to(base_resolved)
+    except ValueError as exc:
+        raise HTTPException(status_code=403, detail="path outside workspace") from exc
+    if target.exists() and target.is_dir():
+        raise HTTPException(status_code=400, detail="path is a directory")
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(body.content, encoding="utf-8")
+
+    await _safe_broadcast(
+        {
+            "type": "artifact.changed",
+            "scope": "conv",
+            "conversation_id": conversation_id,
+            "path": body.path,
+        }
+    )
+    return None
+
+
+@router.put("/{conversation_id}/fs/write-binary", status_code=204)
+async def write_file_binary(
+    conversation_id: int,
+    request: Request,
+    path: str = Query(..., min_length=1),
+) -> None:
+    """Write raw bytes to ``path`` under the conversation's working directory.
+
+    Body is ``application/octet-stream``. Path lives in the query string because
+    the body is the file content. Same safe-path + size guards as the text
+    write endpoint. Broadcasts ``artifact.changed`` on success.
+    """
+    data = await request.body()
+    if len(data) > _MAX_WRITE_BYTES:
+        raise HTTPException(status_code=413, detail="content too large")
+    base = await _conv_working_dir(conversation_id)
+    base_resolved = base.resolve(strict=True)
+    if path.startswith(("/", "\\")):
+        raise HTTPException(status_code=400, detail="absolute path not allowed")
+    target = (base_resolved / path).resolve(strict=False)
+    try:
+        target.relative_to(base_resolved)
+    except ValueError as exc:
+        raise HTTPException(status_code=403, detail="path outside workspace") from exc
+    if target.exists() and target.is_dir():
+        raise HTTPException(status_code=400, detail="path is a directory")
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(data)
+
+    await _safe_broadcast(
+        {
+            "type": "artifact.changed",
+            "scope": "conv",
+            "conversation_id": conversation_id,
+            "path": path,
+        }
+    )
+    return None

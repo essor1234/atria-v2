@@ -209,4 +209,30 @@ export function useModuleBridge({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [moduleName]);
+
+  // Forward WS artifact.changed events into the iframe so the dashboard can
+  // re-fetch CSVs / other artifacts edited from the artifact viewer.
+  useEffect(() => {
+    const unsubscribe = wsClient.on('artifact.changed', (payload: WSMessage) => {
+      const d = payload as {
+        scope?: string;
+        conversation_id?: number;
+        module?: string;
+        path?: string;
+      };
+      // If this is a module-scope change, filter to our module.
+      if (d.scope === 'module' && d.module && d.module !== moduleName) return;
+      postToIframe({
+        type: 'artifact:change',
+        scope: d.scope,
+        conversationId: d.conversation_id,
+        module: d.module,
+        path: d.path,
+      });
+    });
+    return () => {
+      unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [moduleName]);
 }

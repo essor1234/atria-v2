@@ -411,13 +411,32 @@ class APIClient {
   }
 
   writeFsText(scope: FsScope, path: string, content: string): Promise<void> {
-    if (scope.kind !== 'module') {
-      throw new Error('writeFsText only supported for module scope');
-    }
     return request<void>(`${fsPath(scope)}/write`, {
       method: 'PUT',
       body: { path, content },
     });
+  }
+
+  async writeFsBinary(
+    scope: FsScope,
+    path: string,
+    bytes: Uint8Array,
+  ): Promise<void> {
+    const qs = new URLSearchParams({ path });
+    // Wrap in a Blob — modern lib types reject raw Uint8Array as BodyInit.
+    const body = new Blob([bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer], {
+      type: 'application/octet-stream',
+    });
+    const response = await fetch(
+      `${fsBase(scope)}/write-binary?${qs.toString()}`,
+      {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body,
+      },
+    );
+    if (!response.ok) throw await apiError(response);
   }
 
   deleteFsFile(scope: FsScope, path: string): Promise<void> {

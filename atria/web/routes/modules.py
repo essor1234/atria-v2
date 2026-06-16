@@ -11,7 +11,7 @@ import mimetypes
 from contextlib import contextmanager
 from typing import Iterator, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -183,8 +183,23 @@ def fs_read(
     )
 
 
+async def _broadcast_artifact_changed(payload: dict) -> None:
+    """Best-effort fire-and-forget broadcast.
+
+    The shared ``broadcast_to_all_clients`` depends on global app state that
+    isn't always initialized (e.g. lightweight unit tests). Failures here must
+    never break the write path, so we swallow everything.
+    """
+    try:
+        from atria.web.state import broadcast_to_all_clients
+
+        await broadcast_to_all_clients(payload)
+    except Exception:
+        pass
+
+
 @router.put("/{name}/fs/write", status_code=204)
-def fs_write(
+async def fs_write(
     name: str,
     body: FileWrite,
     reg: ModuleRegistry = Depends(get_modules_registry),
@@ -192,6 +207,46 @@ def fs_write(
     with _store_errors(name):
         store.write_file(reg.root, name, body.path, body.content)
     reg.reload_one(name)
+    await _broadcast_artifact_changed(
+        {
+            "type": "artifact.changed",
+            "scope": "module",
+            "module": name,
+            "path": body.path,
+        }
+    )
+    return None
+
+
+_MAX_MODULE_WRITE_BYTES: int = 25 * 1024 * 1024
+
+
+@router.put("/{name}/fs/write-binary", status_code=204)
+async def fs_write_binary(
+    name: str,
+    request: Request,
+    path: str = Query(..., min_length=1),
+    reg: ModuleRegistry = Depends(get_modules_registry),
+):
+    """Write raw bytes to a file inside the module.
+
+    Body is ``application/octet-stream``. Path lives in the query string.
+    Broadcasts ``artifact.changed`` on success.
+    """
+    data = await request.body()
+    if len(data) > _MAX_MODULE_WRITE_BYTES:
+        raise HTTPException(status_code=413, detail="content too large")
+    with _store_errors(name):
+        store.write_file_bytes(reg.root, name, path, data)
+    reg.reload_one(name)
+    await _broadcast_artifact_changed(
+        {
+            "type": "artifact.changed",
+            "scope": "module",
+            "module": name,
+            "path": path,
+        }
+    )
     return None
 
 

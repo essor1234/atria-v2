@@ -13,6 +13,8 @@
     "@heroicons/react": "^2.2.0",
     "@monaco-editor/react": "^4.7.0",
     "@types/react-resizable": "^3.0.8",
+    "@univerjs/preset-sheets-core": "^0.25.0",
+    "@univerjs/presets": "^0.25.0",
     "animejs": "^4.4.1",
     "chart.js": "^4.5.1",
     "lucide-react": "^0.553.0",
