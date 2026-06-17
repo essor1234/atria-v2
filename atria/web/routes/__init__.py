@@ -15,6 +15,7 @@ from atria.web.routes.modules import router as modules_router
 from atria.web.routes.blocks import router as blocks_router
 from atria.web.routes.module_dashboard import router as module_dashboard_router
 from atria.web.routes.me import router as me_router
+from atria.web.routes.admin_tenants import router as admin_tenants_router
 
 __all__ = [
     "chat_router",
@@ -32,4 +33,5 @@ __all__ = [
     "blocks_router",
     "module_dashboard_router",
     "me_router",
+    "admin_tenants_router",
 ]
