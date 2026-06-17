@@ -42,8 +42,21 @@ export function ThinkingBlock({ content, level, isActive }: ThinkingBlockProps) 
       </button>
 
       <div
-        className="overflow-hidden transition-all duration-base ease-motion-out"
-        style={{ maxHeight: isExpanded ? `${contentHeight + 16}px` : '0px' }}
+        // While a block is actively streaming AND expanded, render at natural
+        // height with NO transition: the 240ms max-height animation chasing a
+        // ResizeObserver makes the item's height a perpetually-moving target,
+        // which the chat auto-follow then fights → flicker. Completed blocks the
+        // user toggles keep the smooth expand/collapse animation.
+        className={
+          isActive && isExpanded
+            ? 'overflow-hidden'
+            : 'overflow-hidden transition-all duration-base ease-motion-out'
+        }
+        style={{
+          maxHeight: isActive && isExpanded
+            ? 'none'
+            : isExpanded ? `${contentHeight + 16}px` : '0px',
+        }}
       >
         <div ref={contentRef} className="mt-2 ml-4 border-l border-hairline-soft pl-3 pb-2">
           <pre className="text-[12.5px] text-ink/50 whitespace-pre-wrap font-mono leading-[1.55] m-0 p-0 bg-transparent border-0">

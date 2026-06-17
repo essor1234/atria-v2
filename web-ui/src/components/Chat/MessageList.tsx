@@ -360,24 +360,13 @@ export function MessageList() {
     return () => cancelAnimationFrame(id);
   }, [currentSessionId]);
 
-  // Follow a streamed reply while the user is at the bottom. Classic Virtuoso's
-  // followOutput only reacts to NEW messages, not to the last message growing,
-  // so we pin the native scroller to the bottom as content grows — but only when
-  // already at the bottom, so we never fight a user who has scrolled up. Using
-  // the native scrollTop (not scrollToIndex) avoids the overshoot that caused
-  // the earlier up/down jumping.
-  const lastContentLen = messages.length ? messages[messages.length - 1].content.length : 0;
-  useEffect(() => {
-    // Only follow when pinned to the bottom AND the user isn't actively
-    // scrolling — otherwise we'd fight their scroll (the "worse while streaming").
-    if (!atBottomRef.current || isScrollingRef.current) return;
-    const el = scrollerRef.current;
-    if (!el) return;
-    const id = requestAnimationFrame(() => {
-      el.scrollTo({ top: el.scrollHeight });
-    });
-    return () => cancelAnimationFrame(id);
-  }, [lastContentLen, messages.length]);
+  // Auto-follow is handled SOLELY by Virtuoso's own `followOutput` (see the prop
+  // below). We deliberately do NOT run a manual scroll effect here: a manual
+  // scrollToIndex/scrollTo fired per streamed token reads the last item's
+  // *previous* (smaller) height while it's still growing, so its target lands
+  // above the current position and the view visibly jumps UP — the flicker.
+  // `followOutput` scrolls only after Virtuoso has re-measured, so it sticks to
+  // the bottom smoothly during streaming without the bounce.
 
   // PageUp / PageDown keyboard scrolling
   useEffect(() => {
@@ -400,18 +389,23 @@ export function MessageList() {
         style={{ height: '100%' }}
         data={messages}
         context={context}
-        // followOutput auto-scrolls when NEW messages arrive and we're at the
-        // bottom. Last-message growth during streaming is handled by the native
-        // scroll-pin effect above (classic Virtuoso's followOutput ignores it).
-        followOutput={(isAtBottom) => isAtBottom ? 'auto' : false}
+        // Sole auto-follow authority. Sticks to the bottom (instant, no animation
+        // bounce) while at the bottom — for both new messages AND the last
+        // message growing during streaming — and stops the moment the user
+        // scrolls up. No competing manual scroll effect (that caused the flicker).
+        followOutput={(isAtBottom) => (isAtBottom ? 'auto' : false)}
         atBottomStateChange={(bottom) => {
           atBottomRef.current = bottom;
           setAtBottom(bottom);
         }}
         isScrolling={(scrolling) => { isScrollingRef.current = scrolling; }}
-        atBottomThreshold={50}
+        // Generous threshold so fast streaming growth doesn't briefly flip
+        // "at bottom" off (which would stop the follow mid-stream).
+        atBottomThreshold={100}
         increaseViewportBy={{ top: 400, bottom: 400 }}
         initialTopMostItemIndex={messages.length - 1}
+        // Stable per-item identity so re-renders don't remount/re-measure items.
+        computeItemKey={(index, m) => m.tool_call_id ?? m.data_message_id ?? `${m.role}:${index}`}
         scrollerRef={(el) => { scrollerRef.current = el as HTMLElement | null; }}
         itemContent={itemContent}
         components={components}

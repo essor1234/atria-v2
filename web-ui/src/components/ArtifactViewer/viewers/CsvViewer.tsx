@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, Suspense, lazy } from 'react';
 import Papa from 'papaparse';
 import { apiClient } from '../../../api/client';
 import { DataTable } from './DataTable';
+import { EditableCsvTable } from './EditableCsvTable';
 import { fsScopeKey, type FsScope } from '../../../types';
 
 const MonacoViewer = lazy(() =>
@@ -59,6 +60,22 @@ export function CsvViewer({ scope, path }: Props) {
       </div>
     );
   }
+  // Module-scope CSVs are writable (PUT /api/modules/{name}/fs/write), so they
+  // get the editable grid. Conversation-scope files have no write route → keep
+  // them read-only.
+  if (scope.kind === 'module') {
+    return (
+      <EditableCsvTable
+        key={`${scopeKey}:${path}`}
+        columns={state.data.columns}
+        rows={state.data.rows}
+        total={state.data.total}
+        scope={scope}
+        path={path}
+      />
+    );
+  }
+
   return (
     <DataTable
       columns={state.data.columns}
