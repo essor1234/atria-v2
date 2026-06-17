@@ -239,6 +239,10 @@ class APIClient {
   }
 
   // Auth
+  authMode() {
+    return request<{ mode: 'keycloak' | 'none' }>('/auth/mode');
+  }
+
   login(email: string) {
     return request<{ username: string; email: string | null; role: string }>('/auth/login', {
       method: 'POST',
@@ -246,9 +250,24 @@ class APIClient {
     });
   }
 
+  keycloakLoginUrl(next: string = '/chat'): string {
+    const qs = new URLSearchParams({ next });
+    return `${API_BASE}/auth/keycloak/login?${qs.toString()}`;
+  }
+
   async logout(): Promise<void> {
     try {
-      await request<void>('/auth/logout', { method: 'POST' });
+      const resp = await request<{ status: string; end_session_url?: string }>('/auth/logout', {
+        method: 'POST',
+      });
+      if (resp?.end_session_url) {
+        const redirect = `${window.location.origin}/`;
+        const qs = new URLSearchParams({
+          post_logout_redirect_uri: redirect,
+          client_id: 'atria-web',
+        });
+        window.location.href = `${resp.end_session_url}?${qs.toString()}`;
+      }
     } catch {
       // ignore — logout is best-effort
     }
