@@ -85,6 +85,8 @@ dependencies = [
     "weasyprint>=60.0",
     # Filesystem watcher for modules
     "watchdog>=4.0",
+    # JWT validation for Keycloak auth
+    "pyjwt[crypto]>=2.8",
 ]
 
 [project.optional-dependencies]
