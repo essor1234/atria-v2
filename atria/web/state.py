@@ -10,6 +10,7 @@ from threading import Lock
 from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict, List, Optional
 
 from atria.core.context_engineering.history import UndoManager
+from atria.core.auth.keycloak.services import KeycloakServices
 from atria.core.auth.pg_user_store import PgUserStore
 from atria.core.runtime import ConfigManager, ModeManager
 from atria.core.runtime.approval import ApprovalManager
@@ -53,6 +54,7 @@ class WebState:
         self.undo_manager = undo_manager
         self.user_store = user_store
         self.mcp_manager = mcp_manager
+        self.keycloak: KeycloakServices | None = KeycloakServices.from_env()
         self._current_users: Dict[str, User] = {}
         self._lock = Lock()
 
