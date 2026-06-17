@@ -6,6 +6,7 @@ import { CodeWikiPage } from './pages/CodeWikiPage';
 import { RepositoryDetailPage } from './components/CodeWiki/RepositoryDetailPage';
 import { LoginPage } from './pages/LoginPage';
 import { TenantsPage } from './pages/admin/TenantsPage';
+import { TenantUsersPage } from './pages/admin/TenantUsersPage';
 import { apiClient } from './api/client';
 import { resetAllStores } from './lib/auth';
 import { AuthProvider } from './auth/AuthProvider';
@@ -83,6 +84,7 @@ function AppRoutes() {
         <Route path="/codewiki" element={<AuthGuard><CodeWikiPage /></AuthGuard>} />
         <Route path="/codewiki/:repoName" element={<AuthGuard><RepositoryDetailPage /></AuthGuard>} />
         <Route path="/admin/tenants" element={<AuthGuard><TenantsPage /></AuthGuard>} />
+        <Route path="/admin/tenants/:slug/users" element={<AuthGuard><TenantUsersPage /></AuthGuard>} />
         <Route path="/" element={<Navigate to="/chat" replace />} />
       </Routes>
     </RouteFade>
