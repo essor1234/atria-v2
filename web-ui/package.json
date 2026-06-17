@@ -20,6 +20,7 @@
     "lucide-react": "^0.553.0",
     "monaco-editor": "^0.55.1",
     "motion": "^12.40.0",
+    "oidc-client-ts": "^3.5.0",
     "papaparse": "^5.5.3",
     "rc-mentions": "^2.20.0",
     "react": "^18.3.1",

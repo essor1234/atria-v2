@@ -7,6 +7,7 @@ import { RepositoryDetailPage } from './components/CodeWiki/RepositoryDetailPage
 import { LoginPage } from './pages/LoginPage';
 import { apiClient } from './api/client';
 import { resetAllStores } from './lib/auth';
+import { AuthProvider } from './auth/AuthProvider';
 
 type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -89,9 +90,11 @@ function AppRoutes() {
 function App() {
   return (
     <MotionConfig reducedMotion="always">
-      <Router>
-        <AppRoutes />
-      </Router>
+      <AuthProvider>
+        <Router>
+          <AppRoutes />
+        </Router>
+      </AuthProvider>
     </MotionConfig>
   );
 }
