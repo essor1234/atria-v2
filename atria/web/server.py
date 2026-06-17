@@ -33,6 +33,7 @@ from atria.web.routes import (
     modules_router,
     blocks_router,
     module_dashboard_router,
+    me_router,
 )
 from atria.web.websocket import websocket_endpoint
 from atria.core.modules.watcher import start_global_watcher, stop_global_watcher
@@ -191,6 +192,7 @@ def create_app() -> FastAPI:
     app.include_router(modules_router)
     app.include_router(blocks_router)
     app.include_router(module_dashboard_router)
+    app.include_router(me_router)
 
     # WebSocket endpoint
     app.add_websocket_route("/ws", websocket_endpoint)
