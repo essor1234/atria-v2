@@ -1,6 +1,9 @@
 {
   "realm": "atria",
   "enabled": true,
+  "loginTheme": "atria",
+  "adminTheme": "atria",
+  "accountTheme": "atria",
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,

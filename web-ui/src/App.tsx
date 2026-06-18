@@ -9,7 +9,6 @@ import { TenantsPage } from './pages/admin/TenantsPage';
 import { TenantUsersPage } from './pages/admin/TenantUsersPage';
 import { apiClient } from './api/client';
 import { resetAllStores } from './lib/auth';
-import { AuthProvider } from './auth/AuthProvider';
 
 type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -94,11 +93,9 @@ function AppRoutes() {
 function App() {
   return (
     <MotionConfig reducedMotion="always">
-      <AuthProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
-      </AuthProvider>
+      <Router>
+        <AppRoutes />
+      </Router>
     </MotionConfig>
   );
 }
