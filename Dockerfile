@@ -23,6 +23,18 @@ RUN uv run python -c "import tiktoken; tiktoken.get_encoding('cl100k_base')"
 COPY . .
 RUN uv sync --frozen --no-dev
 
+# ── Layer 5: pre-bootstrap the data_analysis module venv ──────────────────────
+# The `da` launcher lazily creates <module>/.venv on first call and pip-installs
+# duckdb/openpyxl/etc. Doing it at build time means the runtime container is
+# offline-safe and the first SQL/ingest call doesn't 500.
+ENV DA_PYTHON=/usr/local/bin/python3
+RUN rm -rf /app/modules/data_analysis/.venv \
+    && /usr/local/bin/python3 -m venv /app/modules/data_analysis/.venv \
+    && /app/modules/data_analysis/.venv/bin/pip install --no-cache-dir --upgrade pip \
+    && /app/modules/data_analysis/.venv/bin/pip install --no-cache-dir -r /app/modules/data_analysis/requirements.txt \
+    && /app/modules/data_analysis/.venv/bin/python -c "import duckdb, openpyxl; print('da venv ready')" \
+    && sha256sum /app/modules/data_analysis/requirements.txt | awk '{print $1}' > /app/modules/data_analysis/.venv/.req.sha256
+
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
 

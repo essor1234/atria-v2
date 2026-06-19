@@ -311,6 +311,11 @@ class BashTool(SecurityMixin, ProcessMixin, BaseTool):
             "ATRIA_API_BASE",
             os.environ.get("ATRIA_API_BASE", "http://127.0.0.1:8080"),
         )
+        # Expose the conversation working directory so skill modules (e.g.
+        # data_analysis) can resolve their output root deterministically
+        # instead of relying on the subprocess cwd.
+        exec_env.setdefault("ATRIA_WORKSPACE", str(work_dir))
+        exec_env.setdefault("ATRIA_SESSION_DIR", str(work_dir))
 
         try:
             # Mark operation as executing
