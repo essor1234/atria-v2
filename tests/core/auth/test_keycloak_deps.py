@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 
-import pytest
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, Depends
 from fastapi.testclient import TestClient
 
 from atria.core.auth.keycloak.config import AuthMode, KeycloakConfig

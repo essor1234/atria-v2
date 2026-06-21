@@ -23,17 +23,16 @@ RUN uv run python -c "import tiktoken; tiktoken.get_encoding('cl100k_base')"
 COPY . .
 RUN uv sync --frozen --no-dev
 
-# ── Layer 5: pre-bootstrap the data_analysis module venv ──────────────────────
-# The `da` launcher lazily creates <module>/.venv on first call and pip-installs
-# duckdb/openpyxl/etc. Doing it at build time means the runtime container is
-# offline-safe and the first SQL/ingest call doesn't 500.
-ENV DA_PYTHON=/usr/local/bin/python3
-RUN rm -rf /app/modules/data_analysis/.venv \
-    && /usr/local/bin/python3 -m venv /app/modules/data_analysis/.venv \
-    && /app/modules/data_analysis/.venv/bin/pip install --no-cache-dir --upgrade pip \
-    && /app/modules/data_analysis/.venv/bin/pip install --no-cache-dir -r /app/modules/data_analysis/requirements.txt \
-    && /app/modules/data_analysis/.venv/bin/python -c "import duckdb, openpyxl; print('da venv ready')" \
-    && sha256sum /app/modules/data_analysis/requirements.txt | awk '{print $1}' > /app/modules/data_analysis/.venv/.req.sha256
+# ── Layer 5: pre-install every module's requirements.txt into shared venv ─────
+# Mirrors atria.core.modules.deps.install_module_deps so the container is
+# offline-safe and the first module call doesn't trigger an install. Stamp
+# files match the runtime hash check, so registry load is a no-op.
+RUN for req in /app/modules/*/requirements.txt; do \
+        [ -f "$req" ] || continue; \
+        echo "[modules] installing $req"; \
+        uv pip install --python /app/.venv/bin/python -r "$req" || exit 1; \
+        sha256sum "$req" | awk '{print $1}' > "$(dirname "$req")/.deps.sha256"; \
+    done
 
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1

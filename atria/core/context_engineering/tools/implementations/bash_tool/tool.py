@@ -7,13 +7,14 @@ import select
 import subprocess
 import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from atria.models.config import AppConfig
 from atria.models.operation import BashResult, Operation
 from atria.core.context_engineering.tools.implementations.base import BaseTool
 from atria.core.context_engineering.tools.implementations.bash_tool.security import SecurityMixin
 from atria.core.context_engineering.tools.implementations.bash_tool.process import ProcessMixin
+from atria.web.ui_bridge import get_current_ui_callback
 
 
 # Safe commands that are generally allowed
@@ -84,6 +85,37 @@ KEEP_TAIL_CHARS = 10_000
 MAX_LLM_METADATA_CHARS = 15_000
 LLM_KEEP_HEAD_CHARS = 5_000
 LLM_KEEP_TAIL_CHARS = 5_000
+
+
+def _build_exec_env(working_dir: Union[str, Path]) -> dict[str, str]:
+    """Compose the subprocess environment for bash tool calls.
+
+    Adds Atria-specific vars (session/conversation id, project slug,
+    workspace, API base) on top of os.environ. Pre-existing values
+    in os.environ take precedence so explicit overrides win.
+    """
+    env = os.environ.copy()
+    env["PYTHONUNBUFFERED"] = "1"
+
+    session_id: Optional[str] = None
+    try:
+        cb = get_current_ui_callback()
+        session_id = getattr(cb, "session_id", None) if cb else None
+    except Exception:  # noqa: BLE001 — best-effort env injection
+        pass
+
+    if session_id:
+        env.setdefault("ATRIA_SESSION_ID", str(session_id))
+        env.setdefault("ATRIA_CONVERSATION_ID", str(session_id))
+        env.setdefault("ATRIA_PROJECT_SLUG", f"conv-{session_id}")
+
+    env.setdefault(
+        "ATRIA_API_BASE",
+        os.environ.get("ATRIA_API_BASE", "http://127.0.0.1:8080"),
+    )
+    env.setdefault("ATRIA_WORKSPACE", str(working_dir))
+    env.setdefault("ATRIA_SESSION_DIR", str(working_dir))
+    return env
 
 
 def truncate_output(
@@ -289,33 +321,10 @@ class BashTool(SecurityMixin, ProcessMixin, BaseTool):
         if not background and self._is_server_command(command):
             background = True
 
-        # Ensure Python output is unbuffered when piped to subprocess
-        # This fixes the issue where Flask/Django server output gets stuck in buffer
-        exec_env = os.environ.copy()
+        # Build subprocess environment with Atria-specific vars injected.
+        exec_env = _build_exec_env(work_dir)
         if env:
             exec_env.update(env)
-        # Force unbuffered Python output for immediate display
-        exec_env["PYTHONUNBUFFERED"] = "1"
-        # Expose the active session id + API base so module scripts can call
-        # the in-process push_block HTTP gateway (atria/web/routes/blocks.py).
-        try:
-            from atria.web.ui_bridge import get_current_ui_callback
-
-            _cb = get_current_ui_callback()
-            _sid = getattr(_cb, "session_id", None) if _cb else None
-            if _sid and "ATRIA_SESSION_ID" not in exec_env:
-                exec_env["ATRIA_SESSION_ID"] = _sid
-        except Exception:  # noqa: BLE001 — best-effort env injection
-            pass
-        exec_env.setdefault(
-            "ATRIA_API_BASE",
-            os.environ.get("ATRIA_API_BASE", "http://127.0.0.1:8080"),
-        )
-        # Expose the conversation working directory so skill modules (e.g.
-        # data_analysis) can resolve their output root deterministically
-        # instead of relying on the subprocess cwd.
-        exec_env.setdefault("ATRIA_WORKSPACE", str(work_dir))
-        exec_env.setdefault("ATRIA_SESSION_DIR", str(work_dir))
 
         try:
             # Mark operation as executing

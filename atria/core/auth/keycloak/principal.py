@@ -67,7 +67,7 @@ def build_principal(claims: dict, requested_tenant: str) -> CurrentPrincipal:
 
 # --- FastAPI integration ---------------------------------------------------
 
-from fastapi import HTTPException, Request, status, Depends  # noqa: E402
+from fastapi import HTTPException, Request, status  # noqa: E402
 from typing import Callable  # noqa: E402
 
 from atria.core.auth.keycloak.config import KeycloakConfig  # noqa: E402
