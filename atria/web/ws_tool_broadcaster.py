@@ -21,6 +21,8 @@ from atria.core.utils.tool_display import (
 class WebSocketToolBroadcaster:
     """Wraps tool registry to broadcast tool execution events via WebSocket."""
 
+    _BASH_TOOLS: frozenset[str] = frozenset({"bash_execute", "run_command"})
+
     _SANDBOXED_TOOLS: frozenset[str] = frozenset(
         {
             "write_file",
@@ -137,6 +139,7 @@ class WebSocketToolBroadcaster:
                         "arguments": arguments,
                         "arguments_display": display,
                         "description": f"Calling {tool_name}",
+                        "activity": self._activity_for(tool_name, arguments),
                         "session_id": self.session_id,
                     },
                 }
@@ -240,7 +243,26 @@ class WebSocketToolBroadcaster:
             "error": result.get("error"),
             "output": output_text,
             "raw_result": self._make_json_safe(result),
+            "activity": self._activity_for(tool_name, arguments),
         }
+
+    def _activity_for(self, tool_name: str, arguments: Dict[str, Any]) -> Optional[Dict[str, str]]:
+        """Friendly running/done labels for a module-script bash call, else None."""
+        if tool_name not in self._BASH_TOOLS:
+            return None
+        command = arguments.get("command") if isinstance(arguments, dict) else None
+        if not command:
+            return None
+        try:
+            from atria.core.modules.activity import resolve_activity_label
+            from atria.core.modules.registry import resolve_modules_root
+
+            label = resolve_activity_label(str(command), resolve_modules_root())
+        except Exception:  # noqa: BLE001 — labelling must never break broadcasting
+            return None
+        if label is None:
+            return None
+        return {"running": label.running, "done": label.done}
 
     def _sandbox_check(self, tool_name: str, arguments: Dict[str, Any]) -> Optional[str]:
         """Return error string if path falls outside working_dir; else None."""
