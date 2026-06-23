@@ -6,5 +6,28 @@
     "title": "Warehouse · Inventory",
     "default_height": 760,
     "badge_color": "warning"
+  },
+  "activity": {
+    "default": { "running": "Working in Warehouse…", "done": "Done" },
+    "actions": {
+      "list":        { "running": "Checking inventory…",  "done": "Inventory loaded" },
+      "summary":     { "running": "Building summary…",     "done": "Summary ready" },
+      "low-stock":   { "running": "Finding low stock…",    "done": "Low-stock report ready" },
+      "valuation":   { "running": "Valuing inventory…",    "done": "Valuation ready" },
+      "history":     { "running": "Loading history…",      "done": "History loaded" },
+      "query":       { "running": "Looking that up…",      "done": "Done" },
+      "add":         { "running": "Adding item…",          "done": "Item added" },
+      "update":      { "running": "Updating item…",        "done": "Item updated" },
+      "remove":      { "running": "Removing item…",        "done": "Item removed" },
+      "receive":     { "running": "Receiving stock…",      "done": "Stock received" },
+      "ship":        { "running": "Shipping items…",       "done": "Items shipped" },
+      "adjust":      { "running": "Adjusting stock…",      "done": "Stock adjusted" },
+      "move":        { "running": "Moving stock…",         "done": "Stock moved" },
+      "set-reorder": { "running": "Updating reorder level…", "done": "Reorder level updated" },
+      "export":      { "running": "Exporting data…",       "done": "Export ready" },
+      "import":      { "running": "Importing data…",       "done": "Import complete" },
+      "migrate":     { "running": "Migrating data…",       "done": "Migration complete" },
+      "reset":       { "running": "Resetting data…",       "done": "Data reset" }
+    }
   }
 }
