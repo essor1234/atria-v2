@@ -160,6 +160,10 @@ class AppConfig(BaseModel):
     color_scheme: str = "monokai"
     show_token_count: bool = True
     enable_sound: bool = True
+    # Simple Mode: non-technical UX — auto-approve tool calls (safety floor still
+    # refuses dangerous commands) and show friendly activity lines instead of
+    # technical tool cards. Developers can disable via settings.json.
+    simple_mode: bool = True
 
     # Permissions
     permissions: PermissionConfig = Field(default_factory=PermissionConfig)
