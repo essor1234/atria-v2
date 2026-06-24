@@ -9,8 +9,21 @@ interface Props {
 }
 
 function firstSummaryLine(skill_md: string): string {
+  let inFrontmatter = false;
+  let seenFence = false;
   for (const raw of skill_md.split('\n')) {
     const line = raw.trim();
+    // Skip a leading YAML frontmatter block (--- … ---) so we don't grab the fence.
+    if (line === '---') {
+      if (!seenFence) {
+        seenFence = true;
+        inFrontmatter = true;
+        continue;
+      }
+      inFrontmatter = false;
+      continue;
+    }
+    if (inFrontmatter) continue;
     if (!line) continue;
     if (line.startsWith('#')) continue;
     return line.length > 90 ? line.slice(0, 87) + '…' : line;
@@ -121,7 +134,7 @@ export function ModuleGallery({ convId }: Props) {
 
         <div className="px-1.5 py-1.5 space-y-1">
           {filtered.map(m => {
-            const summary = firstSummaryLine(m.skill_md);
+            const summary = m.description?.trim() || firstSummaryLine(m.skill_md);
             const hasBody = m.skill_md.trim().length > 0 || m.files.length > 1;
             return (
               <div

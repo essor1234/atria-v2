@@ -53,6 +53,7 @@ class ModuleOut(BaseModel):
 
     name: str
     skill_md: str
+    description: str = ""
     mtime: float
     files: List[str]
     manifest: Optional[ModuleManifestOut] = None
