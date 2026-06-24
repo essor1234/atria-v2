@@ -1,4 +1,0 @@
-sku,name,location,quantity,unit_price,reorder_level,updated_at
-SKU-001,Widget,A1-03,50,9.99,10,2026-06-16T00:00:00Z
-SKU-002,Gizmo,B2-11,12,24.50,5,2026-06-16T00:00:00Z
-SKU-003,Sprocket,C4-07,3,4.25,8,2026-06-16T00:00:00Z

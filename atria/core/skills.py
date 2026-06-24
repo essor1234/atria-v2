@@ -124,19 +124,35 @@ class SkillLoader:
             from atria.core.modules.registry import get_registry
 
             for module in get_registry().all():
-                if module.name in skills:
-                    continue
                 skill_md_path = module.dir / "SKILL.md"
-                if not skill_md_path.is_file():
-                    continue
-                description = self._extract_module_description(module.skill_md, module.name)
-                skills[module.name] = SkillMetadata(
-                    name=module.name,
-                    description=description,
-                    namespace="default",
-                    path=skill_md_path,
-                    source="module",
-                )
+                # Top-level module → invokable skill named ``<name>``. Real
+                # ``.atria/skills/`` entries with the same name win (set above).
+                if module.name not in skills and skill_md_path.is_file():
+                    description = getattr(module, "description", "") or \
+                        self._extract_module_description(module.skill_md, module.name)
+                    skills[module.name] = SkillMetadata(
+                        name=module.name,
+                        description=description,
+                        namespace="default",
+                        path=skill_md_path,
+                        source="module",
+                    )
+                # Sub-skills → invokable as ``<module>:<sub>`` (lazy bodies under
+                # ``<module>/skills/*.md``).
+                for sub in getattr(module, "subskills", []):
+                    full = f"{module.name}:{sub.name}"
+                    if full in skills:
+                        continue
+                    sub_path = module.dir / sub.rel_path
+                    if not sub_path.is_file():
+                        continue
+                    skills[full] = SkillMetadata(
+                        name=sub.name,
+                        description=sub.description,
+                        namespace=module.name,
+                        path=sub_path,
+                        source="module-subskill",
+                    )
         except Exception as exc:  # noqa: BLE001 — registry must never break skill discovery
             logger.debug("module-to-skill bridge skipped: %s", exc)
 
@@ -294,14 +310,17 @@ class SkillLoader:
             Formatted string listing available skills, or empty string if none
         """
         skills = self.discover_skills()
-        if not skills:
+        # Modules (and their sub-skills) are catalogued in the "Active Modules"
+        # section instead; keep them invokable but don't list them twice here.
+        visible = [s for s in skills if s.source not in ("module", "module-subskill")]
+        if not visible:
             return ""
 
         lines = ["## Available Skills", ""]
         lines.append("Use `invoke_skill` to load skill content into conversation context.")
         lines.append("")
 
-        for skill in sorted(skills, key=lambda s: (s.namespace, s.name)):
+        for skill in sorted(visible, key=lambda s: (s.namespace, s.name)):
             if skill.namespace == "default":
                 lines.append(f"- **{skill.name}**: {skill.description}")
             else:

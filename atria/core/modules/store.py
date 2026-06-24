@@ -17,10 +17,21 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 
+try:
+    import yaml
+
+    _YAML_AVAILABLE = True
+except ImportError:  # pragma: no cover — yaml is a hard dep in practice
+    _YAML_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
 MODULE_NAME_RE = re.compile(r"[a-z0-9_-]+")
+# Leading YAML frontmatter block: --- ... --- at the very top of a markdown file.
+_FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n?", re.DOTALL)
+# Sub-skills live as markdown files under ``<module>/skills/``.
+SUBSKILLS_DIR = "skills"
 SKILL_FILE = "SKILL.md"
 MANIFEST_FILE = "manifest.json"
 SCRIPT_FILE = "script.py"  # legacy starter; tolerated but not required
@@ -79,6 +90,19 @@ class ModuleManifest:
 
 
 @dataclass
+class SubSkill:
+    """A lazily-loadable sub-skill: a frontmatter'd markdown file under ``skills/``.
+
+    Only ``name`` + ``description`` are surfaced in the prompt catalog; the body
+    is loaded on demand via ``invoke_skill("<module>:<name>")``.
+    """
+
+    name: str
+    description: str
+    rel_path: str  # e.g. "skills/reporting.md"
+
+
+@dataclass
 class Module:
     name: str
     skill_md: str
@@ -86,6 +110,10 @@ class Module:
     mtime: float
     files: List[str] = field(default_factory=list)
     manifest: Optional[ModuleManifest] = None
+    # One-line summary for the prompt catalog (frontmatter ``description`` or the
+    # first non-heading line of SKILL.md).
+    description: str = ""
+    subskills: List[SubSkill] = field(default_factory=list)
 
 
 def _validate_name(name: str) -> None:
@@ -277,6 +305,80 @@ def _walk_files(d: Path) -> List[str]:
     return sorted(out)
 
 
+def parse_frontmatter(text: str) -> tuple[dict, str]:
+    """Split leading YAML frontmatter from a markdown document.
+
+    Returns ``(metadata, body)``. If there is no frontmatter, ``metadata`` is
+    empty and ``body`` is the original text.
+    """
+    m = _FRONTMATTER_RE.match(text)
+    if not m:
+        return {}, text
+    raw = m.group(1)
+    data: dict = {}
+    if _YAML_AVAILABLE:
+        try:
+            loaded = yaml.safe_load(raw)
+            if isinstance(loaded, dict):
+                data = loaded
+        except yaml.YAMLError as exc:
+            logger.warning("invalid frontmatter: %s", exc)
+    else:
+        data = _simple_yaml(raw)
+    return data, text[m.end():]
+
+
+def _simple_yaml(text: str) -> dict:
+    """Minimal ``key: value`` parser used only when PyYAML is unavailable."""
+    out: dict = {}
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or ":" not in line:
+            continue
+        key, _, value = line.partition(":")
+        value = value.strip().strip("\"'")
+        out[key.strip()] = value
+    return out
+
+
+def _description_from(meta: dict, body: str, fallback_name: str) -> str:
+    """Derive a 1-line description: frontmatter ``description`` else first prose line."""
+    desc = meta.get("description")
+    if isinstance(desc, str) and desc.strip():
+        return desc.strip()[:200]
+    for raw in body.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        return line[:200]
+    return f"Module: {fallback_name}"
+
+
+def _read_subskills(module_dir: Path) -> List[SubSkill]:
+    """Discover ``<module>/skills/*.md`` sub-skills (sorted), reading only metadata."""
+    skills_dir = module_dir / SUBSKILLS_DIR
+    if not skills_dir.is_dir():
+        return []
+    out: List[SubSkill] = []
+    for p in sorted(skills_dir.glob("*.md")):
+        try:
+            text = p.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        meta, body = parse_frontmatter(text)
+        name = meta.get("name")
+        if not (isinstance(name, str) and name.strip()):
+            name = p.stem
+        out.append(
+            SubSkill(
+                name=name.strip(),
+                description=_description_from(meta, body, name),
+                rel_path=f"{SUBSKILLS_DIR}/{p.name}",
+            )
+        )
+    return out
+
+
 def _read_module(root: Path, name: str) -> Module:
     d = _module_dir(root, name)
     skill_path = d / SKILL_FILE
@@ -289,13 +391,17 @@ def _read_module(root: Path, name: str) -> Module:
             mtime = max(mtime, (d / rel).stat().st_mtime)
         except OSError:
             continue
+    skill_md = skill_path.read_text(encoding="utf-8")
+    meta, body = parse_frontmatter(skill_md)
     return Module(
         name=name,
-        skill_md=skill_path.read_text(encoding="utf-8"),
+        skill_md=skill_md,
         dir=d,
         mtime=mtime,
         files=files,
         manifest=_read_manifest(d),
+        description=_description_from(meta, body, name),
+        subskills=_read_subskills(d),
     )
 
 

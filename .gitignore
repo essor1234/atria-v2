@@ -173,3 +173,7 @@ docs/
 figures/
 .opendev/
 .slide/
+
+# Warehouse module live SQLite store (bootstrapped at runtime)
+modules/warehouse/data/warehouse.db
+modules/warehouse/data/warehouse.db-*
