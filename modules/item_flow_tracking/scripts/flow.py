@@ -27,6 +27,12 @@ import sys
 import _db
 
 
+# ── module-level constants ──────────────────────────────────────────────────
+
+_EXPORT_TABLES = {"orders": "orders", "lots": "lots",
+                  "resources": "resources", "events": "lot_events"}
+
+
 # ── small output helpers ────────────────────────────────────────────────────
 
 
@@ -440,6 +446,88 @@ def cmd_resource_set(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_data_export(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
+    table = _EXPORT_TABLES[args.table]
+    rows = [dict(r) for r in conn.execute(f"SELECT * FROM {table}").fetchall()]
+    if args.format == "json":
+        text = _json.dumps({args.table: rows}, ensure_ascii=False, indent=2)
+    else:
+        buf = io.StringIO()
+        if rows:
+            writer = csv.DictWriter(buf, fieldnames=list(rows[0].keys()))
+            writer.writeheader()
+            writer.writerows(rows)
+        text = buf.getvalue()
+    if args.out:
+        with open(args.out, "w", encoding="utf-8", newline="") as fh:
+            fh.write(text)
+        print(f"Wrote {len(rows)} rows to {args.out}")
+    else:
+        print(text)
+    return 0
+
+
+def cmd_data_reset(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
+    conn.execute("DELETE FROM lot_events")
+    conn.execute("DELETE FROM lots")
+    conn.execute("DELETE FROM orders")
+    conn.execute("DELETE FROM resources")
+    _db.seed_resources(conn)
+    conn.commit()
+    if args.json:
+        _emit({"ok": True})
+    else:
+        print("Data reset — resource pool re-seeded.")
+    return 0
+
+
+def cmd_resource_add(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
+    if args.count < 1:
+        _err("--count must be >= 1")
+        return 1
+    rows = conn.execute(
+        "SELECT resource_id FROM resources WHERE kind = ?", (args.kind,)
+    ).fetchall()
+    max_idx = 0
+    for r in rows:
+        try:
+            max_idx = max(max_idx, int(r["resource_id"].rsplit("-", 1)[1]))
+        except (IndexError, ValueError):
+            continue
+    added = []
+    for i in range(max_idx + 1, max_idx + 1 + args.count):
+        rid = f"{args.kind}-{i}"
+        label = f"{_db.RESOURCE_KIND_LABELS[args.kind]} {i}"
+        conn.execute(
+            "INSERT INTO resources (resource_id, kind, label, status) VALUES (?, ?, ?, 'free')",
+            (rid, args.kind, label),
+        )
+        added.append(rid)
+    conn.commit()
+    if args.json:
+        _emit({"added": added})
+    else:
+        print(f"Added {len(added)}: {', '.join(added)}")
+    return 0
+
+
+def cmd_resource_retire(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
+    r = _find_resource(conn, args.resource)
+    if not r:
+        _err(f"resource not found: {args.resource}")
+        return 1
+    if _resource_occupant(conn, args.resource):
+        _err(f"resource is occupied: {args.resource}")
+        return 1
+    conn.execute("DELETE FROM resources WHERE resource_id = ?", (args.resource,))
+    conn.commit()
+    if args.json:
+        _emit({"retired": args.resource})
+    else:
+        print(f"Retired {args.resource}")
+    return 0
+
+
 def cmd_dashboard(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     resources = []
     for r in conn.execute("SELECT * FROM resources ORDER BY rowid").fetchall():
@@ -551,6 +639,26 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--status", required=True, choices=["free", "busy", "maintenance"])
     p.add_argument("--json", action="store_true")
     p.set_defaults(fn=cmd_resource_set)
+    p = resource.add_parser("add", help="append N resources of a kind")
+    p.add_argument("--kind", required=True, choices=["bin", "washer", "dryer", "fold", "count"])
+    p.add_argument("--count", type=int, required=True)
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_resource_add)
+    p = resource.add_parser("retire", help="remove a (free) resource from the pool")
+    p.add_argument("--resource", required=True)
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_resource_retire)
+
+    data = sub.add_parser("data", help="bulk data + lifecycle operations").add_subparsers(
+        dest="cmd", required=True)
+    p = data.add_parser("export", help="export a table to csv/json")
+    p.add_argument("--table", choices=list(_EXPORT_TABLES), default="orders")
+    p.add_argument("--format", choices=["csv", "json"], default="json")
+    p.add_argument("--out", default=None)
+    p.set_defaults(fn=cmd_data_export)
+    p = data.add_parser("reset", help="wipe all data and re-seed the resource pool")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_data_reset)
 
     p = sub.add_parser("dashboard", help="emit the full dashboard JSON payload")
     p.add_argument("--json", action="store_true")

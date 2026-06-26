@@ -204,3 +204,35 @@ def test_dashboard_payload_shape(env):
     washer1 = next(r for r in dash["resources"] if r["resource_id"] == "washer-1")
     assert washer1["occupant"] is not None
     assert any(lot["lot_id"] == new["lots"][0]["lot_id"] for lot in dash["steps"]["giat"])
+
+
+# ── data management ──────────────────────────────────────────────────────────
+
+
+def test_resource_add_continues_index(env):
+    added = run_json(env, "resource", "add", "--kind", "washer", "--count", "2")["added"]
+    assert added == ["washer-11", "washer-12"]
+
+
+def test_resource_retire_refuses_when_occupied(env):
+    lot = run_json(env, "order", "new", "--phone", "0910000000", "--bins", "1")["lots"][0]
+    busy_bin = lot["current_resource"]
+    blocked = run(env, "resource", "retire", "--resource", busy_bin, "--json")
+    assert blocked.returncode != 0
+    ok = run(env, "resource", "retire", "--resource", "bin-15", "--json")
+    assert ok.returncode == 0
+
+
+def test_reset_clears_orders_and_reseeds_pool(env):
+    run_json(env, "order", "new", "--phone", "0911111111", "--bins", "1")
+    run_json(env, "data", "reset")
+    assert run_json(env, "order", "list")["orders"] == []
+    assert len(run_json(env, "resource", "list")["resources"]) == 37
+
+
+def test_export_orders_json(env):
+    run_json(env, "order", "new", "--phone", "0912222222", "--bins", "1")
+    r = run(env, "data", "export", "--table", "orders", "--format", "json")
+    assert r.returncode == 0
+    payload = json.loads(r.stdout)
+    assert len(payload["orders"]) == 1
