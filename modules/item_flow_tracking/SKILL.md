@@ -42,20 +42,39 @@ Replace `<modules>` with the absolute modules root from the "Active Modules"
 prompt section. All operations are subcommands of `scripts/flow.py`. Add
 `--json` for machine-readable output.
 
-Most common — create an order and list active orders:
+The everyday commands are below — run them directly, no sub-skill needed. Let
+`<f>` = `python <modules>/item_flow_tracking/scripts/flow.py`.
+
+Create an order split into N bins/parts, and list orders:
 
 ```
-python <modules>/item_flow_tracking/scripts/flow.py order new --phone 0901234567 --name "Khach A" --bins 3
-python <modules>/item_flow_tracking/scripts/flow.py order list
+<f> order new --phone 0901234567 --name "Khach A" --bins 3
+<f> order list
+```
+
+Move a part to the next station. The step is inferred from the target
+(`washer→giặt`, `dryer→sấy`, `fold→gấp`, `count→kiểm đếm`; a `bin` just parks
+it). You can target a part by its lot id **or** by the bin it currently sits in
+(`--from`), so "chuyển thùng 1 sang máy giặt 3" is one call:
+
+```
+<f> lot move --from bin-1 --to washer-3
+<f> lot move --lot DH-20260626-001-P1 --to dryer-2
+```
+
+Record the counted quantity at kiểm đếm (sums into the order total):
+
+```
+<f> lot count --lot DH-20260626-001-P1 --items 24
 ```
 
 ## Sub-skills (load on demand)
 
-For anything beyond `order new`/`order list`/`order show`, load the matching
+The commands above cover the common flow. For the rest, load the matching
 sub-skill with `invoke_skill` — do not guess flags:
 
-- `invoke_skill("item_flow_tracking:tracking-ops")` — `lot move`, `lot count`,
-  `lot redo`, `lot deliver`, `order deliver`, `order cancel`.
+- `invoke_skill("item_flow_tracking:tracking-ops")` — full `lot move`/`lot count`
+  reference plus `lot redo`, `lot deliver`, `order deliver`, `order cancel`.
 - `invoke_skill("item_flow_tracking:analytics")` — `order show`,
   `customer history`, `resource list`, and the `dashboard` payload.
 - `invoke_skill("item_flow_tracking:data-management")` — `data export`,

@@ -252,3 +252,36 @@ def test_export_orders_json(env):
     assert r.returncode == 0
     payload = json.loads(r.stdout)
     assert len(payload["orders"]) == 1
+
+
+# ── move by physical resource (--from) ───────────────────────────────────────
+
+
+def test_move_by_from_resource_resolves_lot(env):
+    lot = _first_lot(env, phone="0905559999")
+    bin_id = lot["current_resource"]
+    moved = run_json(env, "lot", "move", "--from", bin_id, "--to", "washer-7")
+    assert moved["lot"]["lot_id"] == lot["lot_id"]
+    assert moved["lot"]["step"] == "giat"
+    assert moved["lot"]["current_resource"] == "washer-7"
+
+
+def test_move_from_empty_resource_errors(env):
+    r = run(env, "lot", "move", "--from", "bin-14", "--to", "washer-8", "--json")
+    assert r.returncode != 0
+    assert "no active lot" in r.stderr
+
+
+def test_move_requires_lot_or_from(env):
+    r = run(env, "lot", "move", "--to", "washer-9", "--json")
+    assert r.returncode != 0  # argparse: exactly one of --lot/--from is required
+
+
+def test_move_from_ambiguous_errors(env):
+    a = _first_lot(env, phone="0905558881")
+    b = _first_lot(env, phone="0905558882")
+    run_json(env, "lot", "move", "--lot", a["lot_id"], "--to", "washer-6")
+    run_json(env, "lot", "move", "--lot", b["lot_id"], "--to", "washer-6", "--force")
+    r = run(env, "lot", "move", "--from", "washer-6", "--to", "dryer-6", "--json")
+    assert r.returncode != 0
+    assert "multiple active lots" in r.stderr

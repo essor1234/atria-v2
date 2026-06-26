@@ -14,12 +14,20 @@ ledger.
 
 Moving into a machine/area sets the step automatically (washer→giặt, dryer→sấy,
 fold→gấp, count→kiểm đếm); moving into a bin just relocates it and keeps the
-step. Fails if the target is busy unless `--force`:
+step. Fails if the target is busy unless `--force`.
+
+Pick the part to move by its lot id (`--lot`) **or** by the resource it
+currently occupies (`--from`) — exactly one is required. `--from` resolves the
+single active lot in that resource, so you can move by the physical bin the
+operator names without looking up the lot id first:
 
 ```
-python <modules>/item_flow_tracking/scripts/flow.py lot move --lot DH-20260626-001-P1 --to washer-3
+python <modules>/item_flow_tracking/scripts/flow.py lot move --from bin-1 --to washer-3
 python <modules>/item_flow_tracking/scripts/flow.py lot move --lot DH-20260626-001-P1 --to bin-5
 ```
+
+`--from` errors if the resource holds no active lot, or (only possible after a
+`--force` double-occupancy) if it holds more than one — then use `--lot`.
 
 ## Count a part (sums into the order total)
 

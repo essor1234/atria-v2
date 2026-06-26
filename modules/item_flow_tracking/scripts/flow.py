@@ -227,12 +227,28 @@ def cmd_order_cancel(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
 
 
 def cmd_lot_move(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
-    lot = _find_lot(conn, args.lot)
-    if not lot:
-        _err(f"lot not found: {args.lot}")
-        return 1
+    # Resolve the lot either by id (--lot) or by the resource it sits in (--from).
+    if args.from_resource:
+        rows = conn.execute(
+            "SELECT * FROM lots WHERE current_resource = ? AND status = 'active'",
+            (args.from_resource,),
+        ).fetchall()
+        if not rows:
+            _err(f"no active lot in resource: {args.from_resource}")
+            return 1
+        if len(rows) > 1:
+            ids = ", ".join(r["lot_id"] for r in rows)
+            _err(f"multiple active lots in {args.from_resource}: {ids} — use --lot")
+            return 1
+        lot = rows[0]
+    else:
+        lot = _find_lot(conn, args.lot)
+        if not lot:
+            _err(f"lot not found: {args.lot}")
+            return 1
+    lot_id = lot["lot_id"]
     if lot["status"] != "active":
-        _err(f"lot is not active: {args.lot} ({lot['status']})")
+        _err(f"lot is not active: {lot_id} ({lot['status']})")
         return 1
     target = _find_resource(conn, args.to)
     if not target:
@@ -252,17 +268,17 @@ def cmd_lot_move(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
                  (target["resource_id"],))
     conn.execute(
         "UPDATE lots SET step = ?, current_resource = ?, updated_at = ? WHERE lot_id = ?",
-        (new_step, target["resource_id"], ts, args.lot),
+        (new_step, target["resource_id"], ts, lot_id),
     )
-    _db.log_event(conn, args.lot, lot["order_id"], "move",
+    _db.log_event(conn, lot_id, lot["order_id"], "move",
                   from_step=lot["step"], to_step=new_step,
                   from_resource=old, to_resource=target["resource_id"], commit=False)
     conn.commit()
 
     if args.json:
-        _emit({"lot": _db.lot_dict(_find_lot(conn, args.lot))})
+        _emit({"lot": _db.lot_dict(_find_lot(conn, lot_id))})
     else:
-        print(f"{args.lot} → {target['label']} ({_db.STEP_LABELS.get(new_step, new_step)})")
+        print(f"{lot_id} → {target['label']} ({_db.STEP_LABELS.get(new_step, new_step)})")
     return 0
 
 
@@ -599,7 +615,10 @@ def _build_parser() -> argparse.ArgumentParser:
         dest="cmd", required=True)
 
     p = lot.add_parser("move", help="move a lot into a resource (step inferred)")
-    p.add_argument("--lot", required=True)
+    src = p.add_mutually_exclusive_group(required=True)
+    src.add_argument("--lot", help="lot id to move")
+    src.add_argument("--from", dest="from_resource",
+                     help="resolve the active lot currently in this resource, e.g. bin-1")
     p.add_argument("--to", required=True, help="target resource_id, e.g. washer-3 or bin-5")
     p.add_argument("--force", action="store_true", help="override a busy target")
     p.add_argument("--json", action="store_true")
