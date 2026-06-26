@@ -164,9 +164,7 @@ class WebSocketToolBroadcaster:
                     "data": {**event, "session_id": self.session_id},
                 }
             )
-            future = asyncio.run_coroutine_threadsafe(
-                self.ws_manager.broadcast(payload), self.loop
-            )
+            future = asyncio.run_coroutine_threadsafe(self.ws_manager.broadcast(payload), self.loop)
             future.result(timeout=5)
         except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to broadcast skill event: {e}")

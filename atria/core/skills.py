@@ -128,8 +128,9 @@ class SkillLoader:
                 # Top-level module → invokable skill named ``<name>``. Real
                 # ``.atria/skills/`` entries with the same name win (set above).
                 if module.name not in skills and skill_md_path.is_file():
-                    description = getattr(module, "description", "") or \
-                        self._extract_module_description(module.skill_md, module.name)
+                    description = getattr(
+                        module, "description", ""
+                    ) or self._extract_module_description(module.skill_md, module.name)
                     skills[module.name] = SkillMetadata(
                         name=module.name,
                         description=description,

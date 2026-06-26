@@ -28,9 +28,7 @@ class MeResponse(BaseModel):
 
 
 @router.get("/me", response_model=MeResponse)
-async def get_me(
-    request: Request, user: User = Depends(require_authenticated_user)
-) -> MeResponse:
+async def get_me(request: Request, user: User = Depends(require_authenticated_user)) -> MeResponse:
     principal = getattr(request.state, "principal", None)
     if principal is None:
         # Legacy mode — fabricate a single-tenant response.

@@ -74,8 +74,10 @@ def test_run_path_escape_rejected(client: TestClient):
 
 
 def test_run_timeout(client: TestClient):
-    r = client.post("/api/modules/warehouse/run",
-                    json={"script": "echo.py", "args": ["sleep", "5"], "timeout_ms": 200})
+    r = client.post(
+        "/api/modules/warehouse/run",
+        json={"script": "echo.py", "args": ["sleep", "5"], "timeout_ms": 200},
+    )
     assert r.status_code == 200
     body = r.json()
     assert body["exit_code"] == -1
@@ -86,6 +88,7 @@ def test_run_passes_module_env(client: TestClient, warehouse_module: Path):
     r = client.post("/api/modules/warehouse/run", json={"script": "echo.py", "args": ["env"]})
     assert r.status_code == 200
     import json
+
     env = json.loads(r.json()["stdout"])
     assert env["ATRIA_MODULE_ROOT"] == str((warehouse_module / "warehouse").resolve())
 
@@ -140,9 +143,7 @@ def test_virtual_unknown_path_404(client: TestClient):
 
 
 def test_dashboard_html_served_when_present(client: TestClient, warehouse_module: Path):
-    (warehouse_module / "warehouse" / "dashboard.html").write_text(
-        "<!doctype html><body>hi</body>"
-    )
+    (warehouse_module / "warehouse" / "dashboard.html").write_text("<!doctype html><body>hi</body>")
     r = client.get("/api/modules/warehouse/dashboard.html")
     assert r.status_code == 200
     assert r.headers["content-type"].startswith("text/html")
@@ -166,9 +167,7 @@ def test_block_html_served(client: TestClient, warehouse_module: Path):
 
 def test_module_vendor_file_served(client: TestClient, warehouse_module: Path):
     (warehouse_module / "warehouse" / "vendor").mkdir()
-    (warehouse_module / "warehouse" / "vendor" / "x.js").write_text(
-        "console.log('hi');"
-    )
+    (warehouse_module / "warehouse" / "vendor" / "x.js").write_text("console.log('hi');")
     r = client.get("/api/modules/warehouse/vendor/x.js")
     assert r.status_code == 200
     assert "console.log" in r.text

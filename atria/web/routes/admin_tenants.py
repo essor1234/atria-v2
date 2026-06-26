@@ -26,9 +26,7 @@ class CreateTenantBody(BaseModel):
 def _admin():
     services = get_state().keycloak
     if services is None:
-        raise HTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR, "Keycloak not configured"
-        )
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Keycloak not configured")
     return services.admin
 
 
@@ -37,10 +35,7 @@ def list_tenants(
     _user: User = Depends(require_authenticated_user),
     _: None = Depends(require_role("platform:admin")),
 ) -> list[TenantOut]:
-    return [
-        TenantOut(id=t.id, slug=t.slug, name=t.name)
-        for t in _admin().list_tenant_groups()
-    ]
+    return [TenantOut(id=t.id, slug=t.slug, name=t.name) for t in _admin().list_tenant_groups()]
 
 
 @router.post("", status_code=201)

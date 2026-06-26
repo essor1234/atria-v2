@@ -325,7 +325,7 @@ def parse_frontmatter(text: str) -> tuple[dict, str]:
             logger.warning("invalid frontmatter: %s", exc)
     else:
         data = _simple_yaml(raw)
-    return data, text[m.end():]
+    return data, text[m.end() :]
 
 
 def _simple_yaml(text: str) -> dict:

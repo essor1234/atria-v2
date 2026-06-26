@@ -316,9 +316,7 @@ async def delete_session(
 
         state = get_state()
         try:
-            await state.session_manager.get_session_by_id(
-                session_id, owner_id=str(user.id)
-            )
+            await state.session_manager.get_session_by_id(session_id, owner_id=str(user.id))
         except FileNotFoundError:
             raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
 
@@ -351,9 +349,7 @@ async def delete_session_turn(
 
     # Ownership check (consistent with other routes that read this session).
     try:
-        session = await state.session_manager.get_session_by_id(
-            session_id, owner_id=str(user.id)
-        )
+        session = await state.session_manager.get_session_by_id(session_id, owner_id=str(user.id))
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
 
@@ -374,13 +370,9 @@ async def delete_session_turn(
             role=m.role.value,
             content=m.content,
             timestamp=(
-                m.timestamp.isoformat()
-                if hasattr(m, "timestamp") and m.timestamp
-                else None
+                m.timestamp.isoformat() if hasattr(m, "timestamp") and m.timestamp else None
             ),
-            tool_calls=(
-                [tool_call_to_info(tc) for tc in m.tool_calls] if m.tool_calls else None
-            ),
+            tool_calls=([tool_call_to_info(tc) for tc in m.tool_calls] if m.tool_calls else None),
             thinking_trace=m.thinking_trace,
             reasoning_content=m.reasoning_content,
             metadata=m.metadata if m.metadata else None,

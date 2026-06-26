@@ -138,6 +138,7 @@ def test_list_has_dashboard_filter(client: TestClient):
     client.post("/api/modules", json={"name": "with-dash"})
     client.post("/api/modules", json={"name": "no-dash"})
     from atria.web.dependencies.modules import get_modules_registry
+
     reg = client.app.dependency_overrides[get_modules_registry]()
     (reg.root / "with-dash" / "dashboard.html").write_text("<html></html>")
     reg.reload_one("with-dash")

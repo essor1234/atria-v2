@@ -1,4 +1,3 @@
-
 import httpx
 
 from atria.core.auth.keycloak.admin_client import KeycloakAdminClient, TenantSpec
@@ -18,11 +17,13 @@ def _cfg():
 
 def _mock_transport(routes):
     """routes: list of (method, url_predicate, response_factory)."""
+
     def handler(request: httpx.Request) -> httpx.Response:
         for method, pred, factory in routes:
             if request.method == method and pred(request.url.path):
                 return factory(request)
         return httpx.Response(404, json={"path": request.url.path})
+
     return httpx.MockTransport(handler)
 
 
@@ -38,10 +39,12 @@ def test_acquires_service_account_token_lazily():
         assert req.headers["authorization"] == "Bearer AT"
         return httpx.Response(200, json=[])
 
-    transport = _mock_transport([
-        ("POST", lambda p: p.endswith("/protocol/openid-connect/token"), token_response),
-        ("GET", lambda p: p.endswith("/groups"), groups_response),
-    ])
+    transport = _mock_transport(
+        [
+            ("POST", lambda p: p.endswith("/protocol/openid-connect/token"), token_response),
+            ("GET", lambda p: p.endswith("/groups"), groups_response),
+        ]
+    )
 
     client = KeycloakAdminClient(_cfg(), transport=transport)
     client.list_tenant_groups()
@@ -68,12 +71,14 @@ def test_create_tenant_creates_group_and_roles():
         seen.append(("role", req.read().decode()))
         return httpx.Response(201)
 
-    transport = _mock_transport([
-        ("POST", lambda p: p.endswith("/protocol/openid-connect/token"), token),
-        ("GET", lambda p: p.endswith("/groups"), get_groups),
-        ("POST", lambda p: p.endswith("/children"), post_children),
-        ("POST", lambda p: p.endswith("/roles"), post_roles),
-    ])
+    transport = _mock_transport(
+        [
+            ("POST", lambda p: p.endswith("/protocol/openid-connect/token"), token),
+            ("GET", lambda p: p.endswith("/groups"), get_groups),
+            ("POST", lambda p: p.endswith("/children"), post_children),
+            ("POST", lambda p: p.endswith("/roles"), post_roles),
+        ]
+    )
 
     client = KeycloakAdminClient(_cfg(), transport=transport)
     client.create_tenant(TenantSpec(slug="acme", name="Acme Inc"))
@@ -99,12 +104,14 @@ def test_delete_tenant_deletes_group_and_roles():
         deleted.append(("role", req.url.path))
         return httpx.Response(204)
 
-    transport = _mock_transport([
-        ("POST", lambda p: p.endswith("/protocol/openid-connect/token"), token),
-        ("GET", lambda p: p.endswith("/groups"), get_group_by_path),
-        ("DELETE", lambda p: "/groups/G1" in p, delete_group),
-        ("DELETE", lambda p: "/roles/tenant:acme:" in p, delete_role),
-    ])
+    transport = _mock_transport(
+        [
+            ("POST", lambda p: p.endswith("/protocol/openid-connect/token"), token),
+            ("GET", lambda p: p.endswith("/groups"), get_group_by_path),
+            ("DELETE", lambda p: "/groups/G1" in p, delete_group),
+            ("DELETE", lambda p: "/roles/tenant:acme:" in p, delete_role),
+        ]
+    )
 
     client = KeycloakAdminClient(_cfg(), transport=transport)
     client.delete_tenant("acme")

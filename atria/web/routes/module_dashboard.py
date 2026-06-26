@@ -156,8 +156,7 @@ def run_script(
             detail={
                 "kind": "rate-limited",
                 "message": (
-                    f"too many in-flight runs for session/module "
-                    f"(max {_MAX_INFLIGHT_PER_KEY})"
+                    f"too many in-flight runs for session/module " f"(max {_MAX_INFLIGHT_PER_KEY})"
                 ),
             },
         )
@@ -190,12 +189,13 @@ def run_script(
             )
         except subprocess.TimeoutExpired as e:
             duration_ms = int((time.monotonic() - start) * 1000)
-            stdout = e.stdout if isinstance(e.stdout, str) else (e.stdout.decode() if e.stdout else "")
-            stderr = e.stderr if isinstance(e.stderr, str) else (e.stderr.decode() if e.stderr else "")
-            stderr = (
-                (stderr or "")
-                + f"\n[atria] script timeout after {body.timeout_ms} ms"
+            stdout = (
+                e.stdout if isinstance(e.stdout, str) else (e.stdout.decode() if e.stdout else "")
             )
+            stderr = (
+                e.stderr if isinstance(e.stderr, str) else (e.stderr.decode() if e.stderr else "")
+            )
+            stderr = (stderr or "") + f"\n[atria] script timeout after {body.timeout_ms} ms"
             return RunResponse(
                 exit_code=-1,
                 stdout=stdout or "",
@@ -271,9 +271,7 @@ def _serve_module_file(reg: ModuleRegistry, name: str, rel: str) -> Response:
     mime, _ = mimetypes.guess_type(rel)
     if mime is None:
         mime = "application/octet-stream"
-    return Response(
-        content=data, media_type=mime, headers={"Cache-Control": "no-cache"}
-    )
+    return Response(content=data, media_type=mime, headers={"Cache-Control": "no-cache"})
 
 
 @router.get("/{name}/dashboard.html")
@@ -284,9 +282,7 @@ def serve_dashboard_html(
 
 
 @router.get("/{name}/icon.svg")
-def serve_icon_svg(
-    name: str, reg: ModuleRegistry = Depends(get_modules_registry)
-) -> Response:
+def serve_icon_svg(name: str, reg: ModuleRegistry = Depends(get_modules_registry)) -> Response:
     return _serve_module_file(reg, name, "icon.svg")
 
 

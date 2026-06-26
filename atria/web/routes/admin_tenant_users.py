@@ -31,9 +31,7 @@ class PatchRoleBody(BaseModel):
 def _admin():
     services = get_state().keycloak
     if services is None:
-        raise HTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR, "Keycloak not configured"
-        )
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Keycloak not configured")
     return services.admin
 
 
@@ -44,9 +42,7 @@ def _require_tenant_admin(request: Request, slug: str) -> None:
     if p.is_platform_admin:
         return
     if p.tenant_id != slug:
-        raise HTTPException(
-            status.HTTP_403_FORBIDDEN, "Active tenant does not match URL tenant"
-        )
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Active tenant does not match URL tenant")
     if p.tenant_role != "admin":
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Tenant admin role required")
 

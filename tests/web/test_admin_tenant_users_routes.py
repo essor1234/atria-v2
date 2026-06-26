@@ -49,6 +49,7 @@ def _setup(monkeypatch, *, roles, active_tenant="acme"):
     monkeypatch.setattr(state_module, "get_state", lambda: fake_state)
     from atria.web.dependencies import auth as auth_dep_module
     from atria.web.routes import admin_tenant_users as admin_tenant_users_module
+
     monkeypatch.setattr(auth_dep_module, "get_state", lambda: fake_state)
     monkeypatch.setattr(admin_tenant_users_module, "get_state", lambda: fake_state)
 

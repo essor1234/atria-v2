@@ -90,9 +90,7 @@ class KeycloakAdminClient:
                         TenantSummary(
                             id=sub["id"],
                             slug=sub["name"],
-                            name=sub.get("attributes", {}).get(
-                                "displayName", [sub["name"]]
-                            )[0],
+                            name=sub.get("attributes", {}).get("displayName", [sub["name"]])[0],
                         )
                     )
         return out
@@ -162,9 +160,7 @@ class KeycloakAdminClient:
 
         Returns the user_id.
         """
-        existing = self._req(
-            "GET", "/users", params={"email": email, "exact": "true"}
-        ).json()
+        existing = self._req("GET", "/users", params={"email": email, "exact": "true"}).json()
         if existing:
             user_id = existing[0]["id"]
         else:
@@ -178,9 +174,9 @@ class KeycloakAdminClient:
                     "emailVerified": False,
                 },
             )
-            user_id = self._req(
-                "GET", "/users", params={"email": email, "exact": "true"}
-            ).json()[0]["id"]
+            user_id = self._req("GET", "/users", params={"email": email, "exact": "true"}).json()[
+                0
+            ]["id"]
 
         gid = self._find_tenant_group_id(slug)
         self._req("PUT", f"/users/{user_id}/groups/{gid}")

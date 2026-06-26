@@ -418,9 +418,7 @@ class WebSocketManager:
 
         bus = get_bus()
         if bus is None:
-            logger.debug(
-                f"block_event for unknown block_id={block_id}; no bus; dropping"
-            )
+            logger.debug(f"block_event for unknown block_id={block_id}; no bus; dropping")
             return
         try:
             await bus.publish(f"atria:event:{block_id}", envelope)
@@ -544,9 +542,7 @@ class WebSocketManager:
 
             # tool.invoke and artifact.read run synchronously off-thread
             try:
-                result = await _asyncio.wait_for(
-                    _asyncio.to_thread(_run_sync), timeout=5.0
-                )
+                result = await _asyncio.wait_for(_asyncio.to_thread(_run_sync), timeout=5.0)
                 await _reply(True, data=result)
             except _asyncio.TimeoutError:
                 await _reply(False, error="timeout")

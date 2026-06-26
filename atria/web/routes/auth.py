@@ -87,7 +87,9 @@ def _safe_next(value: Optional[str]) -> str:
 @router.get("/mode", response_model=ModeResponse)
 def get_mode() -> ModeResponse:
     """Tell the SPA which login UI to render."""
-    return ModeResponse(mode=AuthMode.KEYCLOAK.value if _is_keycloak_mode() else AuthMode.NONE.value)
+    return ModeResponse(
+        mode=AuthMode.KEYCLOAK.value if _is_keycloak_mode() else AuthMode.NONE.value
+    )
 
 
 @router.get("/keycloak/login")

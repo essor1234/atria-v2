@@ -33,7 +33,9 @@ def _setup(monkeypatch, *, roles):
     services = KeycloakServices(config=cfg, validator=validator, admin=admin)
 
     user_store = MagicMock()
-    user_store.get_by_email = AsyncMock(return_value=User(id=1, username="admin", email="admin@platform.test"))
+    user_store.get_by_email = AsyncMock(
+        return_value=User(id=1, username="admin", email="admin@platform.test")
+    )
 
     fake_state = MagicMock()
     fake_state.keycloak = services
@@ -41,6 +43,7 @@ def _setup(monkeypatch, *, roles):
     monkeypatch.setattr(state_module, "get_state", lambda: fake_state)
     from atria.web.dependencies import auth as auth_dep_module
     from atria.web.routes import admin_tenants as admin_tenants_module
+
     monkeypatch.setattr(auth_dep_module, "get_state", lambda: fake_state)
     monkeypatch.setattr(admin_tenants_module, "get_state", lambda: fake_state)
 
@@ -51,13 +54,17 @@ def _setup(monkeypatch, *, roles):
 
 def test_list_tenants_requires_platform_admin(monkeypatch):
     client, _ = _setup(monkeypatch, roles=["tenant:acme:member"])
-    r = client.get("/api/admin/tenants", headers={"Authorization": "Bearer x", "X-Atria-Tenant": "acme"})
+    r = client.get(
+        "/api/admin/tenants", headers={"Authorization": "Bearer x", "X-Atria-Tenant": "acme"}
+    )
     assert r.status_code == 403
 
 
 def test_list_tenants_ok_for_platform_admin(monkeypatch):
     client, _ = _setup(monkeypatch, roles=["platform:admin"])
-    r = client.get("/api/admin/tenants", headers={"Authorization": "Bearer x", "X-Atria-Tenant": "acme"})
+    r = client.get(
+        "/api/admin/tenants", headers={"Authorization": "Bearer x", "X-Atria-Tenant": "acme"}
+    )
     assert r.status_code == 200
     assert r.json() == [{"id": "G1", "slug": "acme", "name": "Acme"}]
 

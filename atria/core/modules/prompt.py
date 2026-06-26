@@ -38,9 +38,9 @@ def _header(root: Path) -> str:
         "a self-contained skill folder. Only a short summary is shown here; the "
         "full instructions load **on demand** so the prompt stays small.\n\n"
         "**Loading module instructions (lazy):**\n"
-        "- ``invoke_skill(\"<name>\")`` — load the module's full ``SKILL.md`` into "
+        '- ``invoke_skill("<name>")`` — load the module\'s full ``SKILL.md`` into '
         "context. Do this before using a module you haven't loaded yet.\n"
-        "- ``invoke_skill(\"<name>:<sub-skill>\")`` — load just one sub-skill's "
+        '- ``invoke_skill("<name>:<sub-skill>")`` — load just one sub-skill\'s '
         "detailed guide (the sub-skills are listed per module below). Prefer this "
         "over loading the whole module when you only need one area.\n"
         "- Decide from each module's description + 'When to use' + sub-skill list "

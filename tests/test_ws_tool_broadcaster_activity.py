@@ -16,12 +16,16 @@ def test_activity_for_bash_module_script(tmp_path: Path, monkeypatch):
     (mod / "scripts" / "inventory.py").write_text("# s\n")
     (mod / "manifest.json").write_text(
         json.dumps(
-            {"activity": {"actions": {"receive": {"running": "Receiving stock…", "done": "Stock received"}}}}
+            {
+                "activity": {
+                    "actions": {
+                        "receive": {"running": "Receiving stock…", "done": "Stock received"}
+                    }
+                }
+            }
         )
     )
-    monkeypatch.setattr(
-        "atria.core.modules.registry.resolve_modules_root", lambda: tmp_path
-    )
+    monkeypatch.setattr("atria.core.modules.registry.resolve_modules_root", lambda: tmp_path)
     b = _broadcaster()
     args = {"command": f"python {mod}/scripts/inventory.py receive --sku A"}
     assert b._activity_for("bash_execute", args) == {
@@ -35,7 +39,5 @@ def test_activity_for_non_bash_is_none():
 
 
 def test_activity_for_non_module_bash_is_none(tmp_path: Path, monkeypatch):
-    monkeypatch.setattr(
-        "atria.core.modules.registry.resolve_modules_root", lambda: tmp_path
-    )
+    monkeypatch.setattr("atria.core.modules.registry.resolve_modules_root", lambda: tmp_path)
     assert _broadcaster()._activity_for("bash_execute", {"command": "ls -la"}) is None

@@ -129,8 +129,7 @@ def _serialize_props(props: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         raise ValueError(f"block props are not JSON-serializable: {exc}") from exc
     if len(encoded.encode("utf-8")) > _MAX_PROPS_BYTES:
         raise ValueError(
-            f"block props exceed {_MAX_PROPS_BYTES} bytes "
-            "(256 KB cap); pass a smaller payload"
+            f"block props exceed {_MAX_PROPS_BYTES} bytes " "(256 KB cap); pass a smaller payload"
         )
     # Round-trip so callers can't smuggle in non-JSON objects.
     return json.loads(encoded)

@@ -22,7 +22,10 @@ def env(tmp_path):
 def run(env, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
         [sys.executable, str(SCRIPT), *args],
-        capture_output=True, text=True, check=False, env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
     )
 
 
@@ -44,8 +47,10 @@ def test_fresh_db_is_seeded(env):
 def test_list_json_returns_items_and_low_stock(env):
     payload = list_json(env)
     assert isinstance(payload["items"], list)
-    assert all({"sku", "name", "location", "quantity", "unit_price", "reorder_level"}
-               .issubset(item.keys()) for item in payload["items"])
+    assert all(
+        {"sku", "name", "location", "quantity", "unit_price", "reorder_level"}.issubset(item.keys())
+        for item in payload["items"]
+    )
     by_sku = {it["sku"]: it for it in payload["items"]}
     for sku in payload["low_stock"]:
         assert by_sku[sku]["quantity"] <= by_sku[sku]["reorder_level"]
@@ -54,8 +59,9 @@ def test_list_json_returns_items_and_low_stock(env):
 def test_list_json_query_filter(env):
     payload = list_json(env, "--query", "widget")
     assert payload["items"]
-    assert all("widget" in it["name"].lower() or "widget" in it["sku"].lower()
-               for it in payload["items"])
+    assert all(
+        "widget" in it["name"].lower() or "widget" in it["sku"].lower() for it in payload["items"]
+    )
 
 
 def test_list_low_only(env):
@@ -67,16 +73,44 @@ def test_list_low_only(env):
 
 
 def test_add_logs_movement(env):
-    r = run(env, "add", "--sku", "SKU-900", "--name", "Bolt", "--location", "Z1",
-            "--quantity", "30", "--unit-price", "1.50", "--reorder-level", "5")
+    r = run(
+        env,
+        "add",
+        "--sku",
+        "SKU-900",
+        "--name",
+        "Bolt",
+        "--location",
+        "Z1",
+        "--quantity",
+        "30",
+        "--unit-price",
+        "1.50",
+        "--reorder-level",
+        "5",
+    )
     assert r.returncode == 0, r.stderr
     hist = json.loads(run(env, "history", "--sku", "SKU-900", "--json").stdout)["movements"]
     assert any(m["kind"] == "add" and m["delta"] == 30 for m in hist)
 
 
 def test_add_duplicate_fails(env):
-    r = run(env, "add", "--sku", "SKU-001", "--name", "Dup", "--location", "X",
-            "--quantity", "1", "--unit-price", "1", "--reorder-level", "1")
+    r = run(
+        env,
+        "add",
+        "--sku",
+        "SKU-001",
+        "--name",
+        "Dup",
+        "--location",
+        "X",
+        "--quantity",
+        "1",
+        "--unit-price",
+        "1",
+        "--reorder-level",
+        "1",
+    )
     assert r.returncode == 1
     assert "already exists" in r.stderr
 
@@ -86,8 +120,10 @@ def test_receive_and_ship_update_quantity(env):
     run(env, "ship", "--sku", "SKU-001", "--qty", "4", "--reference", "ORD-1")
     by_sku = {it["sku"]: it for it in list_json(env)["items"]}
     assert by_sku["SKU-001"]["quantity"] == 56  # 50 + 10 - 4
-    kinds = {m["kind"] for m in
-             json.loads(run(env, "history", "--sku", "SKU-001", "--json").stdout)["movements"]}
+    kinds = {
+        m["kind"]
+        for m in json.loads(run(env, "history", "--sku", "SKU-001", "--json").stdout)["movements"]
+    }
     assert {"receive", "ship"} <= kinds
 
 
@@ -152,8 +188,7 @@ def test_query_select_ok(env):
 
 
 def test_query_rejects_write(env):
-    for sql in ("DELETE FROM items", "UPDATE items SET quantity=0",
-                "SELECT 1; DROP TABLE items"):
+    for sql in ("DELETE FROM items", "UPDATE items SET quantity=0", "SELECT 1; DROP TABLE items"):
         r = run(env, "query", "--sql", sql)
         assert r.returncode == 1, f"should reject: {sql}"
 
