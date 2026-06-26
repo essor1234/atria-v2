@@ -73,6 +73,30 @@ def _gen_order_id(conn: sqlite3.Connection) -> str:
     return f"{prefix}-{n + 1:03d}"
 
 
+def _parse_item(spec: str) -> tuple[str | None, int | None, str | None]:
+    """Parse a ``TYPE:QTY`` item spec. Returns (type, qty, error)."""
+    if ":" not in spec:
+        return None, None, "expected format TYPE:QTY"
+    type_part, qty_part = spec.rsplit(":", 1)
+    item_type = type_part.strip()
+    if not item_type:
+        return None, None, "empty item type"
+    try:
+        qty = int(qty_part.strip())
+    except ValueError:
+        return None, None, f"invalid quantity: {qty_part.strip()}"
+    if qty < 1:
+        return None, None, "quantity must be >= 1"
+    return item_type, qty, None
+
+
+def _order_items(conn: sqlite3.Connection, order_id: str) -> list[dict]:
+    rows = conn.execute(
+        "SELECT * FROM order_items WHERE order_id = ? ORDER BY id", (order_id,)
+    ).fetchall()
+    return [_db.order_item_dict(r) for r in rows]
+
+
 # ── order commands ──────────────────────────────────────────────────────────
 
 
@@ -80,6 +104,16 @@ def cmd_order_new(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     if args.bins < 1:
         _err("--bins must be >= 1")
         return 1
+    parsed: dict[str, int] = {}
+    labels: dict[str, str] = {}
+    for spec in (args.items or []):
+        it, qty, err = _parse_item(spec)
+        if err:
+            _err(f"--item '{spec}': {err}")
+            return 1
+        key = it.lower()
+        parsed[key] = parsed.get(key, 0) + qty
+        labels.setdefault(key, it)
     free_bins = conn.execute(
         "SELECT * FROM resources WHERE kind = 'bin' AND status = 'free' ORDER BY rowid"
     ).fetchall()
@@ -110,12 +144,20 @@ def cmd_order_new(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
         )
         _db.log_event(conn, lot_id, order_id, "intake",
                       to_step="nhan_hang", to_resource=bin_row["resource_id"], commit=False)
+    for key, qty in parsed.items():
+        conn.execute(
+            "INSERT INTO order_items (order_id, item_type, declared_qty, counted_qty, "
+            "created_at, updated_at) VALUES (?, ?, ?, NULL, ?, ?)",
+            (order_id, labels[key], qty, ts, ts),
+        )
+    if parsed:
+        _db.recompute_order_totals(conn, order_id)
     conn.commit()
 
-    order = _db.order_dict(_find_order(conn, order_id))
     lots = _order_lots(conn, order_id)
     if args.json:
-        _emit({"order": order, "lots": lots})
+        _emit({"order": _db.order_dict(_find_order(conn, order_id)),
+               "lots": lots, "items": _order_items(conn, order_id)})
     else:
         print(f"Created {order_id} for {args.phone} — {args.bins} parts "
               f"({', '.join(lot['current_resource'] for lot in lots)})")
@@ -586,6 +628,8 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--name", default=None)
     p.add_argument("--bins", type=int, required=True)
     p.add_argument("--note", default=None)
+    p.add_argument("--item", action="append", dest="items", default=None,
+                   metavar="TYPE:QTY", help="declared item line, repeatable, e.g. --item khăn:100")
     p.add_argument("--json", action="store_true")
     p.set_defaults(fn=cmd_order_new)
 
