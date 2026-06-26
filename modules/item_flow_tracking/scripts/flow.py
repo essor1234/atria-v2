@@ -417,8 +417,21 @@ def cmd_lot_deliver(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     if not lot:
         _err(f"lot not found: {args.lot}")
         return 1
-    if lot["item_count"] is None:
-        _err(f"cannot deliver — part not counted yet: {args.lot}")
+    # Gate: all order-level item types must be counted before any lot can be delivered.
+    items = conn.execute(
+        "SELECT COUNT(*) AS n, COUNT(counted_qty) AS c FROM order_items WHERE order_id = ?",
+        (lot["order_id"],),
+    ).fetchone()
+    if items["n"] == 0 or items["c"] < items["n"]:
+        if items["n"] == 0:
+            detail = "(chưa có dòng hàng)"
+        else:
+            rows = conn.execute(
+                "SELECT item_type FROM order_items WHERE order_id = ? AND counted_qty IS NULL",
+                (lot["order_id"],),
+            ).fetchall()
+            detail = ", ".join(r["item_type"] for r in rows)
+        _err(f"cannot deliver — chưa đếm hết: {detail}")
         return 1
     ts = _db.now()
     _free_lot_resource(conn, lot)

@@ -150,7 +150,6 @@ def _migrate(conn: sqlite3.Connection) -> None:
 def connect() -> sqlite3.Connection:
     """Open (creating + bootstrapping if needed) the flow DB."""
     path = db_path()
-    fresh = not path.exists()
     path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(path))
     conn.row_factory = sqlite3.Row
@@ -159,7 +158,7 @@ def connect() -> sqlite3.Connection:
     if int(conn.execute("PRAGMA user_version").fetchone()[0]) < SCHEMA_VERSION:
         conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
     _migrate(conn)
-    if fresh and conn.execute("SELECT COUNT(*) FROM resources").fetchone()[0] == 0:
+    if conn.execute("SELECT COUNT(*) FROM resources").fetchone()[0] == 0:
         seed_resources(conn)
     conn.commit()
     return conn
