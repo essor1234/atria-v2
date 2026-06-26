@@ -211,6 +211,38 @@ def cmd_order_show(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_order_count(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
+    order = _find_order(conn, args.order)
+    if not order:
+        _err(f"order not found: {args.order}")
+        return 1
+    if args.counted < 0:
+        _err("--counted must be >= 0")
+        return 1
+    row = conn.execute(
+        "SELECT * FROM order_items WHERE order_id = ? AND item_type = ? COLLATE NOCASE",
+        (args.order, args.type),
+    ).fetchone()
+    if not row:
+        _err(f"order {args.order} has no item type: {args.type}")
+        return 1
+    ts = _db.now()
+    conn.execute("UPDATE order_items SET counted_qty = ?, updated_at = ? WHERE id = ?",
+                 (args.counted, ts, row["id"]))
+    _db.recompute_order_totals(conn, args.order)
+    _db.log_event(conn, "-", args.order, "count",
+                  item_count=args.counted, notes=row["item_type"], commit=False)
+    conn.commit()
+    if args.json:
+        _emit({"order": _db.order_dict(_find_order(conn, args.order)),
+               "items": _order_items(conn, args.order)})
+    else:
+        o = _find_order(conn, args.order)
+        print(f"{args.order} · {row['item_type']} counted {args.counted} "
+              f"— order total = {o['total_items']}")
+    return 0
+
+
 def cmd_order_deliver(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     order = _find_order(conn, args.order)
     if not order:
@@ -326,20 +358,6 @@ def cmd_lot_move(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     return 0
 
 
-def _recompute_order_total(conn: sqlite3.Connection, order_id: str) -> int | None:
-    row = conn.execute(
-        "SELECT COUNT(item_count) AS counted, SUM(item_count) AS total "
-        "FROM lots WHERE order_id = ?",
-        (order_id,),
-    ).fetchone()
-    total = row["total"] if row["counted"] else None
-    conn.execute(
-        "UPDATE orders SET total_items = ?, updated_at = ? WHERE order_id = ?",
-        (total, _db.now(), order_id),
-    )
-    return total
-
-
 def _free_lot_resource(conn: sqlite3.Connection, lot: sqlite3.Row) -> None:
     if lot["current_resource"]:
         conn.execute("UPDATE resources SET status = 'free' WHERE resource_id = ?",
@@ -354,35 +372,6 @@ def _maybe_complete_order(conn: sqlite3.Connection, order_id: str) -> None:
     if row["n"] and row["done"] == row["n"]:
         conn.execute("UPDATE orders SET status = 'done', updated_at = ? WHERE order_id = ?",
                      (_db.now(), order_id))
-
-
-def cmd_lot_count(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
-    lot = _find_lot(conn, args.lot)
-    if not lot:
-        _err(f"lot not found: {args.lot}")
-        return 1
-    if args.items < 0:
-        _err("--items must be >= 0")
-        return 1
-    ts = _db.now()
-    conn.execute(
-        "UPDATE lots SET item_count = ?, updated_at = ? WHERE lot_id = ?",
-        (args.items, ts, args.lot),
-    )
-    _recompute_order_total(conn, lot["order_id"])
-    _db.log_event(conn, args.lot, lot["order_id"], "count",
-                  item_count=args.items, commit=False)
-    conn.commit()
-
-    if args.json:
-        _emit({
-            "lot": _db.lot_dict(_find_lot(conn, args.lot)),
-            "order": _db.order_dict(_find_order(conn, lot["order_id"])),
-        })
-    else:
-        order = _find_order(conn, lot["order_id"])
-        print(f"{args.lot} counted {args.items} — order total = {order['total_items']}")
-    return 0
 
 
 def cmd_lot_redo(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
@@ -646,6 +635,13 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--json", action="store_true")
     p.set_defaults(fn=cmd_order_show)
 
+    p = order.add_parser("count", help="record counted quantity for an item type")
+    p.add_argument("--order", required=True)
+    p.add_argument("--type", required=True)
+    p.add_argument("--counted", type=int, required=True)
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_order_count)
+
     p = order.add_parser("deliver", help="deliver a whole order (all parts must be counted)")
     p.add_argument("--order", required=True)
     p.add_argument("--json", action="store_true")
@@ -669,12 +665,6 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--force", action="store_true", help="override a busy target")
     p.add_argument("--json", action="store_true")
     p.set_defaults(fn=cmd_lot_move)
-
-    p = lot.add_parser("count", help="record counted item quantity for a lot")
-    p.add_argument("--lot", required=True)
-    p.add_argument("--items", type=int, required=True)
-    p.add_argument("--json", action="store_true")
-    p.set_defaults(fn=cmd_lot_count)
 
     p = lot.add_parser("redo", help="send a lot back to an earlier step (default giat)")
     p.add_argument("--lot", required=True)
