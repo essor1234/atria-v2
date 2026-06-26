@@ -182,3 +182,25 @@ def test_cancel_frees_resources(env):
     res = {r["resource_id"]: r["status"] for r in run_json(env, "resource", "list")["resources"]}
     assert all(res[b] == "free" for b in bins)
     assert run_json(env, "order", "show", "--order", oid)["order"]["status"] == "cancelled"
+
+
+# ── customer history + dashboard ─────────────────────────────────────────────
+
+
+def test_customer_history_groups_by_phone(env):
+    run_json(env, "order", "new", "--phone", "0908880000", "--bins", "1")
+    run_json(env, "order", "new", "--phone", "0908880000", "--bins", "1")
+    run_json(env, "order", "new", "--phone", "0908889999", "--bins", "1")
+    hist = run_json(env, "customer", "history", "--phone", "0908880000")
+    assert len(hist["orders"]) == 2
+
+
+def test_dashboard_payload_shape(env):
+    new = run_json(env, "order", "new", "--phone", "0909990000", "--bins", "2")
+    run_json(env, "lot", "move", "--lot", new["lots"][0]["lot_id"], "--to", "washer-1")
+    dash = run_json(env, "dashboard")
+    assert "resources" in dash and "orders" in dash and "steps" in dash
+    assert len(dash["resources"]) == 37  # 15+10+10+1+1
+    washer1 = next(r for r in dash["resources"] if r["resource_id"] == "washer-1")
+    assert washer1["occupant"] is not None
+    assert any(lot["lot_id"] == new["lots"][0]["lot_id"] for lot in dash["steps"]["giat"])

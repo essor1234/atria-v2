@@ -368,6 +368,102 @@ def cmd_lot_deliver(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     return 0
 
 
+# ── customer + resource + dashboard commands ────────────────────────────────
+
+
+def _resource_occupant(conn: sqlite3.Connection, rid: str) -> dict | None:
+    row = conn.execute(
+        "SELECT lot_id, order_id FROM lots WHERE current_resource = ? AND status = 'active'",
+        (rid,),
+    ).fetchone()
+    return {"lot_id": row["lot_id"], "order_id": row["order_id"]} if row else None
+
+
+def cmd_customer_history(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
+    rows = conn.execute(
+        "SELECT * FROM orders WHERE customer_phone = ? ORDER BY created_at DESC",
+        (args.phone,),
+    ).fetchall()
+    orders = []
+    for r in rows:
+        o = _db.order_dict(r)
+        o["lots"] = _order_lots(conn, r["order_id"])
+        orders.append(o)
+    if args.json:
+        _emit({"phone": args.phone, "orders": orders})
+    else:
+        print(f"{args.phone}: {len(orders)} orders")
+        for o in orders:
+            print(f"  {o['order_id']}  {o['status']:<9}  total={o['total_items']}")
+    return 0
+
+
+def cmd_resource_list(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
+    where: list[str] = []
+    params: list[object] = []
+    if args.kind:
+        where.append("kind = ?")
+        params.append(args.kind)
+    if args.status:
+        where.append("status = ?")
+        params.append(args.status)
+    sql = "SELECT * FROM resources"
+    if where:
+        sql += " WHERE " + " AND ".join(where)
+    sql += " ORDER BY rowid"
+    resources = []
+    for r in conn.execute(sql, params).fetchall():
+        d = _db.resource_dict(r)
+        d["occupant"] = _resource_occupant(conn, r["resource_id"])
+        resources.append(d)
+    if args.json:
+        _emit({"resources": resources})
+    else:
+        for d in resources:
+            who = d["occupant"]["lot_id"] if d["occupant"] else "-"
+            print(f"{d['resource_id']:<10}  {d['status']:<11}  {who}")
+    return 0
+
+
+def cmd_resource_set(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
+    r = _find_resource(conn, args.resource)
+    if not r:
+        _err(f"resource not found: {args.resource}")
+        return 1
+    conn.execute("UPDATE resources SET status = ? WHERE resource_id = ?",
+                 (args.status, args.resource))
+    conn.commit()
+    if args.json:
+        _emit({"resource": _db.resource_dict(_find_resource(conn, args.resource))})
+    else:
+        print(f"{args.resource} -> {args.status}")
+    return 0
+
+
+def cmd_dashboard(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
+    resources = []
+    for r in conn.execute("SELECT * FROM resources ORDER BY rowid").fetchall():
+        d = _db.resource_dict(r)
+        d["occupant"] = _resource_occupant(conn, r["resource_id"])
+        resources.append(d)
+
+    orders = []
+    for r in conn.execute(
+        "SELECT * FROM orders WHERE status = 'active' ORDER BY created_at DESC"
+    ).fetchall():
+        o = _db.order_dict(r)
+        o["lots"] = _order_lots(conn, r["order_id"])
+        orders.append(o)
+
+    steps: dict[str, list[dict]] = {s: [] for s in _db.STEPS}
+    for r in conn.execute("SELECT * FROM lots WHERE status = 'active'").fetchall():
+        lot = _db.lot_dict(r)
+        steps.setdefault(lot["step"], []).append(lot)
+
+    _emit({"resources": resources, "orders": orders, "steps": steps})
+    return 0
+
+
 # ── parser + dispatch ───────────────────────────────────────────────────────
 
 
@@ -435,6 +531,30 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--lot", required=True)
     p.add_argument("--json", action="store_true")
     p.set_defaults(fn=cmd_lot_deliver)
+
+    customer = sub.add_parser("customer", help="customer lookups").add_subparsers(
+        dest="cmd", required=True)
+    p = customer.add_parser("history", help="all orders for a phone number")
+    p.add_argument("--phone", required=True)
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_customer_history)
+
+    resource = sub.add_parser("resource", help="resource pool operations").add_subparsers(
+        dest="cmd", required=True)
+    p = resource.add_parser("list", help="list the resource pool")
+    p.add_argument("--kind", choices=["bin", "washer", "dryer", "fold", "count"], default=None)
+    p.add_argument("--status", choices=["free", "busy", "maintenance"], default=None)
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_resource_list)
+    p = resource.add_parser("set", help="manually set a resource status")
+    p.add_argument("--resource", required=True)
+    p.add_argument("--status", required=True, choices=["free", "busy", "maintenance"])
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_resource_set)
+
+    p = sub.add_parser("dashboard", help="emit the full dashboard JSON payload")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_dashboard)
 
     return parser
 
