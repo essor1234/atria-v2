@@ -18,5 +18,10 @@
       "dashboard": { "running": "Đang dựng dashboard…",    "done": "Sẵn sàng" },
       "report":    { "running": "Đang đối chiếu…",          "done": "Đã đối chiếu" }
     }
+  },
+  "subagent": {
+    "enabled": true,
+    "model": null,
+    "tools": null
   }
 }
