@@ -8,8 +8,8 @@ physical resources. The live store is a single ``flow.db`` file (see
 ledger.
 
 Subcommands:
-  order ..... new, list, show, deliver, cancel
-  lot ....... move, count, redo, deliver
+  order ..... new, list, show, count, deliver, cancel
+  lot ....... move, redo, deliver
   customer .. history
   resource .. list, set, add, retire
   data ...... dashboard, export, reset
