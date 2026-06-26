@@ -161,6 +161,62 @@ def cmd_order_show(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_order_deliver(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
+    order = _find_order(conn, args.order)
+    if not order:
+        _err(f"order not found: {args.order}")
+        return 1
+    lots = conn.execute("SELECT * FROM lots WHERE order_id = ?", (args.order,)).fetchall()
+    uncounted = [lot["lot_id"] for lot in lots if lot["item_count"] is None]
+    if uncounted:
+        _err(f"cannot deliver — not all parts counted: {', '.join(uncounted)}")
+        return 1
+    ts = _db.now()
+    for lot in lots:
+        _free_lot_resource(conn, lot)
+        conn.execute(
+            "UPDATE lots SET step = 'done', status = 'done', current_resource = NULL, "
+            "updated_at = ? WHERE lot_id = ?",
+            (ts, lot["lot_id"]),
+        )
+        _db.log_event(conn, lot["lot_id"], args.order, "deliver",
+                      from_step=lot["step"], to_step="done",
+                      from_resource=lot["current_resource"], commit=False)
+    conn.execute("UPDATE orders SET status = 'done', updated_at = ? WHERE order_id = ?",
+                 (ts, args.order))
+    conn.commit()
+    if args.json:
+        _emit({"order": _db.order_dict(_find_order(conn, args.order))})
+    else:
+        print(f"{args.order} delivered ({len(lots)} parts)")
+    return 0
+
+
+def cmd_order_cancel(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
+    order = _find_order(conn, args.order)
+    if not order:
+        _err(f"order not found: {args.order}")
+        return 1
+    lots = conn.execute("SELECT * FROM lots WHERE order_id = ?", (args.order,)).fetchall()
+    ts = _db.now()
+    for lot in lots:
+        _free_lot_resource(conn, lot)
+        conn.execute(
+            "UPDATE lots SET status = 'cancelled', current_resource = NULL, "
+            "updated_at = ? WHERE lot_id = ?",
+            (ts, lot["lot_id"]),
+        )
+        _db.log_event(conn, lot["lot_id"], args.order, "cancel", notes=args.reason, commit=False)
+    conn.execute("UPDATE orders SET status = 'cancelled', updated_at = ? WHERE order_id = ?",
+                 (ts, args.order))
+    conn.commit()
+    if args.json:
+        _emit({"order": _db.order_dict(_find_order(conn, args.order))})
+    else:
+        print(f"{args.order} cancelled")
+    return 0
+
+
 # ── lot commands ────────────────────────────────────────────────────────────
 
 
@@ -218,6 +274,22 @@ def _recompute_order_total(conn: sqlite3.Connection, order_id: str) -> int | Non
     return total
 
 
+def _free_lot_resource(conn: sqlite3.Connection, lot: sqlite3.Row) -> None:
+    if lot["current_resource"]:
+        conn.execute("UPDATE resources SET status = 'free' WHERE resource_id = ?",
+                     (lot["current_resource"],))
+
+
+def _maybe_complete_order(conn: sqlite3.Connection, order_id: str) -> None:
+    row = conn.execute(
+        "SELECT COUNT(*) AS n, SUM(status = 'done') AS done FROM lots WHERE order_id = ?",
+        (order_id,),
+    ).fetchone()
+    if row["n"] and row["done"] == row["n"]:
+        conn.execute("UPDATE orders SET status = 'done', updated_at = ? WHERE order_id = ?",
+                     (_db.now(), order_id))
+
+
 def cmd_lot_count(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     lot = _find_lot(conn, args.lot)
     if not lot:
@@ -272,6 +344,30 @@ def cmd_lot_redo(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_lot_deliver(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
+    lot = _find_lot(conn, args.lot)
+    if not lot:
+        _err(f"lot not found: {args.lot}")
+        return 1
+    ts = _db.now()
+    _free_lot_resource(conn, lot)
+    conn.execute(
+        "UPDATE lots SET step = 'done', status = 'done', current_resource = NULL, "
+        "updated_at = ? WHERE lot_id = ?",
+        (ts, args.lot),
+    )
+    _db.log_event(conn, args.lot, lot["order_id"], "deliver",
+                  from_step=lot["step"], to_step="done",
+                  from_resource=lot["current_resource"], commit=False)
+    _maybe_complete_order(conn, lot["order_id"])
+    conn.commit()
+    if args.json:
+        _emit({"order": _db.order_dict(_find_order(conn, lot["order_id"]))})
+    else:
+        print(f"{args.lot} delivered")
+    return 0
+
+
 # ── parser + dispatch ───────────────────────────────────────────────────────
 
 
@@ -301,6 +397,17 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--json", action="store_true")
     p.set_defaults(fn=cmd_order_show)
 
+    p = order.add_parser("deliver", help="deliver a whole order (all parts must be counted)")
+    p.add_argument("--order", required=True)
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_order_deliver)
+
+    p = order.add_parser("cancel", help="cancel an order and free its resources")
+    p.add_argument("--order", required=True)
+    p.add_argument("--reason", default=None)
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_order_cancel)
+
     lot = sub.add_parser("lot", help="lot (part) operations").add_subparsers(
         dest="cmd", required=True)
 
@@ -323,6 +430,11 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--notes", default=None)
     p.add_argument("--json", action="store_true")
     p.set_defaults(fn=cmd_lot_redo)
+
+    p = lot.add_parser("deliver", help="mark a single lot delivered/done")
+    p.add_argument("--lot", required=True)
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_lot_deliver)
 
     return parser
 

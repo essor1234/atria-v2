@@ -146,3 +146,39 @@ def test_redo_sets_flag_and_moves_step_back(env):
     redone = run_json(env, "lot", "redo", "--lot", lot["lot_id"], "--notes", "lem ban")
     assert redone["lot"]["is_redo"] is True
     assert redone["lot"]["step"] == "giat"  # default redo target
+
+
+# ── deliver + cancel ─────────────────────────────────────────────────────────
+
+
+def test_order_deliver_requires_all_counted(env):
+    new = run_json(env, "order", "new", "--phone", "0907770000", "--bins", "2")
+    oid = new["order"]["order_id"]
+    run_json(env, "lot", "count", "--lot", new["lots"][0]["lot_id"], "--items", "5")
+    blocked = run(env, "order", "deliver", "--order", oid, "--json")
+    assert blocked.returncode != 0
+    assert "counted" in blocked.stderr
+
+    run_json(env, "lot", "count", "--lot", new["lots"][1]["lot_id"], "--items", "7")
+    ok = run_json(env, "order", "deliver", "--order", oid)
+    assert ok["order"]["status"] == "done"
+
+
+def test_lot_deliver_completes_order_when_last(env):
+    new = run_json(env, "order", "new", "--phone", "0907771111", "--bins", "2")
+    oid = new["order"]["order_id"]
+    run_json(env, "lot", "deliver", "--lot", new["lots"][0]["lot_id"])
+    mid = run_json(env, "order", "show", "--order", oid)
+    assert mid["order"]["status"] == "active"
+    last = run_json(env, "lot", "deliver", "--lot", new["lots"][1]["lot_id"])
+    assert last["order"]["status"] == "done"
+
+
+def test_cancel_frees_resources(env):
+    new = run_json(env, "order", "new", "--phone", "0907772222", "--bins", "2")
+    oid = new["order"]["order_id"]
+    bins = [lot["current_resource"] for lot in new["lots"]]
+    run_json(env, "order", "cancel", "--order", oid, "--reason", "khach huy")
+    res = {r["resource_id"]: r["status"] for r in run_json(env, "resource", "list")["resources"]}
+    assert all(res[b] == "free" for b in bins)
+    assert run_json(env, "order", "show", "--order", oid)["order"]["status"] == "cancelled"
