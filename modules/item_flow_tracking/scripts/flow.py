@@ -91,6 +91,7 @@ def _parse_item(spec: str) -> tuple[str | None, int | None, str | None]:
 
 
 def _order_items(conn: sqlite3.Connection, order_id: str) -> list[dict]:
+    """Return an order's declared/counted item lines in insertion order."""
     rows = conn.execute(
         "SELECT * FROM order_items WHERE order_id = ? ORDER BY id", (order_id,)
     ).fetchall()
@@ -111,6 +112,7 @@ def cmd_order_new(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
         if err:
             _err(f"--item '{spec}': {err}")
             return 1
+        assert it is not None and qty is not None  # narrowed: err is None here
         key = it.lower()
         parsed[key] = parsed.get(key, 0) + qty
         labels.setdefault(key, it)
