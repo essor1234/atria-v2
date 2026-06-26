@@ -201,6 +201,7 @@ def cmd_order_show(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
         return 1
     order = _db.order_dict(row)
     order["lots"] = _order_lots(conn, args.order)
+    order["items"] = _order_items(conn, args.order)
     if args.json:
         _emit({"order": order})
     else:
@@ -208,6 +209,9 @@ def cmd_order_show(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
         for lot in order["lots"]:
             print(f"  {lot['label']}  {lot['step_label']:<12}  "
                   f"@ {lot['current_resource'] or '-'}  count={lot['item_count']}")
+        for it in order["items"]:
+            cnt = "—" if it["counted_qty"] is None else it["counted_qty"]
+            print(f"  {it['item_type']:<12} khai {it['declared_qty']:<5} đếm {cnt}")
     return 0
 
 
@@ -249,9 +253,11 @@ def cmd_order_deliver(conn: sqlite3.Connection, args: argparse.Namespace) -> int
         _err(f"order not found: {args.order}")
         return 1
     lots = conn.execute("SELECT * FROM lots WHERE order_id = ?", (args.order,)).fetchall()
-    uncounted = [lot["lot_id"] for lot in lots if lot["item_count"] is None]
-    if uncounted:
-        _err(f"cannot deliver — not all parts counted: {', '.join(uncounted)}")
+    items = conn.execute("SELECT * FROM order_items WHERE order_id = ?", (args.order,)).fetchall()
+    uncounted = [r["item_type"] for r in items if r["counted_qty"] is None]
+    if not items or uncounted:
+        detail = ", ".join(uncounted) if uncounted else "(chưa có dòng hàng để đếm)"
+        _err(f"cannot deliver — chưa đếm hết: {detail}")
         return 1
     ts = _db.now()
     for lot in lots:
@@ -365,11 +371,17 @@ def _free_lot_resource(conn: sqlite3.Connection, lot: sqlite3.Row) -> None:
 
 
 def _maybe_complete_order(conn: sqlite3.Connection, order_id: str) -> None:
-    row = conn.execute(
+    lot = conn.execute(
         "SELECT COUNT(*) AS n, SUM(status = 'done') AS done FROM lots WHERE order_id = ?",
         (order_id,),
     ).fetchone()
-    if row["n"] and row["done"] == row["n"]:
+    if not (lot["n"] and lot["done"] == lot["n"]):
+        return
+    it = conn.execute(
+        "SELECT COUNT(*) AS n, COUNT(counted_qty) AS c FROM order_items WHERE order_id = ?",
+        (order_id,),
+    ).fetchone()
+    if it["n"] and it["c"] == it["n"]:
         conn.execute("UPDATE orders SET status = 'done', updated_at = ? WHERE order_id = ?",
                      (_db.now(), order_id))
 
