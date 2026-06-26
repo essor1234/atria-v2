@@ -13,6 +13,7 @@ Subcommands:
   customer .. history
   resource .. list, set, add, retire
   data ...... dashboard, export, reset
+  report .... reconcile
 """
 
 from __future__ import annotations
@@ -616,6 +617,45 @@ def cmd_dashboard(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     return 0
 
 
+# ── report commands ────────────────────────────────────────────────────────
+
+
+def cmd_report_reconcile(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
+    where = ["o.status != 'cancelled'"]
+    params: list[object] = []
+    if args.phone:
+        where.append("o.customer_phone = ?")
+        params.append(args.phone)
+    sql = (
+        "SELECT o.customer_phone AS phone, oi.item_type AS item_type, "
+        "SUM(oi.declared_qty) AS declared, COALESCE(SUM(oi.counted_qty), 0) AS counted "
+        "FROM order_items oi JOIN orders o ON o.order_id = oi.order_id "
+        "WHERE " + " AND ".join(where) +
+        " GROUP BY o.customer_phone, oi.item_type COLLATE NOCASE "
+        "ORDER BY o.customer_phone, oi.item_type"
+    )
+    customers: dict[str, dict] = {}
+    for r in conn.execute(sql, params).fetchall():
+        c = customers.setdefault(r["phone"], {
+            "customer_phone": r["phone"], "items": [], "owed_total": 0, "extra_total": 0})
+        declared, counted = int(r["declared"]), int(r["counted"])
+        owed, extra = max(0, declared - counted), max(0, counted - declared)
+        c["items"].append({"item_type": r["item_type"], "declared": declared,
+                           "counted": counted, "owed": owed, "extra": extra})
+        c["owed_total"] += owed
+        c["extra_total"] += extra
+    result = list(customers.values())
+    if args.json:
+        _emit({"customers": result})
+    else:
+        for c in result:
+            print(f"{c['customer_phone']}  nợ {c['owed_total']} · thừa {c['extra_total']}")
+            for it in c["items"]:
+                print(f"  {it['item_type']:<12} khai {it['declared']:<5} "
+                      f"đếm {it['counted']:<5} nợ {it['owed']} thừa {it['extra']}")
+    return 0
+
+
 # ── parser + dispatch ───────────────────────────────────────────────────────
 
 
@@ -733,6 +773,13 @@ def _build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("dashboard", help="emit the full dashboard JSON payload")
     p.add_argument("--json", action="store_true")
     p.set_defaults(fn=cmd_dashboard)
+
+    report = sub.add_parser("report", help="reporting").add_subparsers(
+        dest="cmd", required=True)
+    p = report.add_parser("reconcile", help="declared vs counted per customer + type")
+    p.add_argument("--phone", default=None)
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_report_reconcile)
 
     return parser
 
