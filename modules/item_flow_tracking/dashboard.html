@@ -192,6 +192,10 @@
     .chip.redo { border-color: hsl(var(--st-redo) / 0.5); background: hsl(var(--st-redo-soft) / 0.5); }
     .chip .redo-tag { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.04em; color: hsl(var(--st-redo)); font-weight: 600; }
 
+    .items { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+    .iline { font-size: 11px; padding: 3px 8px; border-radius: 999px; border: 1px solid hsl(var(--hairline-soft)); font-family: 'JetBrains Mono', monospace; }
+    .iline.owed { border-color: hsl(var(--st-redo) / 0.5); background: hsl(var(--st-redo-soft) / 0.5); color: hsl(var(--st-redo)); }
+
     .empty { padding: 28px 12px; text-align: center; color: hsl(var(--muted-ink)); font-size: 13px; }
     .err { min-height: 16px; font-size: 12px; color: hsl(var(--st-redo)); }
     .skeleton { opacity: 0.55; }
@@ -524,6 +528,17 @@
             parts.appendChild(chip);
           });
           d.appendChild(hd); d.appendChild(parts);
+          var items = document.createElement("div");
+          items.className = "items";
+          (o.items || []).forEach(function (it) {
+            var line = document.createElement("span");
+            var counted = it.counted_qty == null ? "—" : it.counted_qty;
+            var owed = it.counted_qty != null && it.counted_qty < it.declared_qty;
+            line.className = "iline" + (owed ? " owed" : "");
+            line.textContent = it.item_type + " " + (it.counted_qty == null ? "" : counted + "/") + it.declared_qty;
+            items.appendChild(line);
+          });
+          if ((o.items || []).length) d.appendChild(items);
           el.orders.appendChild(d);
         });
       }

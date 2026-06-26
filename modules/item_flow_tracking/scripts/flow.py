@@ -606,6 +606,7 @@ def cmd_dashboard(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     ).fetchall():
         o = _db.order_dict(r)
         o["lots"] = _order_lots(conn, r["order_id"])
+        o["items"] = _order_items(conn, r["order_id"])
         orders.append(o)
 
     steps: dict[str, list[dict]] = {s: [] for s in _db.STEPS}
