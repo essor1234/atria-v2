@@ -13,7 +13,7 @@ import re
 from pathlib import Path
 
 from atria.core.modules.registry import ModuleRegistry
-from atria.core.modules.store import parse_frontmatter
+from atria.core.modules.store import Module, parse_frontmatter
 
 _HEADING_RE = re.compile(r"^#{1,6}\s")
 
@@ -82,6 +82,32 @@ def _format_files(files: list[str]) -> str:
     return f"Files: {', '.join(shown)}{suffix}"
 
 
+def render_module_section(m: Module) -> list[str]:
+    """Render one module's catalog lines (heading, summary, sub-skill index).
+
+    Shared by the always-on Active Modules block and the per-module gateway
+    block injected into a module's dedicated subagent.
+    """
+    _, body = parse_frontmatter(m.skill_md)
+    section = [f"### {m.name}", "", (m.description or "").strip()]
+
+    when = _extract_section(body, "When to use")
+    if when:
+        section += ["", "**When to use:**", when]
+
+    if m.subskills:
+        section += ["", "**Sub-skills** (load individually with `invoke_skill`):"]
+        for s in m.subskills:
+            section.append(f'- `invoke_skill("{m.name}:{s.name}")` — {s.description}')
+
+    section += ["", f'Full guide: `invoke_skill("{m.name}")`']
+
+    listing = _format_files(list(m.files))
+    if listing:
+        section += ["", listing]
+    return section
+
+
 def build_skill_block(registry: ModuleRegistry) -> str:
     """Return the lazy module catalog (header + a summary per module). Empty if none."""
     modules = registry.all()
@@ -89,23 +115,5 @@ def build_skill_block(registry: ModuleRegistry) -> str:
         return ""
     parts = [_header(registry.root)]
     for m in modules:
-        _, body = parse_frontmatter(m.skill_md)
-        section = [f"### {m.name}", "", (m.description or "").strip()]
-
-        when = _extract_section(body, "When to use")
-        if when:
-            section += ["", "**When to use:**", when]
-
-        if m.subskills:
-            section += ["", "**Sub-skills** (load individually with `invoke_skill`):"]
-            for s in m.subskills:
-                section.append(f'- `invoke_skill("{m.name}:{s.name}")` — {s.description}')
-
-        section += ["", f'Full guide: `invoke_skill("{m.name}")`']
-
-        listing = _format_files(list(m.files))
-        if listing:
-            section += ["", listing]
-
-        parts.append("\n".join(section) + "\n")
+        parts.append("\n".join(render_module_section(m)) + "\n")
     return "\n".join(parts)
