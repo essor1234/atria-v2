@@ -161,6 +161,49 @@ def cmd_order_show(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     return 0
 
 
+# ── lot commands ────────────────────────────────────────────────────────────
+
+
+def cmd_lot_move(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
+    lot = _find_lot(conn, args.lot)
+    if not lot:
+        _err(f"lot not found: {args.lot}")
+        return 1
+    if lot["status"] != "active":
+        _err(f"lot is not active: {args.lot} ({lot['status']})")
+        return 1
+    target = _find_resource(conn, args.to)
+    if not target:
+        _err(f"resource not found: {args.to}")
+        return 1
+
+    old = lot["current_resource"]
+    if target["status"] == "busy" and target["resource_id"] != old and not args.force:
+        _err(f"resource busy: {args.to} (use --force to override)")
+        return 1
+
+    new_step = _db.RESOURCE_KIND_TO_STEP.get(target["kind"], lot["step"])
+    ts = _db.now()
+    if old and old != target["resource_id"]:
+        conn.execute("UPDATE resources SET status = 'free' WHERE resource_id = ?", (old,))
+    conn.execute("UPDATE resources SET status = 'busy' WHERE resource_id = ?",
+                 (target["resource_id"],))
+    conn.execute(
+        "UPDATE lots SET step = ?, current_resource = ?, updated_at = ? WHERE lot_id = ?",
+        (new_step, target["resource_id"], ts, args.lot),
+    )
+    _db.log_event(conn, args.lot, lot["order_id"], "move",
+                  from_step=lot["step"], to_step=new_step,
+                  from_resource=old, to_resource=target["resource_id"], commit=False)
+    conn.commit()
+
+    if args.json:
+        _emit({"lot": _db.lot_dict(_find_lot(conn, args.lot))})
+    else:
+        print(f"{args.lot} → {target['label']} ({_db.STEP_LABELS.get(new_step, new_step)})")
+    return 0
+
+
 # ── parser + dispatch ───────────────────────────────────────────────────────
 
 
@@ -189,6 +232,16 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--order", required=True)
     p.add_argument("--json", action="store_true")
     p.set_defaults(fn=cmd_order_show)
+
+    lot = sub.add_parser("lot", help="lot (part) operations").add_subparsers(
+        dest="cmd", required=True)
+
+    p = lot.add_parser("move", help="move a lot into a resource (step inferred)")
+    p.add_argument("--lot", required=True)
+    p.add_argument("--to", required=True, help="target resource_id, e.g. washer-3 or bin-5")
+    p.add_argument("--force", action="store_true", help="override a busy target")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_lot_move)
 
     return parser
 

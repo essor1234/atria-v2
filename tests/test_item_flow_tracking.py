@@ -86,3 +86,41 @@ def test_order_show_lists_parts(env):
     shown = run_json(env, "order", "show", "--order", oid)
     assert shown["order"]["order_id"] == oid
     assert len(shown["order"]["lots"]) == 2
+
+
+# ── moving lots between resources ────────────────────────────────────────────
+
+
+def _first_lot(env, phone="0905550000", bins=1):
+    payload = run_json(env, "order", "new", "--phone", phone, "--bins", str(bins))
+    return payload["lots"][0]
+
+
+def test_move_into_washer_infers_giat_step(env):
+    lot = _first_lot(env)
+    moved = run_json(env, "lot", "move", "--lot", lot["lot_id"], "--to", "washer-1")
+    assert moved["lot"]["step"] == "giat"
+    assert moved["lot"]["current_resource"] == "washer-1"
+    # the original bin is freed, the washer is now busy
+    res = {r["resource_id"]: r["status"] for r in run_json(env, "resource", "list")["resources"]}
+    assert res["washer-1"] == "busy"
+    assert res[lot["current_resource"]] == "free"
+
+
+def test_move_into_bin_keeps_step(env):
+    lot = _first_lot(env, phone="0905550001")
+    run_json(env, "lot", "move", "--lot", lot["lot_id"], "--to", "washer-2")
+    moved = run_json(env, "lot", "move", "--lot", lot["lot_id"], "--to", "bin-2")
+    assert moved["lot"]["step"] == "giat"  # bin does not change the step
+    assert moved["lot"]["current_resource"] == "bin-2"
+
+
+def test_move_rejects_busy_target_without_force(env):
+    a = _first_lot(env, phone="0905550002")
+    b = _first_lot(env, phone="0905550003")
+    run_json(env, "lot", "move", "--lot", a["lot_id"], "--to", "washer-5")
+    r = run(env, "lot", "move", "--lot", b["lot_id"], "--to", "washer-5", "--json")
+    assert r.returncode != 0
+    assert "busy" in r.stderr
+    ok = run(env, "lot", "move", "--lot", b["lot_id"], "--to", "washer-5", "--force", "--json")
+    assert ok.returncode == 0
