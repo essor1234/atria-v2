@@ -8,7 +8,9 @@ from pathlib import Path
 
 import pytest
 
-SCRIPT = Path(__file__).resolve().parents[1] / "modules" / "item_flow_tracking" / "scripts" / "flow.py"
+SCRIPT = (
+    Path(__file__).resolve().parents[1] / "modules" / "item_flow_tracking" / "scripts" / "flow.py"
+)
 
 
 @pytest.fixture()
@@ -22,7 +24,10 @@ def env(tmp_path):
 def run(env, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
         [sys.executable, str(SCRIPT), *args],
-        capture_output=True, text=True, check=False, env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
     )
 
 
@@ -48,8 +53,9 @@ def test_fresh_db_seeds_resource_pool(env):
 
 
 def test_order_new_creates_lots_and_assigns_bins(env):
-    payload = run_json(env, "order", "new", "--phone", "0901234567",
-                       "--name", "Khach A", "--bins", "3")
+    payload = run_json(
+        env, "order", "new", "--phone", "0901234567", "--name", "Khach A", "--bins", "3"
+    )
     order = payload["order"]
     lots = payload["lots"]
     assert order["order_id"].startswith("DH-")
@@ -131,7 +137,6 @@ def test_move_rejects_busy_target_without_force(env):
 
 def test_count_sums_to_order_total(env):
     new = run_json(env, "order", "new", "--phone", "0906660000", "--bins", "2")
-    oid = new["order"]["order_id"]
     p1, p2 = new["lots"][0]["lot_id"], new["lots"][1]["lot_id"]
 
     first = run_json(env, "lot", "count", "--lot", p1, "--items", "10")
