@@ -1,14 +1,14 @@
 """Tool handlers + orchestrator builder for solve_parallel / get_parallel_result.
 
 The orchestrator bridges the (loopless) agent thread to async work (Redis job
-store + blackboard reads) via a persistent daemon-thread event loop, mirroring
-the shape of ``TaskIQClient``/``BlackboardHandle``.
+store + blackboard reads). It reuses the run's ``TaskIQClient`` event loop rather
+than spinning up a second one, so all async work for a parallel job shares one
+loop (and the redis client binds to it consistently).
 """
 from __future__ import annotations
 
 import asyncio
 import logging
-import threading
 from pathlib import Path
 from typing import Any, Callable
 
@@ -16,22 +16,6 @@ from atria.core.parallel.job_store import JobStore
 from atria.core.parallel.orchestrator import ParallelOrchestrator
 
 logger = logging.getLogger(__name__)
-
-
-class _LoopRunner:
-    """Persistent daemon-thread event loop; run coroutines synchronously."""
-
-    def __init__(self) -> None:
-        self._loop = asyncio.new_event_loop()
-        self._thread = threading.Thread(target=self._run, daemon=True)
-        self._thread.start()
-
-    def _run(self) -> None:
-        asyncio.set_event_loop(self._loop)
-        self._loop.run_forever()
-
-    def run(self, coro: Any) -> Any:
-        return asyncio.run_coroutine_threadsafe(coro, self._loop).result()
 
 
 def build_orchestrator(
@@ -44,19 +28,29 @@ def build_orchestrator(
     """Construct a ParallelOrchestrator from a run's task client + helpers.
 
     Args:
-        task_client: The run's TaskIQClient (sync enqueue/await).
+        task_client: The run's TaskIQClient (sync enqueue/await). Its persistent
+            event loop is reused to run the orchestrator's async work.
         worktree_manager: A WorktreeManager bound to the repo.
         config: The AppConfig (its ``.parallel`` section configures the orchestrator).
         llm_call: Callable (system, user) -> assistant_text for the judge.
         redis_client: Optional async redis client; one is created from
-            ``config.parallel.redis_url`` when omitted (caller/runner-owned).
+            ``config.parallel.redis_url`` when omitted. It binds to the task
+            client's loop on first use.
     """
-    runner = _LoopRunner()
     parallel_cfg = getattr(config, "parallel", None) or config
+    # Ensure the task client's background loop is running, then reuse it for the
+    # orchestrator's coroutines (job-store + blackboard reads).
+    task_client.startup()
+
+    def run_async(coro: Any) -> Any:
+        return asyncio.run_coroutine_threadsafe(coro, task_client._loop).result()
+
     if redis_client is None:
         import redis.asyncio as aioredis
 
-        redis_client = aioredis.from_url(getattr(parallel_cfg, "redis_url", "redis://localhost:6379/0"))
+        redis_client = aioredis.from_url(
+            getattr(parallel_cfg, "redis_url", "redis://localhost:6379/0")
+        )
     job_store = JobStore(redis_client)
     return ParallelOrchestrator(
         task_client=task_client,
@@ -65,7 +59,7 @@ def build_orchestrator(
         redis_client=redis_client,
         llm_call=llm_call,
         config=parallel_cfg,
-        run_async=runner.run,
+        run_async=run_async,
     )
 
 
@@ -118,4 +112,4 @@ def execute_get_parallel_result(arguments: dict, orchestrator: ParallelOrchestra
     except Exception as exc:  # noqa: BLE001
         logger.warning("get_parallel_result collect failed: %s", exc)
         return {"success": False, "error": f"get_parallel_result failed: {exc}", "output": None}
-    return {"success": result.get("status") != "unknown", "output": result, **result}
+    return {"success": result.get("status") != "unknown", "output": result}

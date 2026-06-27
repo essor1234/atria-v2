@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Callable
 
 from atria.core.parallel.apply import apply_diff
@@ -78,8 +79,16 @@ class ParallelOrchestrator:
         rec = self._run_async(self._js.load(job_id))
         if rec is None:
             return {"status": "unknown", "error": f"no such job {job_id}"}
-        results = [self._tc.await_result(tid, block=block, timeout_ms=timeout_ms)
-                   for tid in rec["task_ids"]]
+        # Await all solvers concurrently (they share the task client's loop); a
+        # thread pool keeps wall-clock ~= the slowest solver, not their sum.
+        task_ids = rec["task_ids"]
+        with ThreadPoolExecutor(max_workers=len(task_ids)) as ex:
+            results = list(
+                ex.map(
+                    lambda tid: self._tc.await_result(tid, block=block, timeout_ms=timeout_ms),
+                    task_ids,
+                )
+            )
         done = [r for r in results if r.get("status") == "done"]
         if len(done) < len(results):
             return {"status": "running", "done": len(done), "n": rec["n"]}

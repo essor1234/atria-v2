@@ -704,6 +704,14 @@ class ToolRegistry:
             "Subagents currently run synchronously.",
         }
 
+    def _get_repo_dir(self) -> str:
+        """Return the run's repo/working directory, defaulting to '.'."""
+        return (
+            str(self.file_ops.working_dir)
+            if self.file_ops and getattr(self.file_ops, "working_dir", None)
+            else "."
+        )
+
     def _get_parallel_orchestrator(self) -> Any:
         """Build (once per run) the ParallelOrchestrator from this run's context.
 
@@ -717,16 +725,11 @@ class ToolRegistry:
         task_client = getattr(mgr, "_task_client", None) if mgr is not None else None
         if task_client is None:
             return None
-        repo_dir = (
-            str(self.file_ops.working_dir)
-            if self.file_ops and getattr(self.file_ops, "working_dir", None)
-            else "."
-        )
         from atria.core.parallel.tools import build_orchestrator, make_worktree_manager
 
         self._parallel_orchestrator = build_orchestrator(
             task_client=task_client,
-            worktree_manager=make_worktree_manager(repo_dir),
+            worktree_manager=make_worktree_manager(self._get_repo_dir()),
             config=self._app_config,
             llm_call=self.skill_ctx.llm_chat,
         )
@@ -744,11 +747,7 @@ class ToolRegistry:
                 "Requires a running TaskIQ worker + Redis.",
                 "output": None,
             }
-        repo_dir = (
-            str(self.file_ops.working_dir)
-            if self.file_ops and getattr(self.file_ops, "working_dir", None)
-            else "."
-        )
+        repo_dir = self._get_repo_dir()
         _sess_mgr = getattr(context, "session_manager", None) if context else None
         _current = getattr(_sess_mgr, "current_session", None) if _sess_mgr else None
         owner_id = (getattr(_current, "owner_id", None) or "") if _current else ""
@@ -852,10 +851,6 @@ class ToolRegistry:
             if tool_name == "spawn_subagent":
                 # spawn_subagent needs tool_call_id for parent context tracking
                 result = self._execute_spawn_subagent(arguments, context, tool_call_id)
-            elif tool_name == "solve_parallel":
-                result = self._execute_solve_parallel(arguments, context)
-            elif tool_name == "get_parallel_result":
-                result = self._execute_get_parallel_result(arguments, context)
             elif tool_name in {
                 "write_file",
                 "edit_file",
@@ -870,6 +865,8 @@ class ToolRegistry:
                 "list_artifact_images",
                 "read_artifact_image",
                 "NOTE",
+                "solve_parallel",
+                "get_parallel_result",
             }:
                 # Handlers requiring context
                 result = handler(arguments, context)
