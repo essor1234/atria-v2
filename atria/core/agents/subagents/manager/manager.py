@@ -68,6 +68,7 @@ class SubAgentDeps:
     approval_manager: Any
     undo_manager: Any
     session_manager: Any = None
+    blackboard: Any = None  # BlackboardHandle for shared verified notes (Phase 2a/2b)
 
 
 class SubAgentManager(RegistrationMixin, DockerMixin, ExecutionMixin, BackgroundMixin):

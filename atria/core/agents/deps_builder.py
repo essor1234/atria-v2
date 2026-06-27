@@ -94,4 +94,19 @@ def build_runtime_and_deps(
                                # fresh on payload.prompt. execute_subagent never reads
                                # deps.session_manager (verified).
     )
+
+    # Blackboard (Phase 2b): when the payload carries a blackboard task id, attach a
+    # per-solver handle at this thread_id so the NOTE tool + Shared Lessons injection
+    # are active for the run. Accelerant — None when unavailable. The caller
+    # (run_background_subagent) tears this handle down after the run.
+    if payload.blackboard_task_id:
+        from atria.core.blackboard.provision import make_solver_blackboard
+
+        deps.blackboard = make_solver_blackboard(
+            config,
+            task_id=payload.blackboard_task_id,
+            owner_id=payload.owner_id,
+            thread_id=payload.thread_id,
+        )
+
     return runtime_suite, deps

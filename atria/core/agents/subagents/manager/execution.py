@@ -243,6 +243,13 @@ class ExecutionMixin:
                     depth=1,
                 )
 
+        # Blackboard (Phase 2b): when the run carries a handle (e.g. a parallel
+        # solver), expose it on the agent so the system-prompt builder can inject
+        # Shared Lessons. Tool execution reads deps.blackboard directly in the
+        # run loop, so the NOTE tool is active regardless of this.
+        if getattr(deps, "blackboard", None) is not None:
+            agent._blackboard_handle = deps.blackboard
+
         # Execute with isolated context (fresh message history)
         # No iteration cap — subagent stops when its prompt tells it to
         result = agent.run_sync(

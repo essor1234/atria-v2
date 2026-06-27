@@ -47,6 +47,7 @@ def _run_subagent_sync(runtime_suite: Any, deps: Any, payload: SubagentTaskPaylo
 async def run_background_subagent(payload: dict) -> dict:
     """Rebuild a headless runtime from the payload and run the subagent."""
     p = SubagentTaskPayload.model_validate(payload)
+    deps: Any = None
     try:
         runtime_suite, deps = build_runtime_and_deps(p)
         return await asyncio.to_thread(_run_subagent_sync, runtime_suite, deps, p)
@@ -58,3 +59,10 @@ async def run_background_subagent(payload: dict) -> dict:
             "messages": [],
             "completion_status": "error",
         }
+    finally:
+        # Blackboard (Phase 2b): archive (best-effort) + shut down a solver's handle.
+        handle = getattr(deps, "blackboard", None) if deps is not None else None
+        if handle is not None:
+            from atria.core.blackboard.provision import teardown_run_blackboard
+
+            teardown_run_blackboard(handle)
