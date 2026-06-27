@@ -1,4 +1,3 @@
-import os
 
 import pytest
 from fakeredis import aioredis as fake_aioredis
