@@ -475,6 +475,16 @@ class ToolRegistry:
         # Get task_monitor from context for interrupt support
         task_monitor = context.task_monitor if context else None
 
+        # Background execution: read the flag and best-effort session identity.
+        # ToolExecutionContext exposes no session_id/owner_id directly; pull them
+        # from the session manager's current session when available (metadata only —
+        # the worker does not reload the session).
+        run_in_background = bool(arguments.get("run_in_background", False))
+        _sess_mgr = getattr(context, "session_manager", None) if context else None
+        _current = getattr(_sess_mgr, "current_session", None) if _sess_mgr else None
+        owner_id = (getattr(_current, "owner_id", None) or "") if _current else ""
+        session_id = str(getattr(_current, "session_id", "") or "") if _current else ""
+
         # show_spawn_header=False because react_executor already showed the Spawn[] header
         # via on_tool_call before calling this tool handler
         result = self._subagent_manager.execute_subagent(
@@ -485,7 +495,26 @@ class ToolRegistry:
             task_monitor=task_monitor,
             show_spawn_header=False,
             tool_call_id=tool_call_id,  # Pass for parent context tracking
+            run_in_background=run_in_background,
+            owner_id=owner_id,
+            session_id=session_id,
+            config_snapshot={},
         )
+
+        # Background subagent: return the task_id; collection happens later via
+        # get_subagent_output. Skip child-session save and shallow-spawn checks
+        # (those assume a completed synchronous run).
+        if result.get("background"):
+            return {
+                "success": True,
+                "output": (
+                    f"[BACKGROUND STARTED] task_id={result['task_id']}. "
+                    "Use get_subagent_output(task_id) to collect the result."
+                ),
+                "task_id": result["task_id"],
+                "status": "running",
+                "subagent_type": subagent_type,
+            }
 
         # Save subagent conversation as a child session for navigation (Ctrl+G)
         self._save_subagent_session(
