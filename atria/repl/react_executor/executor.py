@@ -418,6 +418,18 @@ class ReactExecutor(ThinkingMixin, ToolProcessingMixin, SessionPersistenceMixin,
                 f"Processing query: {query[:50]}{'...' if len(query) > 50 else ''}", "QUERY"
             )
 
+        # Blackboard: provision a per-run handle (flag-gated; None when disabled).
+        # Tool execution reads it from self._blackboard_handle in tool_processing.
+        from atria.core.blackboard.provision import make_run_blackboard, teardown_run_blackboard
+
+        sess = getattr(self.session_manager, "current_session", None)
+        self._blackboard_handle = make_run_blackboard(
+            config=self.config,
+            task_id=getattr(sess, "id", "") or "",
+            owner_id=getattr(sess, "owner_id", "") or "",
+            session_factory=getattr(self.session_manager, "_sm", None),
+        )
+
         try:
             while True:
                 # Drain any injected user messages before this iteration
@@ -491,6 +503,10 @@ class ReactExecutor(ThinkingMixin, ToolProcessingMixin, SessionPersistenceMixin,
                     app._interrupt_manager.clear_interrupt_token()
 
             self._active_interrupt_token = None
+
+            # Blackboard: archive (best-effort) + shut down the per-run handle.
+            teardown_run_blackboard(getattr(self, "_blackboard_handle", None))
+            self._blackboard_handle = None
 
         # Final drain: re-queue or persist any late-arriving injected messages (EC1)
         while True:

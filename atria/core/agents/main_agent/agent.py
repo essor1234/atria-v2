@@ -216,7 +216,10 @@ class MainAgent(HttpClientMixin, LlmCallsMixin, RunLoopMixin, BaseAgent):
             return full
 
         builder = SystemPromptBuilder(
-            self.tool_registry, self._working_dir, env_context=self._env_context
+            self.tool_registry,
+            self._working_dir,
+            env_context=self._env_context,
+            blackboard=getattr(self, "_blackboard_handle", None),
         )
         stable, dynamic = builder.build_two_part()
         self._system_stable = stable

@@ -362,6 +362,26 @@ class AgentExecutor:
         agent.tool_registry = wrapped_registry
         agent._cost_tracker = cost_tracker
 
+        # Blackboard: provision a per-run handle (flag-gated; None when disabled).
+        # Set on the agent BEFORE the system prompt is consumed below so the
+        # Shared Lessons section can be injected; also set on the react_executor
+        # (created later) so tool execution sees it.
+        from atria.core.blackboard.provision import (
+            make_run_blackboard,
+            teardown_run_blackboard,
+        )
+
+        bb_handle = make_run_blackboard(
+            config=config,
+            task_id=session_id or "",
+            owner_id=getattr(session, "owner_id", "") or "",
+            session_factory=getattr(self.state.session_manager, "_sm", None),
+        )
+        if bb_handle is not None:
+            agent._blackboard_handle = bb_handle
+            # Rebuild so the dynamic Shared Lessons section is included in the prompt.
+            agent.system_prompt = agent.build_system_prompt()
+
         # Point session manager at the right session for this execution.
         # Protected by lock to avoid race conditions with concurrent requests.
         with self._session_lock:
@@ -443,6 +463,11 @@ class AgentExecutor:
         # Wire injection queue for mid-execution user messages
         react_executor._injection_queue = self.state.get_injection_queue(session_id)
 
+        # Blackboard: expose the per-run handle to tool execution (tool_processing
+        # reads self._blackboard_handle on the react_executor).
+        if bb_handle is not None:
+            react_executor._blackboard_handle = bb_handle
+
         # Store for interrupt bridging
         self._current_react_executors[session_id] = react_executor
 
@@ -489,6 +514,9 @@ class AgentExecutor:
             logger.error(traceback.format_exc())
             return {"summary": None, "error": str(e), "latency_ms": 0}
         finally:
+            # Blackboard: archive (best-effort) + shut down the per-run handle.
+            teardown_run_blackboard(bb_handle)
+
             # Fire SESSION_END hook (matches TUI's repl.py:690)
             if hook_manager:
                 try:

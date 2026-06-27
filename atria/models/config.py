@@ -124,6 +124,7 @@ class TasksConfig(BaseModel):
 class BlackboardConfig(BaseModel):
     """Shared verified blackboard (DeLM) settings."""
 
+    enabled: bool = False  # opt-in; the blackboard is an accelerant, off by default
     redis_url: str = "redis://localhost:6379/0"
     ttl: int = 3600  # seconds a task's blackboard lives in Redis
     window_tokens: int = 2000  # digest token budget injected into context

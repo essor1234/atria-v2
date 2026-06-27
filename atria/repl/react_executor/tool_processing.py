@@ -485,6 +485,7 @@ class ToolProcessingMixin:
                 session_manager=self.session_manager,
                 ui_callback=ctx.ui_callback,
                 tool_call_id=tool_call_id,
+                blackboard=getattr(self, "_blackboard_handle", None),
             )
         except Exception as exc:
             if isinstance(exc, InterruptedError):
@@ -798,6 +799,7 @@ class ToolProcessingMixin:
                 session_manager=self.session_manager,
                 ui_callback=ui_callback,
                 tool_call_id=tool_call_id,  # Pass for subagent parent tracking
+                blackboard=getattr(self, "_blackboard_handle", None),
             )
             return result
         finally:

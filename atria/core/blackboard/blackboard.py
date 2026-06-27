@@ -84,8 +84,9 @@ class BlackboardHandle:
     atria.core.tasks.client.TaskIQClient.
     """
 
-    def __init__(self, blackboard: Blackboard) -> None:
+    def __init__(self, blackboard: Blackboard, redis_client: Any = None) -> None:
         self._bb = blackboard
+        self._redis_client = redis_client
         self._loop: asyncio.AbstractEventLoop | None = None
         self._thread: threading.Thread | None = None
         self._lock = threading.Lock()
@@ -111,6 +112,15 @@ class BlackboardHandle:
         with self._lock:
             if not self._started or self._loop is None:
                 return
+            if self._redis_client is not None:
+                try:
+                    fut = asyncio.run_coroutine_threadsafe(
+                        self._redis_client.aclose(), self._loop
+                    )
+                    fut.result(timeout=5)
+                except Exception as exc:  # noqa: BLE001 — best-effort cleanup
+                    logger.warning("blackboard redis close failed: %s", exc)
+                self._redis_client = None
             self._loop.call_soon_threadsafe(self._loop.stop)
             if self._thread is not None:
                 self._thread.join(timeout=5)
