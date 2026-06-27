@@ -223,6 +223,18 @@ class WebUICallback(BaseUICallback):
             return
         self._broadcast({"type": msg_type, "data": {**data, "session_id": self.session_id}})
 
+    def on_divide_event(self, stage: str, data: dict) -> None:
+        """Broadcast a divide-work coordinator event (started/task_update/done)."""
+        mapping = {
+            "started": WSMessageType.DIVIDE_JOB_STARTED,
+            "task_update": WSMessageType.DIVIDE_TASK_UPDATE,
+            "done": WSMessageType.DIVIDE_JOB_DONE,
+        }
+        msg_type = mapping.get(stage)
+        if msg_type is None:
+            return
+        self._broadcast({"type": msg_type, "data": {**data, "session_id": self.session_id}})
+
     # ------------------------------------------------------------------
     # Cost tracking
     # ------------------------------------------------------------------
