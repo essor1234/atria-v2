@@ -16,9 +16,17 @@ class Candidate:
 
 
 def _git_diff(worktree_path: str, base_ref: str) -> str:
-    p = subprocess.run(
-        ["git", "diff", base_ref], cwd=worktree_path, capture_output=True, text=True, timeout=60
-    )
+    try:
+        p = subprocess.run(
+            ["git", "diff", base_ref],
+            cwd=worktree_path,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    except (OSError, subprocess.SubprocessError):
+        # Missing/removed worktree or git failure → no diff (candidate is unusable).
+        return ""
     return p.stdout if p.returncode == 0 else ""
 
 
