@@ -1462,6 +1462,58 @@ _BUILTIN_TOOL_SCHEMAS: list[dict[str, Any]] = [
             },
         },
     },
+    # ===== Parallel Multi-Solver Tools (DeLM Phase 2b) =====
+    {
+        "type": "function",
+        "function": {
+            "name": "solve_parallel",
+            "description": load_tool_description("solve_parallel"),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "task": {
+                        "type": "string",
+                        "description": "The task for each solver to attempt independently.",
+                    },
+                    "n": {
+                        "type": "integer",
+                        "description": "Number of parallel solvers. Clamped to [2, max_solvers]. "
+                        "Defaults to the configured default when omitted.",
+                    },
+                },
+                "required": ["task"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_parallel_result",
+            "description": load_tool_description("get_parallel_result"),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "job_id": {
+                        "type": "string",
+                        "description": "The job_id returned by solve_parallel.",
+                    },
+                    "block": {
+                        "type": "boolean",
+                        "description": "Whether to wait for all solvers to complete. "
+                        "Set to false for a non-blocking status check.",
+                        "default": True,
+                    },
+                    "timeout": {
+                        "type": "integer",
+                        "description": "Maximum wait time in milliseconds (max 600000).",
+                        "default": 30000,
+                        "maximum": 600000,
+                    },
+                },
+                "required": ["job_id"],
+            },
+        },
+    },
     # ===== Batch Tool =====
     {
         "type": "function",

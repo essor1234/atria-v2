@@ -159,6 +159,7 @@ class ToolRegistry:
         app_config: Union[Any, None] = None,
     ) -> None:
         self.file_ops = file_ops
+        self._app_config = app_config  # for per-run parallel orchestrator wiring
         self.write_tool = write_tool
         self.edit_tool = edit_tool
         self.bash_tool = bash_tool
@@ -209,6 +210,7 @@ class ToolRegistry:
         self._task_complete_tool = TaskCompleteTool()
         self._present_plan_tool = PresentPlanTool()
         self._subagent_manager: Union[Any, None] = None
+        self._parallel_orchestrator: Union[Any, None] = None  # built lazily per run
         self._hook_manager: Union["HookManager", None] = None
         self._skill_loader: Union["SkillLoader", None] = None
 
@@ -276,6 +278,9 @@ class ToolRegistry:
             "spawn_subagent": self._execute_spawn_subagent,
             # Get output from background subagent
             "get_subagent_output": self._get_subagent_output,
+            # Parallel multi-solver tools (DeLM Phase 2b)
+            "solve_parallel": self._execute_solve_parallel,
+            "get_parallel_result": self._execute_get_parallel_result,
             # PDF extraction tool
             "read_pdf": self._read_pdf,
             # MCP tool discovery (token-efficient)
@@ -699,6 +704,75 @@ class ToolRegistry:
             "Subagents currently run synchronously.",
         }
 
+    def _get_parallel_orchestrator(self) -> Any:
+        """Build (once per run) the ParallelOrchestrator from this run's context.
+
+        Requires the run's TaskIQClient (attached to the subagent manager via
+        ``attach_task_client``). Returns None when no task client is available —
+        parallel solving needs a running worker + Redis.
+        """
+        if getattr(self, "_parallel_orchestrator", None) is not None:
+            return self._parallel_orchestrator
+        mgr = self._subagent_manager
+        task_client = getattr(mgr, "_task_client", None) if mgr is not None else None
+        if task_client is None:
+            return None
+        repo_dir = (
+            str(self.file_ops.working_dir)
+            if self.file_ops and getattr(self.file_ops, "working_dir", None)
+            else "."
+        )
+        from atria.core.parallel.tools import build_orchestrator, make_worktree_manager
+
+        self._parallel_orchestrator = build_orchestrator(
+            task_client=task_client,
+            worktree_manager=make_worktree_manager(repo_dir),
+            config=self._app_config,
+            llm_call=self.skill_ctx.llm_chat,
+        )
+        return self._parallel_orchestrator
+
+    def _execute_solve_parallel(
+        self, arguments: dict[str, Any], context: Any = None
+    ) -> dict[str, Any]:
+        """Dispatch solve_parallel: fan out N worktree-isolated solvers for a task."""
+        orch = self._get_parallel_orchestrator()
+        if orch is None:
+            return {
+                "success": False,
+                "error": "Parallel solving unavailable (no task client). "
+                "Requires a running TaskIQ worker + Redis.",
+                "output": None,
+            }
+        repo_dir = (
+            str(self.file_ops.working_dir)
+            if self.file_ops and getattr(self.file_ops, "working_dir", None)
+            else "."
+        )
+        _sess_mgr = getattr(context, "session_manager", None) if context else None
+        _current = getattr(_sess_mgr, "current_session", None) if _sess_mgr else None
+        owner_id = (getattr(_current, "owner_id", None) or "") if _current else ""
+        session_id = str(getattr(_current, "session_id", "") or "") if _current else ""
+
+        from atria.core.parallel.tools import execute_solve_parallel
+
+        return execute_solve_parallel(arguments, orch, repo_dir, owner_id, session_id)
+
+    def _execute_get_parallel_result(
+        self, arguments: dict[str, Any], context: Any = None
+    ) -> dict[str, Any]:
+        """Dispatch get_parallel_result: await solvers, judge candidates, apply winner."""
+        orch = self._get_parallel_orchestrator()
+        if orch is None:
+            return {
+                "success": False,
+                "error": "Parallel solving unavailable (no task client).",
+                "output": None,
+            }
+        from atria.core.parallel.tools import execute_get_parallel_result
+
+        return execute_get_parallel_result(arguments, orch)
+
     def get_schemas(self) -> list[dict[str, Any]]:
         """Compatibility hook (schemas generated elsewhere)."""
         return []
@@ -778,6 +852,10 @@ class ToolRegistry:
             if tool_name == "spawn_subagent":
                 # spawn_subagent needs tool_call_id for parent context tracking
                 result = self._execute_spawn_subagent(arguments, context, tool_call_id)
+            elif tool_name == "solve_parallel":
+                result = self._execute_solve_parallel(arguments, context)
+            elif tool_name == "get_parallel_result":
+                result = self._execute_get_parallel_result(arguments, context)
             elif tool_name in {
                 "write_file",
                 "edit_file",
