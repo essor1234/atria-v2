@@ -130,6 +130,16 @@ class BlackboardConfig(BaseModel):
     window_tokens: int = 2000  # digest token budget injected into context
 
 
+class ParallelConfig(BaseModel):
+    """Parallel multi-solver (DeLM Phase 2b) settings."""
+
+    max_solvers: int = 5
+    default_solvers: int = 3
+    solver_start_stagger_seconds: float = 0.0
+    pjob_ttl: int = 3600
+    redis_url: str = "redis://localhost:6379/0"
+
+
 class WebConfig(BaseModel):
     """Web-UI specific settings."""
 
@@ -218,6 +228,9 @@ class AppConfig(BaseModel):
 
     # Shared verified blackboard settings
     blackboard: BlackboardConfig = Field(default_factory=BlackboardConfig)
+
+    # Parallel multi-solver settings
+    parallel: ParallelConfig = Field(default_factory=ParallelConfig)
 
     # Paths - using APP_DIR_NAME constant for consistency
     atria_dir: str = f"~/{APP_DIR_NAME}"

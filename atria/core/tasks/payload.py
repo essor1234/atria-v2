@@ -25,3 +25,5 @@ class SubagentTaskPayload(BaseModel):
     tool_names: list[str] | None = None
     parent_tool_call_id: str | None = None
     config_snapshot: dict[str, Any]
+    blackboard_task_id: str | None = None
+    thread_id: int = 0
