@@ -115,5 +115,15 @@ def build_skill_block(registry: ModuleRegistry) -> str:
         return ""
     parts = [_header(registry.root)]
     for m in modules:
-        parts.append("\n".join(render_module_section(m)) + "\n")
+        section_lines = render_module_section(m)
+        sub = m.manifest.subagent if m.manifest else None
+        if sub and sub.enabled:
+            section_lines += [
+                "",
+                f"**Dedicated subagent:** this module has a specialist subagent "
+                f'`{m.name}`. For multi-step or heavy work, delegate with '
+                f'`spawn_subagent(subagent_type="{m.name}")` — its CLI output stays '
+                f"out of this conversation. Quick lookups may run inline.",
+            ]
+        parts.append("\n".join(section_lines) + "\n")
     return "\n".join(parts)

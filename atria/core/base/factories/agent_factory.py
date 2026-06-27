@@ -77,6 +77,9 @@ class AgentFactory:
             # Register custom agents from config files
             self._register_custom_agents()
 
+            # Register dedicated subagents derived from agent-backed modules
+            self._register_module_subagents()
+
             # Register manager with tool registry for task tool execution
             self._tool_registry.set_subagent_manager(self._subagent_manager)
 
@@ -131,6 +134,22 @@ class AgentFactory:
                 logger.info(f"Registered {len(custom_agents)} custom agents")
         except Exception as e:
             logger.warning(f"Failed to load custom agents: {e}")
+
+    def _register_module_subagents(self) -> None:
+        """Register one dedicated subagent per agent-backed module (opt-in)."""
+        if not self._subagent_manager:
+            return
+        try:
+            from atria.core.modules.registry import get_registry
+            from atria.core.modules.subagent import module_subagent_specs
+
+            specs = module_subagent_specs(get_registry())
+            for spec in specs:
+                self._subagent_manager.register_subagent(spec)
+            if specs:
+                logger.info("Registered %d module subagent(s)", len(specs))
+        except Exception as exc:
+            logger.warning("Failed to register module subagents: %s", exc)
 
     def refresh_tools(self, suite: AgentSuite) -> None:
         """Refresh tool metadata for the agent."""
