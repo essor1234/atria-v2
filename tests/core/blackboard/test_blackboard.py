@@ -41,3 +41,22 @@ async def test_write_degrades_when_store_raises():
     bb = Blackboard(_BoomStore(), thread_id=0, window_tokens=2000)
     assert await bb.write([{"type": "FACT", "content": "x"}]) == "blackboard unavailable"
     assert await bb.render() == ""
+
+
+def test_handle_degrades_and_shutdown_is_idempotent():
+    from atria.core.blackboard.blackboard import BlackboardHandle
+
+    class _BoomStore:
+        async def append(self, notes):
+            raise RuntimeError("redis down")
+
+        async def read_all(self):
+            raise RuntimeError("redis down")
+
+    handle = BlackboardHandle(Blackboard(_BoomStore(), thread_id=0, window_tokens=2000))
+    try:
+        assert handle.write([{"type": "FACT", "content": "x"}]) == "blackboard unavailable"
+        assert handle.render() == ""
+    finally:
+        handle.shutdown()
+    handle.shutdown()  # idempotent: a second shutdown must not raise

@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import threading
+import time
 from typing import Any, Callable
 
 from atria.core.blackboard.archive import archive_to_postgres
@@ -35,10 +36,10 @@ class Blackboard:
 
     async def write(self, raw_notes: list[dict]) -> str:
         """Verify then append notes. Returns the verifier status, or a soft-failure string."""
-        clean, status = verify_notes(raw_notes)
-        if not clean:
-            return status
         try:
+            clean, status = verify_notes(raw_notes)
+            if not clean:
+                return status
             now = self._now()
             await self._store.append(
                 [Note(type=c["type"], content=c["content"], thread_id=self._thread_id, ts=now)
@@ -53,11 +54,11 @@ class Blackboard:
         """Render the current digest, or "" on any failure."""
         try:
             notes = await self._store.read_all()
+            vid = self._thread_id if viewer_id is None else viewer_id
+            return render_digest(notes, viewer_id=vid, window_tokens=self._window_tokens)
         except Exception as exc:  # noqa: BLE001
             logger.warning("blackboard render failed: %s", exc)
             return ""
-        vid = self._thread_id if viewer_id is None else viewer_id
-        return render_digest(notes, viewer_id=vid, window_tokens=self._window_tokens)
 
     async def archive(self) -> int:
         """Flush the final blackboard to Postgres (best-effort)."""
@@ -65,14 +66,14 @@ class Blackboard:
             return 0
         try:
             notes = await self._store.read_all()
+            return await archive_to_postgres(
+                self._session_factory, self._task_id, self._owner_id, notes
+            )
         except Exception:  # noqa: BLE001
             return 0
-        return await archive_to_postgres(self._session_factory, self._task_id, self._owner_id, notes)
 
     @staticmethod
     def _now() -> float:
-        import time
-
         return time.time()
 
 
@@ -107,12 +108,14 @@ class BlackboardHandle:
 
     def shutdown(self) -> None:
         """Stop the background event loop thread."""
-        if not self._started or self._loop is None:
-            return
-        self._loop.call_soon_threadsafe(self._loop.stop)
-        if self._thread is not None:
-            self._thread.join(timeout=5)
-        self._started = False
+        with self._lock:
+            if not self._started or self._loop is None:
+                return
+            self._loop.call_soon_threadsafe(self._loop.stop)
+            if self._thread is not None:
+                self._thread.join(timeout=5)
+            self._started = False
+            self._loop = None
 
     def _submit(self, coro: Any) -> Any:
         self.startup()
