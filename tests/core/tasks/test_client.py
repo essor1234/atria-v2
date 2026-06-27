@@ -1,6 +1,7 @@
 import os
 
 import pytest
+from fakeredis import aioredis as fake_aioredis
 
 from atria.core.tasks.broker import make_broker
 from atria.core.tasks.client import TaskIQClient
@@ -34,7 +35,13 @@ def client(monkeypatch):
             "completion_status": "success",
         }
 
-    c = TaskIQClient(broker, redis_url="redis://localhost:6379/0", orphan_after=1800)
+    fake_redis = fake_aioredis.FakeRedis()
+    c = TaskIQClient(
+        broker,
+        redis_url="redis://localhost:6379/0",
+        orphan_after=1800,
+        redis_client=fake_redis,
+    )
     c.startup()
     yield c
     c.shutdown()
@@ -50,6 +57,6 @@ def test_enqueue_returns_task_id_and_result(client, payload):
 
 
 def test_await_nonblocking_when_not_ready_returns_running(client, payload):
-    # Unknown id, non-blocking → running (not yet old enough to be orphaned)
+    # Unknown id, non-blocking → running (age is None for a never-recorded id)
     result = client.await_result("does-not-exist", block=False, timeout_ms=0)
     assert result["status"] in {"running", "failed"}
