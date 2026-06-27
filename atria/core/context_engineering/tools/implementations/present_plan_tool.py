@@ -3,11 +3,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
+from typing import Any
 from atria.db.sync import run_sync
-
-if TYPE_CHECKING:
-    from atria.ui_textual.ui_callback import UICallback
 
 
 class PresentPlanTool:
@@ -26,7 +23,7 @@ class PresentPlanTool:
     def execute(
         self,
         plan_file_path: str = "",
-        ui_callback: "UICallback | None" = None,
+        ui_callback: Any = None,
         session_manager: Any = None,
         **kwargs: Any,
     ) -> dict[str, Any]:
