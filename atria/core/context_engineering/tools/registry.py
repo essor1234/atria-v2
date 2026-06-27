@@ -716,6 +716,7 @@ class ToolRegistry:
         ui_callback: Union[Any, None] = None,
         is_subagent: bool = False,
         tool_call_id: Union[str, None] = None,
+        blackboard: Union[Any, None] = None,
     ) -> dict[str, Any]:
         """Execute a tool by delegating to registered handlers."""
         if tool_name.startswith("mcp__"):
@@ -769,6 +770,7 @@ class ToolRegistry:
             ui_callback=ui_callback,
             is_subagent=is_subagent,
             file_time_tracker=self._file_time_tracker,
+            blackboard=blackboard,
         )
 
         handler = self._handlers[tool_name]

@@ -19,3 +19,4 @@ class ToolExecutionContext:
     is_subagent: bool = False  # True when executing in subagent context
     file_time_tracker: Optional[Any] = None  # FileTimeTracker for stale-read detection
     formatter_manager: Optional[Any] = None  # FormatterManager for auto-format on save
+    blackboard: Optional[Any] = None  # BlackboardHandle for shared verified notes (Phase 2a)
