@@ -245,10 +245,14 @@ class ExecutionMixin:
 
         # Blackboard (Phase 2b): when the run carries a handle (e.g. a parallel
         # solver), expose it on the agent so the system-prompt builder can inject
-        # Shared Lessons. Tool execution reads deps.blackboard directly in the
-        # run loop, so the NOTE tool is active regardless of this.
+        # Shared Lessons, and turn on the NOTE tool schema so the run can write to
+        # the blackboard it was given (the per-solver handle is provisioned
+        # independently of the global blackboard.enabled flag). Tool execution
+        # reads deps.blackboard directly in the run loop.
         if getattr(deps, "blackboard", None) is not None:
             agent._blackboard_handle = deps.blackboard
+            if getattr(agent, "_schema_builder", None) is not None:
+                agent._schema_builder._blackboard_enabled = True
 
         # Execute with isolated context (fresh message history)
         # No iteration cap — subagent stops when its prompt tells it to
