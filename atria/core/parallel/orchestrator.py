@@ -27,6 +27,7 @@ class ParallelOrchestrator:
         llm_call: Callable[[str, str], str],
         config: Any,             # ParallelConfig
         run_async: Callable[[Any], Any],  # helper to run a coroutine from this sync context
+        progress_cb: Callable[[str, dict], None] | None = None,
     ) -> None:
         self._tc = task_client
         self._wm = worktree_manager
@@ -35,6 +36,16 @@ class ParallelOrchestrator:
         self._llm = llm_call
         self._cfg = config
         self._run_async = run_async
+        self._progress_cb = progress_cb
+
+    def _emit(self, stage: str, data: dict) -> None:
+        """Best-effort progress notification; never raises into the solve path."""
+        if self._progress_cb is None:
+            return
+        try:
+            self._progress_cb(stage, data)
+        except Exception as exc:  # noqa: BLE001 — telemetry must never break solving
+            logger.warning("parallel progress_cb failed at %s: %s", stage, exc)
 
     def start(self, task: str, n: int, repo_dir: str, owner_id: str, session_id: str) -> str:
         """Snapshot the tree, fan out N worktree-isolated solvers, persist the job record."""
@@ -65,6 +76,7 @@ class ParallelOrchestrator:
                 "worktree_paths": worktree_paths, "blackboard_task_id": blackboard_task_id,
                 "base_ref": base_ref, "repo_dir": repo_dir, "n": n, "task": task,
             }, ttl=self._cfg.pjob_ttl))
+            self._emit("started", {"job_id": job_id, "n": n, "task": task, "worktree_names": worktree_names})
             return job_id
         except Exception:
             for name in worktree_names:
@@ -91,6 +103,7 @@ class ParallelOrchestrator:
             )
         done = [r for r in results if r.get("status") == "done"]
         if len(done) < len(results):
+            self._emit("progress", {"job_id": job_id, "done": len(done), "n": rec["n"]})
             return {"status": "running", "done": len(done), "n": rec["n"]}
         try:
             notes = self._read_notes(rec["blackboard_task_id"])
@@ -109,7 +122,7 @@ class ParallelOrchestrator:
                 ar = apply_diff(rec["repo_dir"], winner.diff)
                 applied = ar.ok
                 conflicted = ar.conflicted_files
-            return {
+            result = {
                 "status": "done", "applied": applied, "winner_thread": winner_thread,
                 "conflicted_files": conflicted, "reasoning": verdict.reasoning,
                 "dropped_threads": dropped,
@@ -118,6 +131,9 @@ class ParallelOrchestrator:
                 # NOTE: base_ref retained for recovery; not discarded here.
                 "snapshot_ref": rec["base_ref"],
             }
+            result["job_id"] = job_id
+            self._emit("done", result)
+            return result
         finally:
             for name in rec["worktree_names"]:
                 try:

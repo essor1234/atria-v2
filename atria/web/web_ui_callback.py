@@ -211,6 +211,18 @@ class WebUICallback(BaseUICallback):
             }
         )
 
+    def on_parallel_solver_event(self, stage: str, data: dict) -> None:
+        """Broadcast a ParallelOrchestrator lifecycle event (started/progress/done)."""
+        mapping = {
+            "started": WSMessageType.PARALLEL_SOLVER_STARTED,
+            "progress": WSMessageType.PARALLEL_SOLVER_PROGRESS,
+            "done": WSMessageType.PARALLEL_SOLVER_DONE,
+        }
+        msg_type = mapping.get(stage)
+        if msg_type is None:
+            return
+        self._broadcast({"type": msg_type, "data": {**data, "session_id": self.session_id}})
+
     # ------------------------------------------------------------------
     # Cost tracking
     # ------------------------------------------------------------------

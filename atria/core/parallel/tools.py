@@ -24,6 +24,7 @@ def build_orchestrator(
     config: Any,
     llm_call: Callable[[str, str], str],
     redis_client: Any = None,
+    progress_cb: Callable[[str, dict], None] | None = None,
 ) -> ParallelOrchestrator:
     """Construct a ParallelOrchestrator from a run's task client + helpers.
 
@@ -60,6 +61,7 @@ def build_orchestrator(
         llm_call=llm_call,
         config=parallel_cfg,
         run_async=run_async,
+        progress_cb=progress_cb,
     )
 
 

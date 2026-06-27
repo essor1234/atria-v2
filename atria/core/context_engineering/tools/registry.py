@@ -712,7 +712,7 @@ class ToolRegistry:
             else "."
         )
 
-    def _get_parallel_orchestrator(self) -> Any:
+    def _get_parallel_orchestrator(self, ui_callback: Any = None) -> Any:
         """Build (once per run) the ParallelOrchestrator from this run's context.
 
         Requires the run's TaskIQClient (attached to the subagent manager via
@@ -727,11 +727,15 @@ class ToolRegistry:
             return None
         from atria.core.parallel.tools import build_orchestrator, make_worktree_manager
 
+        progress_cb = None
+        if ui_callback is not None and hasattr(ui_callback, "on_parallel_solver_event"):
+            progress_cb = ui_callback.on_parallel_solver_event
         self._parallel_orchestrator = build_orchestrator(
             task_client=task_client,
             worktree_manager=make_worktree_manager(self._get_repo_dir()),
             config=self._app_config,
             llm_call=self.skill_ctx.llm_chat,
+            progress_cb=progress_cb,
         )
         return self._parallel_orchestrator
 
@@ -739,7 +743,7 @@ class ToolRegistry:
         self, arguments: dict[str, Any], context: Any = None
     ) -> dict[str, Any]:
         """Dispatch solve_parallel: fan out N worktree-isolated solvers for a task."""
-        orch = self._get_parallel_orchestrator()
+        orch = self._get_parallel_orchestrator(ui_callback=getattr(context, "ui_callback", None))
         if orch is None:
             return {
                 "success": False,
@@ -761,7 +765,7 @@ class ToolRegistry:
         self, arguments: dict[str, Any], context: Any = None
     ) -> dict[str, Any]:
         """Dispatch get_parallel_result: await solvers, judge candidates, apply winner."""
-        orch = self._get_parallel_orchestrator()
+        orch = self._get_parallel_orchestrator(ui_callback=getattr(context, "ui_callback", None))
         if orch is None:
             return {
                 "success": False,
