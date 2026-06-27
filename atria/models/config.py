@@ -121,6 +121,14 @@ class TasksConfig(BaseModel):
     orphan_after: int = 1800  # seconds before an unfinished task is deemed orphaned
 
 
+class BlackboardConfig(BaseModel):
+    """Shared verified blackboard (DeLM) settings."""
+
+    redis_url: str = "redis://localhost:6379/0"
+    ttl: int = 3600  # seconds a task's blackboard lives in Redis
+    window_tokens: int = 2000  # digest token budget injected into context
+
+
 class WebConfig(BaseModel):
     """Web-UI specific settings."""
 
@@ -206,6 +214,9 @@ class AppConfig(BaseModel):
 
     # Distributed task queue settings
     tasks: TasksConfig = Field(default_factory=TasksConfig)
+
+    # Shared verified blackboard settings
+    blackboard: BlackboardConfig = Field(default_factory=BlackboardConfig)
 
     # Paths - using APP_DIR_NAME constant for consistency
     atria_dir: str = f"~/{APP_DIR_NAME}"
