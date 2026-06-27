@@ -32,7 +32,11 @@ def make_run_blackboard(
         if client is None:
             import redis.asyncio as aioredis
 
-            client = aioredis.from_url(bb_cfg.redis_url)
+            client = aioredis.from_url(
+                bb_cfg.redis_url,
+                socket_connect_timeout=5,
+                socket_timeout=5,
+            )
         store = BlackboardStore(client, task_id=task_id, ttl=bb_cfg.ttl)
         bb = Blackboard(
             store,

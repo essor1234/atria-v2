@@ -91,6 +91,10 @@ class BlackboardHandle:
         self._thread: threading.Thread | None = None
         self._lock = threading.Lock()
         self._started = False
+        # Maximum seconds to wait for any single async op via _submit.
+        # concurrent.futures.TimeoutError is an Exception subclass, so the
+        # existing try/except blocks in write/render/archive degrade gracefully.
+        self._op_timeout: float = 15.0
 
     def startup(self) -> None:
         """Start the background event loop thread."""
@@ -128,9 +132,26 @@ class BlackboardHandle:
             self._loop = None
 
     def _submit(self, coro: Any) -> Any:
+        import concurrent.futures
+
         self.startup()
         assert self._loop is not None
-        return asyncio.run_coroutine_threadsafe(coro, self._loop).result()
+        fut = asyncio.run_coroutine_threadsafe(coro, self._loop)
+        try:
+            return fut.result(timeout=self._op_timeout)
+        except concurrent.futures.TimeoutError:
+            # Cancel the underlying asyncio task and drain one event-loop tick so
+            # the cancellation can propagate before the caller might shut down the
+            # loop.  This prevents "Task was destroyed but pending/cancelling" asyncio
+            # warnings when shutdown() is called shortly after a timed-out operation.
+            fut.cancel()
+            try:
+                asyncio.run_coroutine_threadsafe(asyncio.sleep(0), self._loop).result(
+                    timeout=1.0
+                )
+            except Exception:  # noqa: BLE001 — best-effort drain
+                pass
+            raise
 
     def write(self, raw_notes: list[dict]) -> str:
         """Write notes synchronously; returns 'blackboard unavailable' on any error."""

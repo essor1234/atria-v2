@@ -1,6 +1,8 @@
+import asyncio
+
 import pytest
 
-from atria.core.blackboard.blackboard import Blackboard
+from atria.core.blackboard.blackboard import Blackboard, BlackboardHandle
 from atria.core.blackboard.store import BlackboardStore
 
 
@@ -44,8 +46,6 @@ async def test_write_degrades_when_store_raises():
 
 
 def test_handle_degrades_and_shutdown_is_idempotent():
-    from atria.core.blackboard.blackboard import BlackboardHandle
-
     class _BoomStore:
         async def append(self, notes):
             raise RuntimeError("redis down")
@@ -60,3 +60,39 @@ def test_handle_degrades_and_shutdown_is_idempotent():
     finally:
         handle.shutdown()
     handle.shutdown()  # idempotent: a second shutdown must not raise
+
+
+def test_handle_submit_times_out_and_degrades() -> None:
+    """_submit respects _op_timeout: a slow store causes write/render to degrade gracefully.
+
+    The store deliberately sleeps longer than _op_timeout.  The bridge must
+    not block forever — it must raise concurrent.futures.TimeoutError (an
+    Exception subclass) which is caught by the write/render try/except blocks
+    that return soft-failure values instead.
+    """
+    SLEEP = 2.0  # store sleeps for 2 seconds
+    TIMEOUT = 0.1  # we only wait 0.1 s before timing out
+
+    class _SlowStore:
+        async def append(self, notes):  # noqa: D401
+            await asyncio.sleep(SLEEP)
+
+        async def read_all(self):
+            await asyncio.sleep(SLEEP)
+            return []
+
+    bb = Blackboard(_SlowStore(), thread_id=0, window_tokens=2000)
+    handle = BlackboardHandle(bb)
+    handle._op_timeout = TIMEOUT  # shrink timeout so the test is fast
+
+    try:
+        result = handle.write([{"type": "FACT", "content": "x"}])
+        assert result == "blackboard unavailable", (
+            f"Expected soft-failure from timed-out write, got: {result!r}"
+        )
+        rendered = handle.render()
+        assert rendered == "", (
+            f"Expected empty string from timed-out render, got: {rendered!r}"
+        )
+    finally:
+        handle.shutdown()

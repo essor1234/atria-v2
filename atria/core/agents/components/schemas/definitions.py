@@ -1626,22 +1626,27 @@ _BUILTIN_TOOL_SCHEMAS: list[dict[str, Any]] = [
             },
         },
     },
-    # ===== NOTE tool (shared blackboard) =====
-    {
-        "type": "function",
-        "function": {
-            "name": "NOTE",
-            "description": NOTE_RULES_BLOCK,
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "body": {
-                        "type": "string",
-                        "description": "One to three typed note lines (or the literal `(none)`).",
-                    },
+]
+
+# ===== NOTE tool schema (shared blackboard) =====
+# This schema is intentionally NOT part of _BUILTIN_TOOL_SCHEMAS.
+# It is appended by ToolSchemaBuilder.build() only when
+# config.blackboard.enabled is True, so that the tool is a true no-op
+# (zero tokens, zero model calls) when the blackboard is disabled.
+NOTE_SCHEMA: dict = {
+    "type": "function",
+    "function": {
+        "name": "NOTE",
+        "description": NOTE_RULES_BLOCK,
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "string",
+                    "description": "One to three typed note lines (or the literal `(none)`).",
                 },
-                "required": ["body"],
             },
+            "required": ["body"],
         },
     },
-]
+}

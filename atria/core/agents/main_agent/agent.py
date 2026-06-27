@@ -181,10 +181,12 @@ class MainAgent(HttpClientMixin, LlmCallsMixin, RunLoopMixin, BaseAgent):
         self._response_cleaner = ResponseCleaner()
         self._working_dir = working_dir
         self._env_context = env_context
+        _bb_enabled = getattr(getattr(config, "blackboard", None), "enabled", False)
         self._schema_builder = ToolSchemaBuilder(
             tool_registry,
             allowed_tools,
             extra_schemas=_build_skill_schemas(tool_registry),
+            blackboard_enabled=_bb_enabled,
         )
         self.is_subagent = allowed_tools is not None
 

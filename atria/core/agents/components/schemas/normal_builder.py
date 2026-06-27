@@ -9,7 +9,7 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any, Sequence, Union
 
-from .definitions import _BUILTIN_TOOL_SCHEMAS
+from .definitions import NOTE_SCHEMA, _BUILTIN_TOOL_SCHEMAS
 from atria.core.agents.components.schemas.schema_adapter import adapt_for_provider
 
 
@@ -22,6 +22,7 @@ class ToolSchemaBuilder:
         allowed_tools: Union[list[str], None] = None,
         provider: Union[str, None] = None,
         extra_schemas: Union[list[dict[str, Any]], None] = None,
+        blackboard_enabled: bool = False,
     ) -> None:
         """Initialize the tool schema builder.
 
@@ -33,11 +34,15 @@ class ToolSchemaBuilder:
             provider: LLM provider name for schema adaptation (e.g., "gemini", "xai").
             extra_schemas: Additional tool schemas appended to the builtin list
                           (used by skill-owned tools).
+            blackboard_enabled: When True, the NOTE tool schema is included in the
+                          built schema list. When False (default), NOTE is omitted
+                          so the feature is a true no-op even at the token level.
         """
         self._tool_registry = tool_registry
         self._allowed_tools = allowed_tools
         self._provider = provider
         self._extra_schemas = extra_schemas or []
+        self._blackboard_enabled = blackboard_enabled
 
     def build(self, thinking_visible: bool = True) -> list[dict[str, Any]]:
         """Return tool schema definitions including MCP and task tool extensions.
@@ -54,6 +59,10 @@ class ToolSchemaBuilder:
         schemas: list[dict[str, Any]] = deepcopy(_BUILTIN_TOOL_SCHEMAS)
         if self._extra_schemas:
             schemas.extend(deepcopy(self._extra_schemas))
+        # Gate the NOTE tool on the blackboard feature flag.  When disabled
+        # the schema must never appear in the list (true no-op — no tokens wasted).
+        if self._blackboard_enabled:
+            schemas.append(deepcopy(NOTE_SCHEMA))
 
         # Filter to allowed tools if specified
         if self._allowed_tools is not None:
