@@ -977,6 +977,8 @@ class ToolRegistry:
                 "NOTE",
                 "solve_parallel",
                 "get_parallel_result",
+                "divide_work",
+                "get_divide_result",
             }:
                 # Handlers requiring context
                 result = handler(arguments, context)
