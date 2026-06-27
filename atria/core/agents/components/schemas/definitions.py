@@ -1514,6 +1514,62 @@ _BUILTIN_TOOL_SCHEMAS: list[dict[str, Any]] = [
             },
         },
     },
+    # ===== Divide-and-Conquer Tools (DeLM Phase 2c) =====
+    {
+        "type": "function",
+        "function": {
+            "name": "divide_work",
+            "description": load_tool_description("divide_work"),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "request": {
+                        "type": "string",
+                        "description": "The complex request to decompose into sub-tasks.",
+                    },
+                    "module": {
+                        "type": "string",
+                        "description": (
+                            "Name of the module whose workflow governs decomposition. "
+                            "Defaults to the active module when omitted."
+                        ),
+                    },
+                },
+                "required": ["request"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_divide_result",
+            "description": load_tool_description("get_divide_result"),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "job_id": {
+                        "type": "string",
+                        "description": "The job_id returned by divide_work.",
+                    },
+                    "block": {
+                        "type": "boolean",
+                        "description": (
+                            "Whether to wait for all sub-tasks to complete. "
+                            "Set to false for a non-blocking status check."
+                        ),
+                        "default": True,
+                    },
+                    "timeout": {
+                        "type": "integer",
+                        "description": "Maximum wait time in milliseconds (max 600000).",
+                        "default": 30000,
+                        "maximum": 600000,
+                    },
+                },
+                "required": ["job_id"],
+            },
+        },
+    },
     # ===== Batch Tool =====
     {
         "type": "function",

@@ -281,6 +281,9 @@ class ToolRegistry:
             # Parallel multi-solver tools (DeLM Phase 2b)
             "solve_parallel": self._execute_solve_parallel,
             "get_parallel_result": self._execute_get_parallel_result,
+            # Divide-and-conquer tools (DeLM Phase 2c)
+            "divide_work": self._execute_divide_work,
+            "get_divide_result": self._execute_get_divide_result,
             # PDF extraction tool
             "read_pdf": self._read_pdf,
             # MCP tool discovery (token-efficient)
@@ -775,6 +778,109 @@ class ToolRegistry:
         from atria.core.parallel.tools import execute_get_parallel_result
 
         return execute_get_parallel_result(arguments, orch)
+
+    # ------------------------------------------------------------------
+    # Divide-and-conquer tools (DeLM Phase 2c)
+    # ------------------------------------------------------------------
+
+    def _get_divide_orchestrator(self, ui_callback: Any = None) -> Any:
+        """Build (once per run) the DivideOrchestrator from this run's context.
+
+        Requires the run's TaskIQClient (attached to the subagent manager via
+        ``attach_task_client``). Returns None when no task client is available —
+        divide execution needs a running worker + Redis.
+        """
+        if getattr(self, "_divide_orchestrator", None) is not None:
+            return self._divide_orchestrator
+        mgr = self._subagent_manager
+        task_client = getattr(mgr, "_task_client", None) if mgr is not None else None
+        if task_client is None:
+            return None
+
+        from atria.core.divide.tools import build_divide_orchestrator
+        from atria.core.modules.registry import resolve_modules_root
+
+        progress_cb = None
+        if ui_callback is not None and hasattr(ui_callback, "on_divide_event"):
+            progress_cb = ui_callback.on_divide_event
+
+        # Resolve owner/session from context — mirrors _execute_solve_parallel.
+        # The orchestrator is built once; owner/session are baked in at build time.
+        # (A per-call approach would require passing context here; the lazy-singleton
+        # pattern matches the parallel implementation.)
+        owner_id = ""
+        session_id = ""
+
+        self._divide_orchestrator = build_divide_orchestrator(
+            task_client=task_client,
+            config=self._app_config,
+            llm_call=self.skill_ctx.llm_chat,
+            modules_root=str(resolve_modules_root()),
+            owner_id=owner_id,
+            session_id=session_id,
+            progress_cb=progress_cb,
+        )
+        return self._divide_orchestrator
+
+    def _execute_divide_work(
+        self, arguments: dict[str, Any], context: Any = None
+    ) -> dict[str, Any]:
+        """Dispatch divide_work: decompose a request and fan sub-tasks out via the orchestrator."""
+        orch = self._get_divide_orchestrator(ui_callback=getattr(context, "ui_callback", None))
+        if orch is None:
+            return {
+                "success": False,
+                "error": (
+                    "Divide-work unavailable (no task client). "
+                    "Requires a running TaskIQ worker + Redis."
+                ),
+                "output": None,
+            }
+
+        module_name = arguments.get("module") or ""
+        module: Any = module_name  # fallback: pass name string to orchestrator
+        module_skill = ""
+
+        if module_name:
+            try:
+                from atria.core.modules.registry import get_registry
+
+                reg = get_registry()
+                mod_obj = reg.get(module_name)
+                module = mod_obj
+                module_skill = mod_obj.skill_md
+            except KeyError:
+                return {
+                    "success": False,
+                    "error": f"no such module {module_name!r}",
+                    "output": None,
+                }
+            except Exception as exc:  # noqa: BLE001
+                return {
+                    "success": False,
+                    "error": f"module resolution failed: {exc}",
+                    "output": None,
+                }
+
+        from atria.core.divide.tools import execute_divide_work
+
+        return execute_divide_work(arguments, orch, module=module, module_skill=module_skill)
+
+    def _execute_get_divide_result(
+        self, arguments: dict[str, Any], context: Any = None
+    ) -> dict[str, Any]:
+        """Dispatch get_divide_result: poll or await a divide_work job."""
+        orch = self._get_divide_orchestrator(ui_callback=getattr(context, "ui_callback", None))
+        if orch is None:
+            return {
+                "success": False,
+                "error": "Divide-work unavailable (no task client).",
+                "output": None,
+            }
+
+        from atria.core.divide.tools import execute_get_divide_result
+
+        return execute_get_divide_result(arguments, orch)
 
     def get_schemas(self) -> list[dict[str, Any]]:
         """Compatibility hook (schemas generated elsewhere)."""
