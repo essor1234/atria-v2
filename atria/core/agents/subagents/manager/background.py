@@ -115,10 +115,13 @@ class BackgroundMixin:
                 "task_id": task_id,
             }
         if not result.get("success"):
+            status = result.get("status", "failed")
+            if status == "done":  # task completed but the subagent itself failed
+                status = "failed"
             return {
                 "success": False,
-                "status": result.get("status", "failed"),
-                "error": result.get("error", "unknown error"),
+                "status": status,
+                "error": result.get("error") or result.get("content") or "unknown error",
                 "output": None,
             }
         return {

@@ -145,6 +145,27 @@ def test_execute_subagent_falls_through_on_enqueue_error():
     assert "background" not in result
 
 
+def test_get_background_task_output_completed_but_failed():
+    """Completed (status='done') but success=False surfaces real reason as 'failed'."""
+
+    class _DoneFailClient:
+        def await_result(self, task_id, block=True, timeout_ms=30000):
+            return {
+                "success": False,
+                "status": "done",
+                "content": "background subagent failed: boom",
+                "error": None,
+            }
+
+    mgr = SubAgentManager.__new__(SubAgentManager)
+    mgr._task_client = _DoneFailClient()
+    out = mgr.get_background_task_output("task-done-fail")
+    assert out["success"] is False
+    assert out["status"] == "failed"
+    assert out["error"] == "background subagent failed: boom"
+    assert out["output"] is None
+
+
 def test_get_background_task_output_expired():
     """Expired status falls into the non-success branch with its status preserved."""
 

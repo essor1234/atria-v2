@@ -1,5 +1,3 @@
-import os
-
 from taskiq import InMemoryBroker
 
 from atria.core.tasks.broker import make_broker

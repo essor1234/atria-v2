@@ -1,5 +1,4 @@
 import pytest
-from pydantic import ValidationError
 
 from atria.core.tasks.payload import SubagentTaskPayload
 

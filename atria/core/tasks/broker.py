@@ -28,7 +28,9 @@ def make_broker(redis_url: str, result_ttl: int) -> AsyncBroker:
     return ListQueueBroker(url=redis_url).with_result_backend(result_backend)
 
 
-# Process-global singleton imported by the worker/scheduler CLIs and the
-# server lifespan. Defaults match BusConfig; the server re-creates it from
-# AppConfig.tasks at startup if values differ.
+# Process-global singleton imported by the worker/scheduler CLIs and the server
+# lifespan. The broker's queue and result backend are fixed to the default Redis
+# URL at import time and are NOT reconfigured from AppConfig.tasks.redis_url
+# (that URL currently only configures a separate orphan meta-store). All
+# processes must share the same default URL for the broker to function.
 broker: AsyncBroker = make_broker("redis://localhost:6379/0", result_ttl=3600)
