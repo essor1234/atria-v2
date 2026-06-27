@@ -304,6 +304,17 @@ class AgentExecutor:
         except Exception as e:
             logger.warning(f"Failed to wire hooks: {e}")
 
+        # Wire the background task client so spawn_subagent(run_in_background=True) works.
+        # The subagent manager is built per-run here; attach the server's client to it.
+        try:
+            from atria.core.tasks.lifecycle import attach_task_client
+
+            attach_task_client(
+                runtime_suite.tool_registry, getattr(self.state, "task_client", None)
+            )
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Failed to wire task client: {e}")
+
         # Set thinking level from web state
         from atria.core.context_engineering.tools.handlers.thinking_handler import ThinkingLevel
 
