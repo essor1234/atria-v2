@@ -140,6 +140,16 @@ class ParallelConfig(BaseModel):
     redis_url: str = "redis://localhost:6379/0"
 
 
+class DivideConfig(BaseModel):
+    """Work-division multi-agent (DeLM Phase 2c) settings."""
+
+    max_tasks: int = 8  # cap on decomposed subtasks
+    max_parallel: int = 3  # max workers running at once
+    pjob_ttl: int = 3600  # seconds a divide job lives in Redis
+    job_timeout_s: int = 600  # coordinator total/no-progress timeout
+    redis_url: str = "redis://localhost:6379/0"
+
+
 class WebConfig(BaseModel):
     """Web-UI specific settings."""
 
@@ -231,6 +241,9 @@ class AppConfig(BaseModel):
 
     # Parallel multi-solver settings
     parallel: ParallelConfig = Field(default_factory=ParallelConfig)
+
+    # Work-division multi-agent settings
+    divide: DivideConfig = Field(default_factory=DivideConfig)
 
     # Paths - using APP_DIR_NAME constant for consistency
     atria_dir: str = f"~/{APP_DIR_NAME}"
