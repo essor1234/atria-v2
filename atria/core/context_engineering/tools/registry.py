@@ -28,6 +28,7 @@ from atria.core.context_engineering.tools.handlers.todo_handler import TodoHandl
 from atria.core.context_engineering.tools.handlers.thinking_handler import ThinkingHandler
 from atria.core.context_engineering.tools.handlers.search_tools_handler import SearchToolsHandler
 from atria.core.context_engineering.tools.handlers.batch_handler import BatchToolHandler
+from atria.core.context_engineering.tools.implementations.note_tool import execute_note
 from atria.core.context_engineering.tools.handlers.memory_handlers import MemoryToolHandler
 from atria.core.context_engineering.tools.handlers.session_handlers import SessionToolHandler
 from atria.core.context_engineering.tools.handlers.git_handlers import GitToolHandler
@@ -315,6 +316,10 @@ class ToolRegistry:
             # Artifact tools
             "list_artifact_images": self._artifacts_handler.list_artifact_images,
             "read_artifact_image": self._artifacts_handler.read_artifact_image,
+            # Blackboard note tool
+            "NOTE": lambda args, ctx=None: execute_note(
+                args, blackboard=getattr(ctx, "blackboard", None)
+            ),
         }
 
         # Merge skill-owned tool handlers. Each skill's tools.py returned a
@@ -784,6 +789,7 @@ class ToolRegistry:
                 "send_data",
                 "list_artifact_images",
                 "read_artifact_image",
+                "NOTE",
             }:
                 # Handlers requiring context
                 result = handler(arguments, context)

@@ -12,6 +12,7 @@ from __future__ import annotations
 from typing import Any
 
 from atria.core.agents.prompts.loader import load_tool_description
+from atria.core.blackboard.note_rules import NOTE_RULES_BLOCK
 
 _BUILTIN_TOOL_SCHEMAS: list[dict[str, Any]] = [
     {
@@ -1622,6 +1623,24 @@ _BUILTIN_TOOL_SCHEMAS: list[dict[str, Any]] = [
                     },
                 },
                 "required": ["artifact_id"],
+            },
+        },
+    },
+    # ===== NOTE tool (shared blackboard) =====
+    {
+        "type": "function",
+        "function": {
+            "name": "NOTE",
+            "description": NOTE_RULES_BLOCK,
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "body": {
+                        "type": "string",
+                        "description": "One to three typed note lines (or the literal `(none)`).",
+                    },
+                },
+                "required": ["body"],
             },
         },
     },
