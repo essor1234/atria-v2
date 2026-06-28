@@ -62,8 +62,20 @@ export interface DeepAnalyzeSubtable {
 }
 
 
+// Structured todo item (mirrors backend TodoHandler.to_payload())
+export type TodoStatus = 'todo' | 'doing' | 'done';
+
+export interface Todo {
+  id: string;
+  title: string;
+  status: TodoStatus;
+  active_form?: string;
+}
+
 export interface Message {
-  role: 'user' | 'assistant' | 'system' | 'tool_call' | 'tool_result' | 'thinking' | 'search_result' | 'deep_research' | 'deep_analyze' | 'image_message' | 'data_message' | 'custom_block';
+  role: 'user' | 'assistant' | 'system' | 'tool_call' | 'tool_result' | 'thinking' | 'search_result' | 'deep_research' | 'deep_analyze' | 'image_message' | 'data_message' | 'custom_block' | 'todos';
+  // live todo list (role === 'todos')
+  todos?: Todo[];
   // custom_block fields
   block_id?: string;
   block_module?: string;
@@ -250,7 +262,7 @@ export interface ParallelSolverDoneData {
 
 // WebSocket event types
 export interface WSMessage {
-  type: 'user_message' | 'message_start' | 'message_chunk' | 'message_complete' | 'tool_call' | 'tool_result' | 'approval_required' | 'approval_resolved' | 'error' | 'pong' | 'mcp_status_update' | 'mcp_servers_update' | 'connected' | 'disconnected' | 'thinking_block' | 'thinking' | 'thinking_done' | 'search_done' | 'status_update' | 'ask_user_required' | 'ask_user_resolved' | 'session_activity' | 'plan_approval_required' | 'plan_approval_resolved' | 'plan_content' | 'subagent_start' | 'subagent_complete' | 'parallel_agents_start' | 'parallel_agents_done' | 'parallel_solver_started' | 'parallel_solver_progress' | 'parallel_solver_done' | 'divide_job_started' | 'divide_task_update' | 'divide_job_done' | 'task_completed' | 'progress' | 'nested_tool_call' | 'nested_tool_result' | 'deep_research_taxonomy_ready' | 'deep_research_queued' | 'deep_research_start' | 'deep_research_section_start' | 'deep_research_section_done' | 'deep_research_done' | 'deep_research_error' | 'analyze.started' | 'analyze.phase' | 'analyze.subtable' | 'analyze.plan_ready' | 'analyze.clarify' | 'analyze.chart_data' | 'analyze.chart_image' | 'analyze.chart_insight' | 'analyze.section_synthesized' | 'analyze.report' | 'analyze.done' | 'analyze.failed' | 'analyze.cancelled' | 'analyze.agent_message' | 'image_message' | 'data_message' | 'custom_block' | 'custom_block_update' | 'custom_block_remove' | 'block_rpc_result' | 'session_messages_replaced';
+  type: 'user_message' | 'message_start' | 'message_chunk' | 'message_complete' | 'tool_call' | 'tool_result' | 'approval_required' | 'approval_resolved' | 'error' | 'pong' | 'mcp_status_update' | 'mcp_servers_update' | 'connected' | 'disconnected' | 'thinking_block' | 'thinking' | 'thinking_done' | 'search_done' | 'status_update' | 'ask_user_required' | 'ask_user_resolved' | 'session_activity' | 'plan_approval_required' | 'plan_approval_resolved' | 'plan_content' | 'subagent_start' | 'subagent_complete' | 'todos_updated' | 'parallel_agents_start' | 'parallel_agents_done' | 'parallel_solver_started' | 'parallel_solver_progress' | 'parallel_solver_done' | 'divide_job_started' | 'divide_task_update' | 'divide_job_done' | 'task_completed' | 'progress' | 'nested_tool_call' | 'nested_tool_result' | 'deep_research_taxonomy_ready' | 'deep_research_queued' | 'deep_research_start' | 'deep_research_section_start' | 'deep_research_section_done' | 'deep_research_done' | 'deep_research_error' | 'analyze.started' | 'analyze.phase' | 'analyze.subtable' | 'analyze.plan_ready' | 'analyze.clarify' | 'analyze.chart_data' | 'analyze.chart_image' | 'analyze.chart_insight' | 'analyze.section_synthesized' | 'analyze.report' | 'analyze.done' | 'analyze.failed' | 'analyze.cancelled' | 'analyze.agent_message' | 'image_message' | 'data_message' | 'custom_block' | 'custom_block_update' | 'custom_block_remove' | 'block_rpc_result' | 'session_messages_replaced';
   data: any;
 }
 

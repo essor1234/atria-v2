@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { Message, ApprovalRequest, StatusInfo, AskUserRequest, PlanApprovalRequest, PerSessionState, ToolCallInfo, DataColumn, ChartSuggestion } from '../types';
+import { applyTodosUpdate } from '../lib/todos';
 import { apiClient } from '../api/client';
 import { wsClient } from '../api/websocket';
 import { useToastStore } from './toast';
@@ -986,6 +987,24 @@ wsClient.on('task_completed', (message) => {
   const sid = resolveSessionId(message.data);
   if (!sid) return;
   console.log('[Frontend] Task completed:', message.data.summary);
+});
+
+// ─── Todo List Events ────────────────────────────────────────────────────────
+// A single live "todos" card lives in the message flow and updates in place as
+// the agent writes/updates/completes todos. Empty payload removes the card.
+// Reducer lives in lib/todos.ts (applyTodosUpdate) for isolated testing.
+
+wsClient.on('todos_updated', (message) => {
+  const sid = resolveSessionId(message.data);
+  if (!sid) return;
+  const todos = Array.isArray(message.data.todos) ? message.data.todos : [];
+
+  useChatStore.setState(state => {
+    const sessionState = getSessionState(state.sessionStates, sid);
+    const next = applyTodosUpdate(sessionState.messages, todos, new Date().toISOString());
+    if (next === sessionState.messages) return {};
+    return patchSession(state, sid, { messages: next });
+  });
 });
 
 // ─── Progress Events ─────────────────────────────────────────────────────────
