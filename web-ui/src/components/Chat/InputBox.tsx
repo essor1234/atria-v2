@@ -144,7 +144,7 @@ export function InputBox() {
     : 'Type your message... (use @ to mention files)';
 
   return (
-    <div className="bg-canvas border-t border-hairline-soft/50 px-4 py-3">
+    <div className="bg-canvas border-t border-hairline-soft/50 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       <div className="w-full relative">
         <div className="rounded-xl border border-hairline-soft bg-canvas focus-within:border-ink/20 focus-within:shadow-soft transition-all duration-fast">
           <div className="flex gap-2 px-2 py-1.5 items-center">
@@ -179,7 +179,7 @@ export function InputBox() {
               <button
                 onClick={handleFileButtonClick}
                 disabled={!isConnected || !hasActiveSession || fileUploading}
-                className="p-1.5 rounded-lg transition-colors text-ink/30 hover:text-ink/60 hover:bg-surface-soft disabled:opacity-30 disabled:cursor-not-allowed"
+                className="min-h-[40px] min-w-[40px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center p-2 sm:p-1.5 rounded-lg transition-colors text-ink/30 hover:text-ink/60 hover:bg-surface-soft disabled:opacity-30 disabled:cursor-not-allowed"
                 title="Upload file as artifact"
               >
                 {fileUploading ? (
@@ -191,7 +191,7 @@ export function InputBox() {
               {isLoading && (
                 <button
                   onClick={handleStop}
-                  className="p-1.5 rounded-lg transition-colors text-ink/50 hover:text-ink hover:bg-surface-soft"
+                  className="min-h-[40px] min-w-[40px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center p-2 sm:p-1.5 rounded-lg transition-colors text-ink/50 hover:text-ink hover:bg-surface-soft"
                   title="Stop (Esc)"
                 >
                   <Square className="w-4 h-4" />
@@ -200,7 +200,7 @@ export function InputBox() {
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || !isConnected || !hasActiveSession || sendLocked}
-                className="p-1.5 rounded-lg transition-colors bg-ink text-canvas hover:bg-ink/80 disabled:opacity-25 disabled:cursor-not-allowed"
+                className="min-h-[40px] min-w-[40px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center p-2 sm:p-1.5 rounded-lg transition-colors bg-ink text-canvas hover:bg-ink/80 disabled:opacity-25 disabled:cursor-not-allowed"
                 title="Send (Enter)"
               >
                 <SendHorizontal className="w-4 h-4" />

@@ -1,8 +1,18 @@
 import type { Message, Todo } from '../types';
 
 /**
- * Pure reducer for the `todos_updated` event: keep exactly one `todos` card in
- * the message flow, updating it in place; an empty list removes the card.
+ * Pure reducer for the `todos_updated` event, with timeline semantics that
+ * match the backend persistence (web_ui_callback._persist_todos):
+ *
+ * - If the LAST message is a `todos` card, update it in place — a contiguous
+ *   run of todo updates collapses into one card.
+ * - Otherwise append a new card, so a `todos` update that follows other
+ *   activity starts a fresh timeline checkpoint.
+ * - An empty list removes a trailing card (clear_todos).
+ *
+ * Targeting the trailing card (not the first match) keeps live updates and
+ * reload-rehydrated history consistent: after reload there may be several
+ * persisted snapshots, and new updates must continue the latest one.
  *
  * Returns the original array reference when nothing changes so callers can skip
  * a state update.
@@ -12,15 +22,16 @@ export function applyTodosUpdate(
   todos: Todo[],
   timestamp: string,
 ): Message[] {
-  const existingIdx = messages.findIndex(m => m.role === 'todos');
+  const lastIdx = messages.length - 1;
+  const lastIsTodos = lastIdx >= 0 && messages[lastIdx].role === 'todos';
 
   if (todos.length === 0) {
-    return existingIdx === -1 ? messages : messages.filter(m => m.role !== 'todos');
+    return lastIsTodos ? messages.slice(0, -1) : messages;
   }
 
-  if (existingIdx !== -1) {
+  if (lastIsTodos) {
     const next = [...messages];
-    next[existingIdx] = { ...next[existingIdx], todos };
+    next[lastIdx] = { ...next[lastIdx], todos, timestamp };
     return next;
   }
 

@@ -14,6 +14,7 @@ class Role(str, Enum):
     ASSISTANT = "assistant"
     SYSTEM = "system"
     CUSTOM_BLOCK = "custom_block"
+    TODOS = "todos"  # UI-only: persisted todo snapshot for replay; excluded from LLM context
 
 
 class InputProvenance(BaseModel):

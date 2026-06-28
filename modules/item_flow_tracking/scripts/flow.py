@@ -27,11 +27,14 @@ import sys
 
 import _db
 
-
 # ── module-level constants ──────────────────────────────────────────────────
 
-_EXPORT_TABLES = {"orders": "orders", "lots": "lots",
-                  "resources": "resources", "events": "lot_events"}
+_EXPORT_TABLES = {
+    "orders": "orders",
+    "lots": "lots",
+    "resources": "resources",
+    "events": "lot_events",
+}
 
 
 # ── small output helpers ────────────────────────────────────────────────────
@@ -108,7 +111,7 @@ def cmd_order_new(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
         return 1
     parsed: dict[str, int] = {}
     labels: dict[str, str] = {}
-    for spec in (args.items or []):
+    for spec in args.items or []:
         it, qty, err = _parse_item(spec)
         if err:
             _err(f"--item '{spec}': {err}")
@@ -145,8 +148,15 @@ def cmd_order_new(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
             "UPDATE resources SET status = 'busy' WHERE resource_id = ?",
             (bin_row["resource_id"],),
         )
-        _db.log_event(conn, lot_id, order_id, "intake",
-                      to_step="nhan_hang", to_resource=bin_row["resource_id"], commit=False)
+        _db.log_event(
+            conn,
+            lot_id,
+            order_id,
+            "intake",
+            to_step="nhan_hang",
+            to_resource=bin_row["resource_id"],
+            commit=False,
+        )
     for key, qty in parsed.items():
         conn.execute(
             "INSERT INTO order_items (order_id, item_type, declared_qty, counted_qty, "
@@ -159,11 +169,18 @@ def cmd_order_new(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
 
     lots = _order_lots(conn, order_id)
     if args.json:
-        _emit({"order": _db.order_dict(_find_order(conn, order_id)),
-               "lots": lots, "items": _order_items(conn, order_id)})
+        _emit(
+            {
+                "order": _db.order_dict(_find_order(conn, order_id)),
+                "lots": lots,
+                "items": _order_items(conn, order_id),
+            }
+        )
     else:
-        print(f"Created {order_id} for {args.phone} — {args.bins} parts "
-              f"({', '.join(lot['current_resource'] for lot in lots)})")
+        print(
+            f"Created {order_id} for {args.phone} — {args.bins} parts "
+            f"({', '.join(lot['current_resource'] for lot in lots)})"
+        )
     return 0
 
 
@@ -190,8 +207,10 @@ def cmd_order_list(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
         _emit({"orders": orders})
     else:
         for o in orders:
-            print(f"{o['order_id']}  {o['customer_phone']:<12}  {o['status']:<9}  "
-                  f"{len(o['lots'])} parts  total={o['total_items']}")
+            print(
+                f"{o['order_id']}  {o['customer_phone']:<12}  {o['status']:<9}  "
+                f"{len(o['lots'])} parts  total={o['total_items']}"
+            )
     return 0
 
 
@@ -208,8 +227,9 @@ def cmd_order_show(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     else:
         print(f"{order['order_id']}  {order['customer_phone']}  {order['status']}")
         for lot in order["lots"]:
-            print(f"  {lot['label']}  {lot['step_label']:<12}  "
-                  f"@ {lot['current_resource'] or '-'}")
+            print(
+                f"  {lot['label']}  {lot['step_label']:<12}  " f"@ {lot['current_resource'] or '-'}"
+            )
         for it in order["items"]:
             cnt = "—" if it["counted_qty"] is None else it["counted_qty"]
             print(f"  {it['item_type']:<12} khai {it['declared_qty']:<5} đếm {cnt}")
@@ -232,19 +252,34 @@ def cmd_order_count(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
         _err(f"order {args.order} has no item type: {args.type}")
         return 1
     ts = _db.now()
-    conn.execute("UPDATE order_items SET counted_qty = ?, updated_at = ? WHERE id = ?",
-                 (args.counted, ts, row["id"]))
+    conn.execute(
+        "UPDATE order_items SET counted_qty = ?, updated_at = ? WHERE id = ?",
+        (args.counted, ts, row["id"]),
+    )
     _db.recompute_order_totals(conn, args.order)
-    _db.log_event(conn, "-", args.order, "count",
-                  item_count=args.counted, notes=row["item_type"], commit=False)
+    _db.log_event(
+        conn,
+        "-",
+        args.order,
+        "count",
+        item_count=args.counted,
+        notes=row["item_type"],
+        commit=False,
+    )
     conn.commit()
     if args.json:
-        _emit({"order": _db.order_dict(_find_order(conn, args.order)),
-               "items": _order_items(conn, args.order)})
+        _emit(
+            {
+                "order": _db.order_dict(_find_order(conn, args.order)),
+                "items": _order_items(conn, args.order),
+            }
+        )
     else:
         o = _find_order(conn, args.order)
-        print(f"{args.order} · {row['item_type']} counted {args.counted} "
-              f"— order total = {o['total_items']}")
+        print(
+            f"{args.order} · {row['item_type']} counted {args.counted} "
+            f"— order total = {o['total_items']}"
+        )
     return 0
 
 
@@ -268,11 +303,19 @@ def cmd_order_deliver(conn: sqlite3.Connection, args: argparse.Namespace) -> int
             "updated_at = ? WHERE lot_id = ?",
             (ts, lot["lot_id"]),
         )
-        _db.log_event(conn, lot["lot_id"], args.order, "deliver",
-                      from_step=lot["step"], to_step="done",
-                      from_resource=lot["current_resource"], commit=False)
-    conn.execute("UPDATE orders SET status = 'done', updated_at = ? WHERE order_id = ?",
-                 (ts, args.order))
+        _db.log_event(
+            conn,
+            lot["lot_id"],
+            args.order,
+            "deliver",
+            from_step=lot["step"],
+            to_step="done",
+            from_resource=lot["current_resource"],
+            commit=False,
+        )
+    conn.execute(
+        "UPDATE orders SET status = 'done', updated_at = ? WHERE order_id = ?", (ts, args.order)
+    )
     conn.commit()
     if args.json:
         _emit({"order": _db.order_dict(_find_order(conn, args.order))})
@@ -296,8 +339,10 @@ def cmd_order_cancel(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
             (ts, lot["lot_id"]),
         )
         _db.log_event(conn, lot["lot_id"], args.order, "cancel", notes=args.reason, commit=False)
-    conn.execute("UPDATE orders SET status = 'cancelled', updated_at = ? WHERE order_id = ?",
-                 (ts, args.order))
+    conn.execute(
+        "UPDATE orders SET status = 'cancelled', updated_at = ? WHERE order_id = ?",
+        (ts, args.order),
+    )
     conn.commit()
     if args.json:
         _emit({"order": _db.order_dict(_find_order(conn, args.order))})
@@ -347,15 +392,24 @@ def cmd_lot_move(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     ts = _db.now()
     if old and old != target["resource_id"]:
         conn.execute("UPDATE resources SET status = 'free' WHERE resource_id = ?", (old,))
-    conn.execute("UPDATE resources SET status = 'busy' WHERE resource_id = ?",
-                 (target["resource_id"],))
+    conn.execute(
+        "UPDATE resources SET status = 'busy' WHERE resource_id = ?", (target["resource_id"],)
+    )
     conn.execute(
         "UPDATE lots SET step = ?, current_resource = ?, updated_at = ? WHERE lot_id = ?",
         (new_step, target["resource_id"], ts, lot_id),
     )
-    _db.log_event(conn, lot_id, lot["order_id"], "move",
-                  from_step=lot["step"], to_step=new_step,
-                  from_resource=old, to_resource=target["resource_id"], commit=False)
+    _db.log_event(
+        conn,
+        lot_id,
+        lot["order_id"],
+        "move",
+        from_step=lot["step"],
+        to_step=new_step,
+        from_resource=old,
+        to_resource=target["resource_id"],
+        commit=False,
+    )
     conn.commit()
 
     if args.json:
@@ -367,8 +421,9 @@ def cmd_lot_move(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
 
 def _free_lot_resource(conn: sqlite3.Connection, lot: sqlite3.Row) -> None:
     if lot["current_resource"]:
-        conn.execute("UPDATE resources SET status = 'free' WHERE resource_id = ?",
-                     (lot["current_resource"],))
+        conn.execute(
+            "UPDATE resources SET status = 'free' WHERE resource_id = ?", (lot["current_resource"],)
+        )
 
 
 def _maybe_complete_order(conn: sqlite3.Connection, order_id: str) -> None:
@@ -383,8 +438,10 @@ def _maybe_complete_order(conn: sqlite3.Connection, order_id: str) -> None:
         (order_id,),
     ).fetchone()
     if it["n"] and it["c"] == it["n"]:
-        conn.execute("UPDATE orders SET status = 'done', updated_at = ? WHERE order_id = ?",
-                     (_db.now(), order_id))
+        conn.execute(
+            "UPDATE orders SET status = 'done', updated_at = ? WHERE order_id = ?",
+            (_db.now(), order_id),
+        )
 
 
 def cmd_lot_redo(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
@@ -401,8 +458,16 @@ def cmd_lot_redo(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
         "UPDATE lots SET step = ?, is_redo = 1, updated_at = ? WHERE lot_id = ?",
         (target, ts, args.lot),
     )
-    _db.log_event(conn, args.lot, lot["order_id"], "redo",
-                  from_step=lot["step"], to_step=target, notes=args.notes, commit=False)
+    _db.log_event(
+        conn,
+        args.lot,
+        lot["order_id"],
+        "redo",
+        from_step=lot["step"],
+        to_step=target,
+        notes=args.notes,
+        commit=False,
+    )
     conn.commit()
 
     if args.json:
@@ -440,9 +505,16 @@ def cmd_lot_deliver(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
         "updated_at = ? WHERE lot_id = ?",
         (ts, args.lot),
     )
-    _db.log_event(conn, args.lot, lot["order_id"], "deliver",
-                  from_step=lot["step"], to_step="done",
-                  from_resource=lot["current_resource"], commit=False)
+    _db.log_event(
+        conn,
+        args.lot,
+        lot["order_id"],
+        "deliver",
+        from_step=lot["step"],
+        to_step="done",
+        from_resource=lot["current_resource"],
+        commit=False,
+    )
     _maybe_complete_order(conn, lot["order_id"])
     conn.commit()
     if args.json:
@@ -514,8 +586,9 @@ def cmd_resource_set(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     if not r:
         _err(f"resource not found: {args.resource}")
         return 1
-    conn.execute("UPDATE resources SET status = ? WHERE resource_id = ?",
-                 (args.status, args.resource))
+    conn.execute(
+        "UPDATE resources SET status = ? WHERE resource_id = ?", (args.status, args.resource)
+    )
     conn.commit()
     if args.json:
         _emit({"resource": _db.resource_dict(_find_resource(conn, args.resource))})
@@ -563,9 +636,7 @@ def cmd_resource_add(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     if args.count < 1:
         _err("--count must be >= 1")
         return 1
-    rows = conn.execute(
-        "SELECT resource_id FROM resources WHERE kind = ?", (args.kind,)
-    ).fetchall()
+    rows = conn.execute("SELECT resource_id FROM resources WHERE kind = ?", (args.kind,)).fetchall()
     max_idx = 0
     for r in rows:
         try:
@@ -631,6 +702,69 @@ def cmd_dashboard(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_stats(conn: sqlite3.Connection, args: argparse.Namespace) -> int:
+    """Emit per-day order statistics: summary, item-type breakdown, order rows.
+
+    Powers the dashboard's "Thống kê" tab. ``--date`` (YYYY-MM-DD, UTC) selects
+    the business day; it defaults to today and matches the day encoded in each
+    ``DH-YYYYMMDD-NNN`` order id. Orders of every status are included so the row
+    table can be filtered/counted client-side; the item-type breakdown excludes
+    cancelled orders since owed/extra is a fulfilment metric.
+    """
+    date = (args.date or _db.now()[:10]).strip()
+
+    orders: list[dict] = []
+    for r in conn.execute(
+        "SELECT * FROM orders WHERE substr(created_at, 1, 10) = ? ORDER BY created_at DESC",
+        (date,),
+    ).fetchall():
+        o = _db.order_dict(r)
+        lots = _order_lots(conn, r["order_id"])
+        items = _order_items(conn, r["order_id"])
+        o["parts"] = len(lots)
+        o["redo_parts"] = sum(1 for lot in lots if lot["is_redo"])
+        o["declared_items"] = sum(it["declared_qty"] for it in items)
+        o["counted_items"] = sum((it["counted_qty"] or 0) for it in items)
+        o["items"] = items
+        orders.append(o)
+
+    summary = {
+        "orders": len(orders),
+        "active": sum(1 for o in orders if o["status"] == "active"),
+        "done": sum(1 for o in orders if o["status"] == "done"),
+        "cancelled": sum(1 for o in orders if o["status"] == "cancelled"),
+        "parts": sum(o["parts"] for o in orders),
+        "redo_parts": sum(o["redo_parts"] for o in orders),
+        "declared_items": sum(o["declared_items"] for o in orders),
+        "counted_items": sum(o["counted_items"] for o in orders),
+    }
+
+    by_item: list[dict] = []
+    for r in conn.execute(
+        "SELECT oi.item_type AS item_type, "
+        "SUM(oi.declared_qty) AS declared, "
+        "COALESCE(SUM(oi.counted_qty), 0) AS counted "
+        "FROM order_items oi JOIN orders o ON o.order_id = oi.order_id "
+        "WHERE substr(o.created_at, 1, 10) = ? AND o.status != 'cancelled' "
+        "GROUP BY oi.item_type COLLATE NOCASE "
+        "ORDER BY declared DESC, oi.item_type",
+        (date,),
+    ).fetchall():
+        declared, counted = int(r["declared"]), int(r["counted"])
+        by_item.append(
+            {
+                "item_type": r["item_type"],
+                "declared": declared,
+                "counted": counted,
+                "owed": max(0, declared - counted),
+                "extra": max(0, counted - declared),
+            }
+        )
+
+    _emit({"date": date, "summary": summary, "by_item": by_item, "orders": orders})
+    return 0
+
+
 # ── report commands ────────────────────────────────────────────────────────
 
 
@@ -644,18 +778,26 @@ def cmd_report_reconcile(conn: sqlite3.Connection, args: argparse.Namespace) -> 
         "SELECT o.customer_phone AS phone, oi.item_type AS item_type, "
         "SUM(oi.declared_qty) AS declared, COALESCE(SUM(oi.counted_qty), 0) AS counted "
         "FROM order_items oi JOIN orders o ON o.order_id = oi.order_id "
-        "WHERE " + " AND ".join(where) +
-        " GROUP BY o.customer_phone, oi.item_type COLLATE NOCASE "
+        "WHERE " + " AND ".join(where) + " GROUP BY o.customer_phone, oi.item_type COLLATE NOCASE "
         "ORDER BY o.customer_phone, oi.item_type"
     )
     customers: dict[str, dict] = {}
     for r in conn.execute(sql, params).fetchall():
-        c = customers.setdefault(r["phone"], {
-            "customer_phone": r["phone"], "items": [], "owed_total": 0, "extra_total": 0})
+        c = customers.setdefault(
+            r["phone"],
+            {"customer_phone": r["phone"], "items": [], "owed_total": 0, "extra_total": 0},
+        )
         declared, counted = int(r["declared"]), int(r["counted"])
         owed, extra = max(0, declared - counted), max(0, counted - declared)
-        c["items"].append({"item_type": r["item_type"], "declared": declared,
-                           "counted": counted, "owed": owed, "extra": extra})
+        c["items"].append(
+            {
+                "item_type": r["item_type"],
+                "declared": declared,
+                "counted": counted,
+                "owed": owed,
+                "extra": extra,
+            }
+        )
         c["owed_total"] += owed
         c["extra_total"] += extra
     result = list(customers.values())
@@ -665,8 +807,10 @@ def cmd_report_reconcile(conn: sqlite3.Connection, args: argparse.Namespace) -> 
         for c in result:
             print(f"{c['customer_phone']}  nợ {c['owed_total']} · thừa {c['extra_total']}")
             for it in c["items"]:
-                print(f"  {it['item_type']:<12} khai {it['declared']:<5} "
-                      f"đếm {it['counted']:<5} nợ {it['owed']} thừa {it['extra']}")
+                print(
+                    f"  {it['item_type']:<12} khai {it['declared']:<5} "
+                    f"đếm {it['counted']:<5} nợ {it['owed']} thừa {it['extra']}"
+                )
     return 0
 
 
@@ -678,15 +822,22 @@ def _build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="group", required=True)
 
     order = sub.add_parser("order", help="order operations").add_subparsers(
-        dest="cmd", required=True)
+        dest="cmd", required=True
+    )
 
     p = order.add_parser("new", help="create an order split into N bins/parts")
     p.add_argument("--phone", required=True)
     p.add_argument("--name", default=None)
     p.add_argument("--bins", type=int, required=True)
     p.add_argument("--note", default=None)
-    p.add_argument("--item", action="append", dest="items", default=None,
-                   metavar="TYPE:QTY", help="declared item line, repeatable, e.g. --item khăn:100")
+    p.add_argument(
+        "--item",
+        action="append",
+        dest="items",
+        default=None,
+        metavar="TYPE:QTY",
+        help="declared item line, repeatable, e.g. --item khăn:100",
+    )
     p.add_argument("--json", action="store_true")
     p.set_defaults(fn=cmd_order_new)
 
@@ -720,13 +871,17 @@ def _build_parser() -> argparse.ArgumentParser:
     p.set_defaults(fn=cmd_order_cancel)
 
     lot = sub.add_parser("lot", help="lot (part) operations").add_subparsers(
-        dest="cmd", required=True)
+        dest="cmd", required=True
+    )
 
     p = lot.add_parser("move", help="move a lot into a resource (step inferred)")
     src = p.add_mutually_exclusive_group(required=True)
     src.add_argument("--lot", help="lot id to move")
-    src.add_argument("--from", dest="from_resource",
-                     help="resolve the active lot currently in this resource, e.g. bin-1")
+    src.add_argument(
+        "--from",
+        dest="from_resource",
+        help="resolve the active lot currently in this resource, e.g. bin-1",
+    )
     p.add_argument("--to", required=True, help="target resource_id, e.g. washer-3 or bin-5")
     p.add_argument("--force", action="store_true", help="override a busy target")
     p.add_argument("--json", action="store_true")
@@ -745,14 +900,16 @@ def _build_parser() -> argparse.ArgumentParser:
     p.set_defaults(fn=cmd_lot_deliver)
 
     customer = sub.add_parser("customer", help="customer lookups").add_subparsers(
-        dest="cmd", required=True)
+        dest="cmd", required=True
+    )
     p = customer.add_parser("history", help="all orders for a phone number")
     p.add_argument("--phone", required=True)
     p.add_argument("--json", action="store_true")
     p.set_defaults(fn=cmd_customer_history)
 
     resource = sub.add_parser("resource", help="resource pool operations").add_subparsers(
-        dest="cmd", required=True)
+        dest="cmd", required=True
+    )
     p = resource.add_parser("list", help="list the resource pool")
     p.add_argument("--kind", choices=["bin", "washer", "dryer", "fold", "count"], default=None)
     p.add_argument("--status", choices=["free", "busy", "maintenance"], default=None)
@@ -774,7 +931,8 @@ def _build_parser() -> argparse.ArgumentParser:
     p.set_defaults(fn=cmd_resource_retire)
 
     data = sub.add_parser("data", help="bulk data + lifecycle operations").add_subparsers(
-        dest="cmd", required=True)
+        dest="cmd", required=True
+    )
     p = data.add_parser("export", help="export a table to csv/json")
     p.add_argument("--table", choices=list(_EXPORT_TABLES), default="orders")
     p.add_argument("--format", choices=["csv", "json"], default="json")
@@ -788,8 +946,17 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--json", action="store_true")
     p.set_defaults(fn=cmd_dashboard)
 
-    report = sub.add_parser("report", help="reporting").add_subparsers(
-        dest="cmd", required=True)
+    p = sub.add_parser("stats", help="emit per-day order statistics JSON")
+    p.add_argument(
+        "--date",
+        default=None,
+        metavar="YYYY-MM-DD",
+        help="business day to report (UTC); defaults to today",
+    )
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_stats)
+
+    report = sub.add_parser("report", help="reporting").add_subparsers(dest="cmd", required=True)
     p = report.add_parser("reconcile", help="declared vs counted per customer + type")
     p.add_argument("--phone", default=None)
     p.add_argument("--json", action="store_true")

@@ -147,8 +147,19 @@ def test_redo_sets_flag_and_moves_step_back(env):
 
 
 def test_order_deliver_requires_all_counted(env):
-    new = run_json(env, "order", "new", "--phone", "0907770000", "--bins", "1",
-                   "--item", "khăn:100", "--item", "ga:50")
+    new = run_json(
+        env,
+        "order",
+        "new",
+        "--phone",
+        "0907770000",
+        "--bins",
+        "1",
+        "--item",
+        "khăn:100",
+        "--item",
+        "ga:50",
+    )
     oid = new["order"]["order_id"]
     # No types counted yet — blocked
     blocked = run(env, "order", "deliver", "--order", oid, "--json")
@@ -165,8 +176,7 @@ def test_order_deliver_requires_all_counted(env):
 
 
 def test_lot_deliver_completes_order_when_last(env):
-    new = run_json(env, "order", "new", "--phone", "0907771111", "--bins", "2",
-                   "--item", "khăn:10")
+    new = run_json(env, "order", "new", "--phone", "0907771111", "--bins", "2", "--item", "khăn:10")
     oid = new["order"]["order_id"]
     p1, p2 = new["lots"][0]["lot_id"], new["lots"][1]["lot_id"]
     run_json(env, "order", "count", "--order", oid, "--type", "khăn", "--counted", "10")
@@ -277,25 +287,49 @@ def test_move_from_ambiguous_errors(env):
 
 
 def test_order_new_declares_item_lines(env):
-    p = run_json(env, "order", "new", "--phone", "0901234567", "--bins", "2",
-                 "--item", "khăn:100", "--item", "ga:50")
+    p = run_json(
+        env,
+        "order",
+        "new",
+        "--phone",
+        "0901234567",
+        "--bins",
+        "2",
+        "--item",
+        "khăn:100",
+        "--item",
+        "ga:50",
+    )
     types = {i["item_type"]: i["declared_qty"] for i in p["items"]}
     assert types == {"khăn": 100, "ga": 50}
     assert p["order"]["declared_total"] == 150
 
 
 def test_order_new_rejects_bad_item(env):
-    r = run(env, "order", "new", "--phone", "0900000000", "--bins", "1",
-            "--item", "khăn:-10", "--json")
+    r = run(
+        env, "order", "new", "--phone", "0900000000", "--bins", "1", "--item", "khăn:-10", "--json"
+    )
     assert r.returncode != 0
-    r2 = run(env, "order", "new", "--phone", "0900000000", "--bins", "1",
-             "--item", "khăn:abc", "--json")
+    r2 = run(
+        env, "order", "new", "--phone", "0900000000", "--bins", "1", "--item", "khăn:abc", "--json"
+    )
     assert r2.returncode != 0
 
 
 def test_order_count_by_type_updates_total(env):
-    new = run_json(env, "order", "new", "--phone", "0902223334", "--bins", "1",
-                   "--item", "khăn:100", "--item", "ga:50")
+    new = run_json(
+        env,
+        "order",
+        "new",
+        "--phone",
+        "0902223334",
+        "--bins",
+        "1",
+        "--item",
+        "khăn:100",
+        "--item",
+        "ga:50",
+    )
     oid = new["order"]["order_id"]
     run_json(env, "order", "count", "--order", oid, "--type", "khăn", "--counted", "98")
     shown = run_json(env, "order", "show", "--order", oid)
@@ -305,18 +339,21 @@ def test_order_count_by_type_updates_total(env):
 
 
 def test_order_count_unknown_type_errors(env):
-    oid = run_json(env, "order", "new", "--phone", "0902223335", "--bins", "1",
-                   "--item", "khăn:10")["order"]["order_id"]
+    oid = run_json(
+        env, "order", "new", "--phone", "0902223335", "--bins", "1", "--item", "khăn:10"
+    )["order"]["order_id"]
     r = run(env, "order", "count", "--order", oid, "--type", "áo", "--counted", "5", "--json")
     assert r.returncode != 0
 
 
 def test_reconcile_owed_and_extra(env):
-    o1 = run_json(env, "order", "new", "--phone", "0905550000", "--bins", "1",
-                  "--item", "khăn:100")["order"]["order_id"]
+    o1 = run_json(
+        env, "order", "new", "--phone", "0905550000", "--bins", "1", "--item", "khăn:100"
+    )["order"]["order_id"]
     run_json(env, "order", "count", "--order", o1, "--type", "khăn", "--counted", "98")
-    o2 = run_json(env, "order", "new", "--phone", "0905550000", "--bins", "1",
-                  "--item", "ga:20")["order"]["order_id"]
+    o2 = run_json(env, "order", "new", "--phone", "0905550000", "--bins", "1", "--item", "ga:20")[
+        "order"
+    ]["order_id"]
     run_json(env, "order", "count", "--order", o2, "--type", "ga", "--counted", "22")
     rec = run_json(env, "report", "reconcile", "--phone", "0905550000")
     c = rec["customers"][0]
@@ -327,8 +364,19 @@ def test_reconcile_owed_and_extra(env):
 
 
 def test_deliver_requires_all_types_counted(env):
-    new = run_json(env, "order", "new", "--phone", "0907770000", "--bins", "1",
-                   "--item", "khăn:100", "--item", "ga:50")
+    new = run_json(
+        env,
+        "order",
+        "new",
+        "--phone",
+        "0907770000",
+        "--bins",
+        "1",
+        "--item",
+        "khăn:100",
+        "--item",
+        "ga:50",
+    )
     oid = new["order"]["order_id"]
     blocked = run(env, "order", "deliver", "--order", oid, "--json")
     assert blocked.returncode != 0 and "chưa đếm" in blocked.stderr
@@ -341,6 +389,7 @@ def test_deliver_requires_all_types_counted(env):
 def test_v2_migration_upgrades_v1_db(env, tmp_path):
     # Build a v1-shaped DB (no order_items / declared_total), then connect via the CLI.
     import sqlite3
+
     dbp = tmp_path / "v1.db"
     conn = sqlite3.connect(dbp)
     conn.executescript(
@@ -357,5 +406,88 @@ def test_v2_migration_upgrades_v1_db(env, tmp_path):
     listed = run_json(e, "order", "list")
     assert any(o["order_id"] == "DH-OLD-001" for o in listed["orders"])  # no data loss
     # order_items table now usable
-    assert run(e, "order", "new", "--phone", "0901111111", "--bins", "1",
-               "--item", "khăn:5", "--json").returncode == 0
+    assert (
+        run(
+            e, "order", "new", "--phone", "0901111111", "--bins", "1", "--item", "khăn:5", "--json"
+        ).returncode
+        == 0
+    )
+
+
+# ── per-day statistics (stats command, powers the "Thống kê" dashboard tab) ───
+
+
+def test_stats_summary_and_orders(env):
+    a = run_json(
+        env,
+        "order",
+        "new",
+        "--phone",
+        "0901111111",
+        "--name",
+        "A",
+        "--bins",
+        "2",
+        "--item",
+        "khăn:100",
+        "--item",
+        "áo:20",
+    )["order"]["order_id"]
+    run_json(env, "order", "new", "--phone", "0902222222", "--bins", "1", "--item", "chăn:5")
+    run_json(env, "order", "count", "--order", a, "--type", "khăn", "--counted", "95")
+
+    stats = run_json(env, "stats")
+    assert stats["date"] == _db_today()
+    s = stats["summary"]
+    assert s["orders"] == 2
+    assert s["active"] == 2 and s["done"] == 0 and s["cancelled"] == 0
+    assert s["parts"] == 3
+    assert s["declared_items"] == 125  # 100 + 20 + 5
+    assert s["counted_items"] == 95
+    # order rows carry per-order rollups for client-side filtering
+    rows = {o["order_id"]: o for o in stats["orders"]}
+    assert rows[a]["parts"] == 2
+    assert rows[a]["declared_items"] == 120 and rows[a]["counted_items"] == 95
+
+
+def test_stats_by_item_excludes_cancelled(env):
+    keep = run_json(
+        env, "order", "new", "--phone", "0903333333", "--bins", "1", "--item", "khăn:10"
+    )["order"]["order_id"]
+    drop = run_json(
+        env, "order", "new", "--phone", "0904444444", "--bins", "1", "--item", "khăn:7"
+    )["order"]["order_id"]
+    run_json(env, "order", "count", "--order", keep, "--type", "khăn", "--counted", "8")
+    run_json(env, "order", "cancel", "--order", drop)
+
+    stats = run_json(env, "stats")
+    by_item = {b["item_type"]: b for b in stats["by_item"]}
+    assert "khăn" in by_item
+    assert by_item["khăn"]["declared"] == 10  # cancelled order's 7 excluded
+    assert by_item["khăn"]["counted"] == 8
+    assert by_item["khăn"]["owed"] == 2 and by_item["khăn"]["extra"] == 0
+    # summary still counts the cancelled order's existence
+    assert stats["summary"]["orders"] == 2 and stats["summary"]["cancelled"] == 1
+
+
+def test_stats_extra_when_overcounted(env):
+    oid = run_json(
+        env, "order", "new", "--phone", "0905555555", "--bins", "1", "--item", "khăn:10"
+    )["order"]["order_id"]
+    run_json(env, "order", "count", "--order", oid, "--type", "khăn", "--counted", "13")
+    by_item = {b["item_type"]: b for b in run_json(env, "stats")["by_item"]}
+    assert by_item["khăn"]["owed"] == 0 and by_item["khăn"]["extra"] == 3
+
+
+def test_stats_other_day_is_empty(env):
+    run_json(env, "order", "new", "--phone", "0906666666", "--bins", "1")
+    stats = run_json(env, "stats", "--date", "2020-01-01")
+    assert stats["date"] == "2020-01-01"
+    assert stats["summary"]["orders"] == 0
+    assert stats["orders"] == [] and stats["by_item"] == []
+
+
+def _db_today() -> str:
+    from datetime import datetime, timezone
+
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
