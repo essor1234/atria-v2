@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import logging
-from pathlib import Path
 
 from atria.core.paths import atria_dir
 from atria.core.runtime.monitoring import TaskMonitor
