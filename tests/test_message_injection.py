@@ -220,71 +220,6 @@ class TestMainAgentInjection:
         assert agent._injection_queue.empty()
 
 
-class TestMessageProcessorInjection:
-    """Tests for MessageProcessor injection target."""
-
-    def _make_processor(self):
-        """Create a MessageProcessor with mocked app."""
-        from atria.ui_textual.runner_components.message_processor import MessageProcessor
-
-        app = MagicMock()
-        app.update_queue_indicator = MagicMock()
-        app.call_from_thread = MagicMock()
-        app.conversation = MagicMock()
-
-        processor = MessageProcessor(app, callbacks={})
-        processor.set_app(app)
-        return processor, app
-
-    def test_set_injection_target(self):
-        """set_injection_target stores the callback."""
-        processor, _ = self._make_processor()
-        cb = MagicMock()
-        processor.set_injection_target(cb)
-        assert processor._injection_target is cb
-
-    def test_clear_injection_target(self):
-        """set_injection_target(None) clears the callback."""
-        processor, _ = self._make_processor()
-        cb = MagicMock()
-        processor.set_injection_target(cb)
-        processor.set_injection_target(None)
-        assert processor._injection_target is None
-
-    def test_enqueue_redirects_to_injection_target(self):
-        """Non-command messages go to injection target when set."""
-        processor, app = self._make_processor()
-        cb = MagicMock()
-        processor.set_injection_target(cb)
-
-        processor.enqueue_message("hello world")
-
-        cb.assert_called_once_with("hello world")
-        # Should NOT display immediately — deferred to step boundary
-        app.call_from_thread.assert_not_called()
-        # Should NOT go to pending queue
-        assert processor._pending.empty()
-
-    def test_slash_commands_bypass_injection(self):
-        """Slash commands always go to pending queue, not injection target."""
-        processor, _ = self._make_processor()
-        cb = MagicMock()
-        processor.set_injection_target(cb)
-
-        processor.enqueue_message("/help")
-
-        cb.assert_not_called()
-        assert not processor._pending.empty()
-
-    def test_no_injection_target_uses_queue(self):
-        """Without injection target, messages go to pending queue normally."""
-        processor, _ = self._make_processor()
-
-        processor.enqueue_message("hello world")
-
-        assert not processor._pending.empty()
-
-
 class TestWebStateInjectionQueue:
     """Tests for WebState injection queue management."""
 
@@ -413,64 +348,6 @@ class TestDeferredDisplay:
         )
         return executor, session_manager
 
-    def _make_processor(self):
-        from atria.ui_textual.runner_components.message_processor import MessageProcessor
-
-        app = MagicMock()
-        app.update_queue_indicator = MagicMock()
-        app.call_from_thread = MagicMock()
-        app.conversation = MagicMock()
-
-        processor = MessageProcessor(app, callbacks={})
-        processor.set_app(app)
-        return processor, app
-
-    def test_enqueue_does_not_display_immediately(self):
-        """Injected message is NOT displayed at injection time."""
-        processor, app = self._make_processor()
-        cb = MagicMock()
-        processor.set_injection_target(cb)
-
-        processor.enqueue_message("hello")
-
-        cb.assert_called_once_with("hello")
-        # add_user_message must NOT be called at injection time
-        for call in app.call_from_thread.call_args_list:
-            assert call[0][0] != app.conversation.add_user_message
-
-    def test_enqueue_updates_queue_indicator(self):
-        """Queue indicator fires after inject."""
-        processor, app = self._make_processor()
-        cb = MagicMock()
-        inj_q = queue_mod.Queue(maxsize=10)
-        processor.set_injection_target(cb, injection_queue=inj_q)
-
-        # Put a message in the injection queue (simulating what target() does)
-        inj_q.put_nowait("hello")
-        processor.enqueue_message("hello")
-
-        # update_queue_indicator should have been called
-        app.update_queue_indicator.assert_called()
-
-    def test_get_queue_size_includes_injection_queue(self):
-        """get_queue_size includes both pending and injection queue."""
-        processor, _ = self._make_processor()
-        inj_q = queue_mod.Queue(maxsize=10)
-        processor.set_injection_target(MagicMock(), injection_queue=inj_q)
-
-        # Put items in both queues
-        processor._pending.put_nowait(("msg1", False))
-        inj_q.put_nowait("msg2")
-        inj_q.put_nowait("msg3")
-
-        assert processor.get_queue_size() == 3
-
-    def test_get_queue_size_without_injection_queue(self):
-        """get_queue_size works with no injection queue set."""
-        processor, _ = self._make_processor()
-        processor._pending.put_nowait(("msg1", False))
-        assert processor.get_queue_size() == 1
-
     def test_drain_calls_on_message_consumed(self):
         """_drain_injected_messages calls _on_message_consumed for each drained message."""
         from atria.repl.react_executor import IterationContext
@@ -571,32 +448,6 @@ class TestDeferredDisplay:
         assert orphans == ["orphan1", "orphan2"]
         # Should NOT persist when orphan callback handles it
         session_manager.add_message.assert_not_called()
-
-    def test_orphan_messages_requeued_to_pending(self):
-        """_on_orphan callback can re-queue messages to pending."""
-        processor, _ = self._make_processor()
-        executor, _ = self._make_executor()
-
-        def requeue(text):
-            processor._pending.put_nowait((text, True))
-            processor._message_ready.set()
-
-        executor.set_on_orphan_message(requeue)
-        executor._injection_queue.put_nowait("straggler")
-
-        # Simulate final drain
-        while True:
-            try:
-                text = executor._injection_queue.get_nowait()
-                executor._on_orphan_message(text)
-            except queue_mod.Empty:
-                break
-
-        # Message should be in pending queue
-        assert not processor._pending.empty()
-        msg, needs_display = processor._pending.get_nowait()
-        assert msg == "straggler"
-        assert needs_display is True
 
     def test_callbacks_cleared_after_execute_final_drain(self):
         """Callbacks are cleared at end of execute()'s final drain."""

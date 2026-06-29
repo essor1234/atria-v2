@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, Suspense, lazy } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Eye, FileCode2 } from 'lucide-react';
 import { apiClient } from '../../../api/client';
 import { fsScopeKey, type FsScope } from '../../../types';
@@ -52,7 +53,7 @@ export function MarkdownViewer({ scope, path, editable }: Props) {
       <div className="flex-1 overflow-auto">
         {mode === 'preview' ? (
           <div className="prose prose-invert max-w-none p-4 text-sm">
-            <ReactMarkdown>{text}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
           </div>
         ) : (
           <Suspense fallback={<div className="p-4 text-xs font-mono text-ink/45">Loading editor…</div>}>

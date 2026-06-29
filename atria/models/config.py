@@ -1,5 +1,6 @@
 """Configuration models."""
 
+import os
 import re
 from typing import Any, Optional
 
@@ -105,12 +106,59 @@ class IframeRpcConfig(BaseModel):
     tool_allowlist: list[str] = Field(default_factory=list)
 
 
+def _default_redis_url() -> str:
+    """Default Redis URL for all Redis-backed subsystems.
+
+    Honors ``ATRIA_REDIS_URL`` so a single env var points the whole stack at the
+    same Redis (e.g. ``redis://redis:6379/0`` in Docker). Falls back to localhost
+    for local/dev. Matches the broker singleton in ``atria.core.tasks.broker``.
+    """
+    return os.environ.get("ATRIA_REDIS_URL", "redis://localhost:6379/0")
+
+
 class BusConfig(BaseModel):
     """Cross-process message bus for routing push_block / block_event when the
     WS owner and the publisher are different worker processes."""
 
     kind: str = "in_memory"  # "in_memory" | "redis"
-    redis_url: str = "redis://localhost:6379/0"
+    redis_url: str = Field(default_factory=_default_redis_url)
+
+
+class TasksConfig(BaseModel):
+    """Distributed task queue (TaskIQ) settings for background subagents."""
+
+    redis_url: str = Field(default_factory=_default_redis_url)
+    result_ttl: int = 3600  # seconds a task result lives in Redis
+    orphan_after: int = 1800  # seconds before an unfinished task is deemed orphaned
+
+
+class BlackboardConfig(BaseModel):
+    """Shared verified blackboard (DeLM) settings."""
+
+    enabled: bool = False  # opt-in; the blackboard is an accelerant, off by default
+    redis_url: str = Field(default_factory=_default_redis_url)
+    ttl: int = 3600  # seconds a task's blackboard lives in Redis
+    window_tokens: int = 2000  # digest token budget injected into context
+
+
+class ParallelConfig(BaseModel):
+    """Parallel multi-solver (DeLM Phase 2b) settings."""
+
+    max_solvers: int = 5
+    default_solvers: int = 3
+    solver_start_stagger_seconds: float = 0.0
+    pjob_ttl: int = 3600
+    redis_url: str = Field(default_factory=_default_redis_url)
+
+
+class DivideConfig(BaseModel):
+    """Work-division multi-agent (DeLM Phase 2c) settings."""
+
+    max_tasks: int = 8  # cap on decomposed subtasks
+    max_parallel: int = 3  # max workers running at once
+    pjob_ttl: int = 3600  # seconds a divide job lives in Redis
+    job_timeout_s: int = 600  # coordinator total/no-progress timeout
+    redis_url: str = Field(default_factory=_default_redis_url)
 
 
 class WebConfig(BaseModel):
@@ -160,6 +208,10 @@ class AppConfig(BaseModel):
     color_scheme: str = "monokai"
     show_token_count: bool = True
     enable_sound: bool = True
+    # Simple Mode: non-technical UX — auto-approve tool calls (safety floor still
+    # refuses dangerous commands) and show friendly activity lines instead of
+    # technical tool cards. Developers can disable via settings.json.
+    simple_mode: bool = True
 
     # Permissions
     permissions: PermissionConfig = Field(default_factory=PermissionConfig)
@@ -191,6 +243,18 @@ class AppConfig(BaseModel):
 
     # Web UI nested settings (iframe RPC, etc.)
     web: WebConfig = Field(default_factory=WebConfig)
+
+    # Distributed task queue settings
+    tasks: TasksConfig = Field(default_factory=TasksConfig)
+
+    # Shared verified blackboard settings
+    blackboard: BlackboardConfig = Field(default_factory=BlackboardConfig)
+
+    # Parallel multi-solver settings
+    parallel: ParallelConfig = Field(default_factory=ParallelConfig)
+
+    # Work-division multi-agent settings
+    divide: DivideConfig = Field(default_factory=DivideConfig)
 
     # Paths - using APP_DIR_NAME constant for consistency
     atria_dir: str = f"~/{APP_DIR_NAME}"

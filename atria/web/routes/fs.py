@@ -22,6 +22,7 @@ async def _safe_broadcast(payload: dict) -> None:
     except Exception:
         pass
 
+
 router = APIRouter(
     prefix="/api/conversations",
     tags=["fs"],

@@ -141,13 +141,16 @@ class ToolExecutor:
             panel = self.output_formatter.format_tool_result(tool_name, tool_args, result)
             self.console.print(panel)
 
+            _preview_src = result.get("output") or result.get("error") or ""
+            if not isinstance(_preview_src, str):
+                _preview_src = str(_preview_src)
             get_debug_logger().log(
                 "tool_call_end",
                 "tool",
                 name=tool_name,
                 duration_ms=tool_duration_ms,
                 success=result.get("success", False),
-                result_preview=(result.get("output") or result.get("error") or "")[:200],
+                result_preview=_preview_src[:200],
             )
 
             return result

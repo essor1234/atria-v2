@@ -32,13 +32,16 @@ def client(monkeypatch):
     services = KeycloakServices(config=cfg, validator=validator, admin=MagicMock())
 
     user_store = MagicMock()
-    user_store.get_by_email = AsyncMock(return_value=User(id=7, username="alice", email="alice@acme.test"))
+    user_store.get_by_email = AsyncMock(
+        return_value=User(id=7, username="alice", email="alice@acme.test")
+    )
 
     fake_state = MagicMock()
     fake_state.keycloak = services
     fake_state.user_store = user_store
     monkeypatch.setattr(state_module, "get_state", lambda: fake_state)
     from atria.web.dependencies import auth as auth_dep_module
+
     monkeypatch.setattr(auth_dep_module, "get_state", lambda: fake_state)
 
     app = FastAPI()

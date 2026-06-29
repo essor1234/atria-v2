@@ -65,7 +65,9 @@ class TokenValidator:
                 key,
                 algorithms=["RS256"],
                 issuer=self._cfg.issuer,
-                options={"verify_aud": False},  # Keycloak audience varies; we check claims separately
+                options={
+                    "verify_aud": False
+                },  # Keycloak audience varies; we check claims separately
             )
         except pyjwt.PyJWTError as exc:
             raise InvalidTokenError(str(exc)) from exc

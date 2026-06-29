@@ -69,6 +69,9 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0",
     # Pub/sub bus for cross-process push_block routing
     "redis>=5.0",
+    # Distributed task queue for background subagents
+    "taskiq>=0.11",
+    "taskiq-redis>=1.0",
     # PDF extraction for Paper2Code subagent
     "pypdf>=4.0.0",
     # SWE-bench dataset loading
@@ -97,6 +100,7 @@ dev = [
     "black>=25.9.0",
     "ruff>=0.14.1",
     "mypy>=1.18.2",
+    "fakeredis>=2.0.0",
 ]
 
 [project.urls]

@@ -6,6 +6,8 @@ from .planner import PLANNER_SUBAGENT
 from .pr_reviewer import PR_REVIEWER_SUBAGENT
 from .project_init import PROJECT_INIT_SUBAGENT
 from .security_reviewer import SECURITY_REVIEWER_SUBAGENT
+from .module_worker import MODULE_WORKER_SUBAGENT
+from .solver import SOLVER_SUBAGENT
 from .web_clone import WEB_CLONE_SUBAGENT
 from .web_generator import WEB_GENERATOR_SUBAGENT
 
@@ -16,6 +18,8 @@ ALL_SUBAGENTS = [
     PR_REVIEWER_SUBAGENT,
     PROJECT_INIT_SUBAGENT,
     SECURITY_REVIEWER_SUBAGENT,
+    MODULE_WORKER_SUBAGENT,
+    SOLVER_SUBAGENT,
     WEB_CLONE_SUBAGENT,
     WEB_GENERATOR_SUBAGENT,
 ]

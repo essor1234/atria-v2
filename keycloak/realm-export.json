@@ -1,6 +1,9 @@
 {
   "realm": "atria",
   "enabled": true,
+  "loginTheme": "atria",
+  "adminTheme": "atria",
+  "accountTheme": "atria",
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
@@ -26,8 +29,18 @@
       "publicClient": true,
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": false,
-      "redirectUris": ["http://localhost:8080/*"],
-      "webOrigins": ["http://localhost:8080"],
+      "redirectUris": [
+        "http://localhost:8080/*",
+        "http://127.0.0.1:8080/*",
+        "http://0.0.0.0:8080/*",
+        "http://host.docker.internal:8080/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "http://0.0.0.0:8080",
+        "http://host.docker.internal:8080"
+      ],
       "attributes": { "pkce.code.challenge.method": "S256" },
       "protocolMappers": [
         {

@@ -429,6 +429,41 @@
       margin-top: 4px;
     }
 
+    /* ── History modal + activity log ─────────────────────────────── */
+    .modal.wide { width: min(660px, 100%); }
+    .hist-list { display: flex; flex-direction: column; max-height: 60vh; overflow: auto; }
+    .hist-row {
+      display: grid;
+      grid-template-columns: minmax(70px, 96px) minmax(120px, 1.4fr) minmax(48px, 64px) minmax(0, 2fr);
+      gap: 12px; align-items: baseline;
+      padding: 9px 20px;
+      border-bottom: 1px solid hsl(var(--hairline-soft));
+      font-size: 12.5px;
+    }
+    .hist-row:last-child { border-bottom: 0; }
+    .hist-when { color: hsl(var(--muted-ink)); font-variant-numeric: tabular-nums; font-size: 11.5px; }
+    .hist-kind {
+      font-family: 'JetBrains Mono', SF Mono, Menlo, monospace;
+      font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .hist-delta {
+      font-family: 'JetBrains Mono', SF Mono, Menlo, monospace;
+      font-variant-numeric: tabular-nums; text-align: right; font-weight: 540;
+    }
+    .hist-delta.pos { color: hsl(var(--semantic-success)); }
+    .hist-delta.neg { color: hsl(var(--semantic-danger)); }
+    .hist-note { color: hsl(var(--muted-ink)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hist-empty { padding: 32px 16px; text-align: center; color: hsl(var(--muted-ink)); font-size: 13px; }
+    .row .meta { cursor: pointer; }
+    .row .meta:hover .name { text-decoration: underline; text-underline-offset: 2px; }
+    .activity-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .link-btn {
+      background: transparent; border: 0; color: hsl(var(--muted-ink));
+      font-size: 12px; cursor: pointer; padding: 4px 6px; border-radius: 6px;
+    }
+    .link-btn:hover { color: hsl(var(--ink)); }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
     }
@@ -490,6 +525,18 @@
       </div>
     </div>
 
+    <!-- Per-SKU / global movement history. Read-only; sourced from the -->
+    <!-- movements ledger via `inventory.py history --json`. -->
+    <div class="modal-backdrop" id="hist-backdrop" hidden>
+      <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="hist-title">
+        <header class="modal-head">
+          <h3 id="hist-title">History</h3>
+          <button type="button" class="icon-btn" id="hist-close" aria-label="Close">×</button>
+        </header>
+        <div class="hist-list" id="hist-list"></div>
+      </div>
+    </div>
+
     <section class="kpis" id="kpis" aria-label="Inventory KPIs">
       <div class="kpi">
         <span class="eyebrow label">SKUs</span>
@@ -536,6 +583,14 @@
       <div id="rows"></div>
     </section>
 
+    <section class="panel" aria-label="Recent activity">
+      <header class="activity-head">
+        <h2>Recent activity</h2>
+        <button type="button" class="link-btn" id="activity-refresh" aria-label="Refresh activity log">Refresh log</button>
+      </header>
+      <div class="hist-list" id="activity-list"></div>
+    </section>
+
     <div class="footer-strip" id="footer-strip" hidden></div>
   </div>
 
@@ -559,6 +614,15 @@
         refresh: document.getElementById("refresh"),
         add: document.getElementById("add"),
         q: document.getElementById("q"),
+        activity: document.getElementById("activity-list"),
+        activityRefresh: document.getElementById("activity-refresh"),
+      };
+
+      var hist = {
+        backdrop: document.getElementById("hist-backdrop"),
+        list: document.getElementById("hist-list"),
+        title: document.getElementById("hist-title"),
+        close: document.getElementById("hist-close"),
       };
 
       function fmtMoney(n) {
@@ -585,6 +649,80 @@
       }
 
       function setErr(msg) { el.err.textContent = msg || ""; }
+
+      // ── Movement ledger rendering (shared by activity panel + modal) ──
+      function renderMovements(container, moves, emptyMsg, showSku) {
+        container.innerHTML = "";
+        if (!moves || moves.length === 0) {
+          var e = document.createElement("div");
+          e.className = "hist-empty";
+          e.textContent = emptyMsg || "No movements yet.";
+          container.appendChild(e);
+          return;
+        }
+        moves.forEach(function (m) {
+          var row = document.createElement("div");
+          row.className = "hist-row";
+
+          var when = document.createElement("span");
+          when.className = "hist-when";
+          when.textContent = fmtRelative(m.created_at);
+          when.title = m.created_at || "";
+
+          var kind = document.createElement("span");
+          kind.className = "hist-kind";
+          kind.textContent = (showSku && m.sku ? m.sku + " · " : "") + (m.kind || "");
+
+          var d = parseInt(m.delta, 10) || 0;
+          var delta = document.createElement("span");
+          delta.className = "hist-delta" + (d > 0 ? " pos" : d < 0 ? " neg" : "");
+          delta.textContent = d > 0 ? "+" + d : String(d);
+
+          var note = document.createElement("span");
+          note.className = "hist-note";
+          var bits = [];
+          if (m.reason) bits.push(m.reason);
+          if (m.reference) bits.push("ref " + m.reference);
+          if (m.balance !== null && m.balance !== undefined) bits.push("→ " + m.balance);
+          note.textContent = bits.join(" · ");
+          note.title = note.textContent;
+
+          row.appendChild(when);
+          row.appendChild(kind);
+          row.appendChild(delta);
+          row.appendChild(note);
+          container.appendChild(row);
+        });
+      }
+
+      function loadActivity() {
+        AtriaDash.json("inventory.py", ["history", "--json", "--limit", "50"])
+          .then(function (data) {
+            renderMovements(el.activity, (data && data.movements) || [], "No activity yet.", true);
+            reportSize();
+          })
+          .catch(function () {
+            renderMovements(el.activity, [], "Couldn't load activity.", true);
+          });
+      }
+
+      function openHistory(sku) {
+        hist.title.textContent = "History · " + sku;
+        renderMovements(hist.list, [], "Loading…", false);
+        hist.backdrop.hidden = false;
+        reportSize();
+        AtriaDash.json("inventory.py", ["history", "--sku", sku, "--json", "--limit", "100"])
+          .then(function (data) {
+            renderMovements(hist.list, (data && data.movements) || [],
+              "No movements for " + sku + ".", false);
+            reportSize();
+          })
+          .catch(function () {
+            renderMovements(hist.list, [], "Failed to load history.", false);
+          });
+      }
+
+      function closeHistory() { hist.backdrop.hidden = true; reportSize(); }
 
       function setInflight(delta) {
         inflight += delta;
@@ -684,6 +822,13 @@
           // meta — sku + name
           var meta = document.createElement("div");
           meta.className = "meta";
+          meta.setAttribute("role", "button");
+          meta.setAttribute("tabindex", "0");
+          meta.title = "View movement history";
+          meta.addEventListener("click", function () { openHistory(r.sku); });
+          meta.addEventListener("keydown", function (ev) {
+            if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); openHistory(r.sku); }
+          });
           var sku = document.createElement("span");
           sku.className = "sku";
           sku.textContent = r.sku;
@@ -783,6 +928,7 @@
             state.low = (data && data.low_stock) || [];
             setErr("");
             render();
+            loadActivity();
           })
           .catch(function (err) {
             setErr("Failed to load inventory: " + (err && err.message ? err.message : err));
@@ -808,10 +954,20 @@
           .catch(function (err) {
             setErr("Adjust failed: " + (err && err.message ? err.message : err));
           })
-          .then(function () { setInflight(-1); render(); });
+          .then(function () { setInflight(-1); render(); loadActivity(); });
       }
 
       el.refresh.addEventListener("click", load);
+      el.activityRefresh.addEventListener("click", loadActivity);
+
+      // ── History modal controls ─────────────────────────────────────
+      hist.close.addEventListener("click", closeHistory);
+      hist.backdrop.addEventListener("click", function (ev) {
+        if (ev.target === hist.backdrop) closeHistory();
+      });
+      document.addEventListener("keydown", function (ev) {
+        if (!hist.backdrop.hidden && ev.key === "Escape") closeHistory();
+      });
 
       // ── Inline add-item dialog ─────────────────────────────────────
       // Dashboard actions run scripts directly via AtriaDash.run; they
@@ -925,7 +1081,7 @@
           .catch(function (e) {
             dlgSetError("Add failed: " + (e && e.message ? e.message : e));
           })
-          .then(function () { setInflight(-1); dlg.submit.disabled = false; });
+          .then(function () { setInflight(-1); dlg.submit.disabled = false; loadActivity(); });
       });
       el.q.addEventListener("input", function () {
         state.query = el.q.value;

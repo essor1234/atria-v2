@@ -172,3 +172,26 @@ def test_manifest_ignores_unknown_keys_and_bad_badge(root: Path):
     assert m.manifest.dashboard is not None
     assert m.manifest.dashboard.default_height == 500
     assert m.manifest.dashboard.badge_color is None  # invalid value dropped
+
+
+def test_parse_activity_default_and_actions():
+    from atria.core.modules.store import _parse_activity, ActivityLabel
+
+    default, actions = _parse_activity(
+        {
+            "default": {"running": "Working in Warehouse…", "done": "Done"},
+            "actions": {
+                "receive": {"running": "Receiving stock…", "done": "Stock received"},
+            },
+        }
+    )
+    assert default == ActivityLabel(running="Working in Warehouse…", done="Done")
+    assert actions["receive"] == ActivityLabel(running="Receiving stock…", done="Stock received")
+
+
+def test_parse_activity_missing_degrades_to_empty():
+    from atria.core.modules.store import _parse_activity
+
+    assert _parse_activity(None) == (None, {})
+    assert _parse_activity("nonsense") == (None, {})
+    assert _parse_activity({}) == (None, {})

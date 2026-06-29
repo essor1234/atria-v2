@@ -335,7 +335,8 @@
   .animate-spin-slow,
   .animate-shimmer,
   .animate-border-breathe,
-  .animate-pulse-dot {
+  .animate-pulse-dot,
+  .animate-pulse {
     animation: none !important;
   }
   html { scroll-behavior: auto; }

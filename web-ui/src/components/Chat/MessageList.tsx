@@ -7,6 +7,7 @@ import remarkGfm from 'remark-gfm';
 import type { Message } from '../../types';
 import { useChatStore } from '../../stores/chat';
 import { ToolCallMessage } from './ToolCallMessage';
+import { ModuleActivityLine } from './ModuleActivityLine';
 import { ThinkingBlock } from './ThinkingBlock';
 import { SearchResultBlock } from './SearchResultBlock';
 import { DeepResearchBlock } from './DeepResearchBlock';
@@ -209,11 +210,14 @@ const MessageItem = memo(function MessageItem({
 }) {
   const { isLoading, totalCount, turnByIndex, actions } = context;
   const turnEntry = turnByIndex.get(index);
+  const simpleMode = useChatStore(s => s.status?.simple_mode ?? true);
 
   let body: ReactNode;
   if (message.role === 'tool_call') {
     const hasResult = message.tool_result != null && Object.keys(message.tool_result).length > 0;
-    body = <ToolCallMessage message={message} hasResult={hasResult} />;
+    body = simpleMode
+      ? <ModuleActivityLine message={message} hasResult={hasResult} />
+      : <ToolCallMessage message={message} hasResult={hasResult} />;
   } else if (message.role === 'thinking') {
     const isLastThinking = (isLoading || !!message.streaming) && index === totalCount - 1;
     body = <ThinkingBlock content={message.content} level={message.metadata?.level} isActive={isLastThinking} />;

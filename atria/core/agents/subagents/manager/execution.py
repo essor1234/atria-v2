@@ -43,6 +43,10 @@ class ExecutionMixin:
         path_mapping: dict[str, str] | None = None,
         show_spawn_header: bool = True,
         tool_call_id: str | None = None,
+        run_in_background: bool = False,
+        owner_id: str | None = None,
+        session_id: str | None = None,
+        config_snapshot: dict | None = None,
     ) -> dict[str, Any]:
         """Execute a subagent synchronously with the given task.
 
@@ -63,10 +67,36 @@ class ExecutionMixin:
             tool_call_id: Optional unique tool call ID for parent context tracking.
                          When provided, used as parent_context in NestedUICallback
                          to enable individual agent tracking in parallel display.
+            run_in_background: When True and a task client is available, enqueue the
+                               subagent for background execution via TaskIQ. Falls back
+                               to synchronous execution if enqueueing fails.
+            owner_id: User/owner ID required for background execution payload.
+            session_id: Session ID required for background execution payload.
+            config_snapshot: Config snapshot for the background worker payload
+                            (may be unused by the worker but required by the payload schema).
 
         Returns:
             Result dict with content, success, and messages
         """
+        # Background branch: enqueue via TaskIQ when client is available.
+        # Falls through to synchronous path on any enqueue failure (graceful degradation).
+        if run_in_background and getattr(self, "_task_client", None) is not None:
+            try:
+                return self.execute_subagent_background(  # type: ignore[attr-defined]
+                    name=name,
+                    task=task,
+                    owner_id=owner_id or "",
+                    session_id=session_id or "",
+                    working_dir=str(working_dir or self._working_dir),
+                    config_snapshot=config_snapshot or {},
+                    tool_call_id=tool_call_id,
+                    path_mapping=path_mapping,
+                )
+            except Exception as exc:  # noqa: BLE001 — Redis down etc.
+                logger.warning(
+                    "background enqueue failed (%s); running subagent inline", exc
+                )
+
         # Fire SubagentStart hook
         if self._hook_manager:
             from atria.core.hooks.models import HookEvent
@@ -212,6 +242,17 @@ class ExecutionMixin:
                     parent_context=tool_call_id or name,
                     depth=1,
                 )
+
+        # Blackboard (Phase 2b): when the run carries a handle (e.g. a parallel
+        # solver), expose it on the agent so the system-prompt builder can inject
+        # Shared Lessons, and turn on the NOTE tool schema so the run can write to
+        # the blackboard it was given (the per-solver handle is provisioned
+        # independently of the global blackboard.enabled flag). Tool execution
+        # reads deps.blackboard directly in the run loop.
+        if getattr(deps, "blackboard", None) is not None:
+            agent._blackboard_handle = deps.blackboard
+            if getattr(agent, "_schema_builder", None) is not None:
+                agent._schema_builder._blackboard_enabled = True
 
         # Execute with isolated context (fresh message history)
         # No iteration cap — subagent stops when its prompt tells it to

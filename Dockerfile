@@ -23,6 +23,17 @@ RUN uv run python -c "import tiktoken; tiktoken.get_encoding('cl100k_base')"
 COPY . .
 RUN uv sync --frozen --no-dev
 
+# ── Layer 5: pre-install every module's requirements.txt into shared venv ─────
+# Mirrors atria.core.modules.deps.install_module_deps so the container is
+# offline-safe and the first module call doesn't trigger an install. Stamp
+# files match the runtime hash check, so registry load is a no-op.
+RUN for req in /app/modules/*/requirements.txt; do \
+        [ -f "$req" ] || continue; \
+        echo "[modules] installing $req"; \
+        uv pip install --python /app/.venv/bin/python -r "$req" || exit 1; \
+        sha256sum "$req" | awk '{print $1}' > "$(dirname "$req")/.deps.sha256"; \
+    done
+
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
 

@@ -13,8 +13,8 @@ class AuthMode(str, Enum):
 @dataclass(frozen=True)
 class KeycloakConfig:
     auth_mode: AuthMode
-    internal_url: str          # used by backend <-> keycloak (e.g. http://keycloak:8080)
-    public_url: str            # used for issuer matching (e.g. http://localhost:8082)
+    internal_url: str  # used by backend <-> keycloak (e.g. http://keycloak:8080)
+    public_url: str  # used for issuer matching (e.g. http://localhost:8082)
     realm: str
     backend_client_id: str
     backend_client_secret: str
@@ -53,9 +53,7 @@ class KeycloakConfig:
 
         secret = os.getenv("KEYCLOAK_BACKEND_CLIENT_SECRET", "")
         if not secret:
-            raise RuntimeError(
-                "KEYCLOAK_BACKEND_CLIENT_SECRET is required when AUTH_MODE=keycloak"
-            )
+            raise RuntimeError("KEYCLOAK_BACKEND_CLIENT_SECRET is required when AUTH_MODE=keycloak")
 
         return cls(
             auth_mode=mode,

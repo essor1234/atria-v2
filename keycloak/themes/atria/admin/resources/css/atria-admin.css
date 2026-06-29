@@ -1,0 +1,1297 @@
+/* Atria admin console theme — light + Figma editorial accent on PatternFly v5. */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@320;330;340;400;480;540;700&family=JetBrains+Mono:wght@400&display=swap');
+
+/* ── Tokens ──────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Atria palette */
+  --atria-ink: #0a0a0a;
+  --atria-canvas: #ffffff;
+  --atria-surface-soft: #f7f7f9;
+  --atria-block-lilac: #e6e1f2;
+  --atria-block-lime: #d8e96b;
+  --atria-hairline: #e5e5e5;
+  --atria-hairline-soft: #f1f1f1;
+  --atria-ink-soft: rgba(10, 10, 10, 0.65);
+  --atria-ink-muted: rgba(10, 10, 10, 0.45);
+  --atria-danger: #c64a3d;
+  --atria-success: #2e7d52;
+
+  /* Force light scheme across the whole app */
+  color-scheme: light;
+
+  /* PatternFly v5 global background tokens */
+  --pf-v5-global--BackgroundColor--100: var(--atria-canvas);
+  --pf-v5-global--BackgroundColor--150: var(--atria-surface-soft);
+  --pf-v5-global--BackgroundColor--200: var(--atria-canvas);
+  --pf-v5-global--BackgroundColor--300: var(--atria-surface-soft);
+  --pf-v5-global--BackgroundColor--400: var(--atria-canvas);
+  --pf-v5-global--BackgroundColor--dark-100: var(--atria-canvas);
+  --pf-v5-global--BackgroundColor--dark-200: var(--atria-canvas);
+  --pf-v5-global--BackgroundColor--dark-300: var(--atria-canvas);
+  --pf-v5-global--BackgroundColor--dark-400: var(--atria-canvas);
+
+  /* Text */
+  --pf-v5-global--Color--100: var(--atria-ink);
+  --pf-v5-global--Color--200: var(--atria-ink-soft);
+  --pf-v5-global--Color--300: var(--atria-ink-muted);
+  --pf-v5-global--Color--dark-100: var(--atria-ink);
+  --pf-v5-global--Color--dark-200: var(--atria-ink-soft);
+  --pf-v5-global--Color--light-100: var(--atria-ink);
+
+  /* Links */
+  --pf-v5-global--link--Color: var(--atria-ink);
+  --pf-v5-global--link--Color--hover: var(--atria-ink);
+  --pf-v5-global--link--Color--visited: var(--atria-ink);
+  --pf-v5-global--link--TextDecoration: none;
+
+  /* Primary (was Keycloak blue → Atria ink) */
+  --pf-v5-global--primary-color--100: var(--atria-ink);
+  --pf-v5-global--primary-color--200: var(--atria-ink);
+  --pf-v5-global--primary-color--light-100: var(--atria-ink);
+  --pf-v5-global--active-color--100: var(--atria-ink);
+  --pf-v5-global--active-color--200: var(--atria-ink);
+  --pf-v5-global--active-color--300: var(--atria-ink);
+  --pf-v5-global--active-color--400: var(--atria-ink);
+
+  /* Borders */
+  --pf-v5-global--BorderColor--100: var(--atria-hairline);
+  --pf-v5-global--BorderColor--200: var(--atria-hairline-soft);
+  --pf-v5-global--BorderColor--300: var(--atria-hairline-soft);
+  --pf-v5-global--BorderColor--dark-100: var(--atria-hairline);
+
+  /* Disabled / icon */
+  --pf-v5-global--disabled-color--100: var(--atria-ink-muted);
+  --pf-v5-global--disabled-color--200: var(--atria-hairline);
+  --pf-v5-global--disabled-color--300: var(--atria-hairline-soft);
+  --pf-v5-global--icon--Color--light: var(--atria-ink-soft);
+  --pf-v5-global--icon--Color--dark: var(--atria-ink);
+
+  /* Font */
+  --pf-v5-global--FontFamily--text: 'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif;
+  --pf-v5-global--FontFamily--heading: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+  --pf-v5-global--FontFamily--monospace: 'JetBrains Mono', 'SF Mono', menlo, monospace;
+  --pf-v5-global--FontFamily--redhat-text--sans-serif: var(--pf-v5-global--FontFamily--text);
+  --pf-v5-global--FontFamily--redhat-display--sans-serif: var(--pf-v5-global--FontFamily--heading);
+
+  /* Radii */
+  --pf-v5-global--BorderRadius--sm: 6px;
+  --pf-v5-global--BorderRadius--lg: 8px;
+
+  /* Box shadows — kill all blue Keycloak shadows */
+  --pf-v5-global--BoxShadow--sm: 0 1px 2px rgba(10, 10, 10, 0.06);
+  --pf-v5-global--BoxShadow--md: 0 4px 16px rgba(10, 10, 10, 0.06);
+  --pf-v5-global--BoxShadow--lg: 0 8px 24px rgba(10, 10, 10, 0.08);
+}
+
+/* Force light on dark-themed wrappers */
+html,
+html[data-theme],
+html.pf-v5-theme-dark,
+body.pf-v5-theme-dark,
+.pf-v5-theme-dark {
+  color-scheme: light !important;
+  background: var(--atria-canvas) !important;
+  background-color: var(--atria-canvas) !important;
+  color: var(--atria-ink) !important;
+}
+
+/* ── Global typography ───────────────────────────────────────────────────── */
+
+html,
+body,
+.pf-v5-c-page,
+.pf-v5-c-page__main {
+  font-family: var(--pf-v5-global--FontFamily--text) !important;
+  background: var(--atria-canvas) !important;
+  color: var(--atria-ink) !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+.pf-v5-c-title,
+.pf-v5-c-content h1,
+.pf-v5-c-content h2 {
+  font-family: var(--pf-v5-global--FontFamily--heading) !important;
+  color: var(--atria-ink) !important;
+  letter-spacing: -0.26px;
+  font-weight: 540 !important;
+}
+
+/* ── Masthead (top bar) — white chrome per DESIGN.md `top-nav` ───────────── */
+
+.pf-v5-c-masthead,
+header.pf-v5-c-masthead,
+.pf-v5-c-page__header,
+.pf-v5-c-masthead__main,
+.pf-v5-c-masthead__brand,
+.pf-v5-c-masthead__content,
+.pf-v5-c-masthead .pf-v5-c-toolbar,
+.pf-v5-c-masthead .pf-v5-c-toolbar__content,
+.pf-v5-c-masthead .pf-v5-c-toolbar__content-section,
+.pf-v5-c-masthead .pf-v5-c-toolbar__item,
+.pf-v5-c-masthead .pf-v5-c-toolbar__group,
+#page-main-header,
+#page-main-header > * {
+  background: var(--atria-canvas) !important;
+  background-color: var(--atria-canvas) !important;
+  background-image: none !important;
+  color: var(--atria-ink) !important;
+  box-shadow: none !important;
+}
+
+.pf-v5-c-masthead,
+header.pf-v5-c-masthead {
+  border-bottom: 1px solid var(--atria-hairline) !important;
+}
+
+.pf-v5-c-masthead *,
+header.pf-v5-c-masthead * {
+  color: var(--atria-ink) !important;
+  fill: var(--atria-ink) !important;
+}
+
+/* Hide stock Keycloak logo so brand isn't mixed */
+.pf-v5-c-brand img,
+.pf-v5-c-masthead__brand img,
+.pf-v5-c-masthead__brand svg {
+  display: none !important;
+}
+
+.pf-v5-c-brand,
+.pf-v5-c-masthead__brand {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.pf-v5-c-brand::after,
+.pf-v5-c-masthead__brand::after {
+  content: 'ATRIA';
+  font-family: var(--pf-v5-global--FontFamily--heading);
+  font-size: 18px;
+  font-weight: 540;
+  letter-spacing: -0.2px;
+  color: var(--atria-ink);
+}
+
+/* Hamburger / help icon — DESIGN.md `button-icon-circular` (40px, rounded-full, surface-soft) */
+.pf-v5-c-masthead__toggle .pf-v5-c-button,
+.pf-v5-c-masthead .pf-v5-c-button.pf-m-plain {
+  color: var(--atria-ink) !important;
+  background: var(--atria-surface-soft) !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 9999px !important;
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.pf-v5-c-masthead__toggle .pf-v5-c-button:hover,
+.pf-v5-c-masthead .pf-v5-c-button.pf-m-plain:hover {
+  background: var(--atria-hairline) !important;
+  color: var(--atria-ink) !important;
+}
+
+/* SVG glyphs centered inside circular buttons */
+.pf-v5-c-masthead__toggle .pf-v5-c-button svg,
+.pf-v5-c-masthead .pf-v5-c-button.pf-m-plain svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+/* Admin user dropdown in the right of the masthead — pill only here */
+header.pf-v5-c-masthead .pf-v5-c-menu-toggle,
+.pf-v5-c-masthead__content .pf-v5-c-menu-toggle {
+  border: 1px solid var(--atria-hairline) !important;
+  border-radius: 9999px !important;
+  padding: 6px 14px !important;
+  font-weight: 480 !important;
+  background: var(--atria-canvas) !important;
+}
+
+/* Kill the dark strip Keycloak puts under the masthead */
+.pf-v5-c-page,
+.pf-v5-c-page__main,
+.pf-v5-c-page__drawer,
+.pf-v5-c-page__main-container {
+  background: var(--atria-canvas) !important;
+  background-color: var(--atria-canvas) !important;
+  background-image: none !important;
+}
+
+.pf-v5-c-page__main-breadcrumb,
+.pf-v5-c-page__main-nav {
+  background: var(--atria-canvas) !important;
+  border-bottom: 1px solid var(--atria-hairline-soft) !important;
+}
+
+/* ── Sidebar / nav ───────────────────────────────────────────────────────── */
+
+.pf-v5-c-page__sidebar,
+.pf-v5-c-page__sidebar-body,
+.pf-v5-c-nav,
+.pf-v5-c-nav__list,
+nav.pf-v5-c-nav {
+  background: var(--atria-canvas) !important;
+  background-color: var(--atria-canvas) !important;
+  color: var(--atria-ink) !important;
+  border-right: 1px solid var(--atria-hairline-soft) !important;
+}
+
+.pf-v5-c-nav__section-title,
+.pf-v5-c-nav__subnav-title {
+  font-family: var(--pf-v5-global--FontFamily--monospace) !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.6px !important;
+  text-transform: uppercase !important;
+  color: var(--atria-ink-muted) !important;
+  padding: 16px 20px 8px !important;
+}
+
+.pf-v5-c-nav__link,
+.pf-v5-c-nav__item a {
+  font-family: var(--pf-v5-global--FontFamily--text) !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  color: var(--atria-ink) !important;
+  background: transparent !important;
+  padding: 10px 20px !important;
+  border-left: 3px solid transparent !important;
+  transition: background 160ms cubic-bezier(0.2, 0, 0, 1), border-color 160ms;
+}
+
+.pf-v5-c-nav__link:hover,
+.pf-v5-c-nav__item a:hover {
+  background: var(--atria-surface-soft) !important;
+  color: var(--atria-ink) !important;
+}
+
+.pf-v5-c-nav__link.pf-m-current,
+.pf-v5-c-nav__link[aria-current],
+.pf-v5-c-nav__item.pf-m-current > a {
+  background: var(--atria-surface-soft) !important;
+  color: var(--atria-ink) !important;
+  border-left-color: var(--atria-ink) !important;
+  font-weight: 480 !important;
+}
+
+/* Realm selector + generic dropdown toggles (outside masthead) */
+.pf-v5-c-context-selector,
+.pf-v5-c-menu-toggle,
+button.pf-v5-c-menu-toggle {
+  background: var(--atria-canvas) !important;
+  border: 1px solid var(--atria-hairline) !important;
+  border-radius: 6px !important;
+  color: var(--atria-ink) !important;
+  font-family: var(--pf-v5-global--FontFamily--text) !important;
+  font-weight: 400 !important;
+  font-size: 14px !important;
+  padding: 7px 12px !important;
+  box-shadow: none !important;
+  min-height: 36px;
+}
+
+.pf-v5-c-menu-toggle:hover {
+  border-color: var(--atria-ink) !important;
+}
+
+.pf-v5-c-menu-toggle:focus-visible {
+  border-color: var(--atria-ink) !important;
+  box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.08) !important;
+  outline: none !important;
+}
+
+/* Plain icon menu toggles (kebab row actions) — no border, no fill */
+.pf-v5-c-menu-toggle.pf-m-plain,
+button.pf-v5-c-menu-toggle.pf-m-plain {
+  background: transparent !important;
+  border: none !important;
+  padding: 6px !important;
+  min-height: auto;
+  border-radius: 6px !important;
+  color: var(--atria-ink-soft) !important;
+}
+
+.pf-v5-c-menu-toggle.pf-m-plain:hover {
+  background: var(--atria-surface-soft) !important;
+  color: var(--atria-ink) !important;
+}
+
+/* Dropdown menu surface — chrome ONLY on the outermost .pf-v5-c-menu.
+   Inner __content and __list must be transparent + borderless to avoid the
+   triple-box stacking. */
+.pf-v5-c-menu {
+  background: var(--atria-canvas) !important;
+  border: 1px solid var(--atria-hairline) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--pf-v5-global--BoxShadow--md) !important;
+  padding: 4px !important;
+  color: var(--atria-ink) !important;
+  overflow: hidden;
+}
+
+.pf-v5-c-menu__content,
+ul.pf-v5-c-menu__list {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  list-style: none !important;
+}
+
+.pf-v5-c-menu__list-item {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+.pf-v5-c-menu__list-item button,
+.pf-v5-c-menu__list-item a,
+.pf-v5-c-menu__item {
+  display: block !important;
+  width: 100% !important;
+  text-align: left !important;
+  color: var(--atria-ink) !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 6px !important;
+  font-family: var(--pf-v5-global--FontFamily--text) !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  padding: 8px 12px !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  transition: background 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.pf-v5-c-menu__list-item button:hover,
+.pf-v5-c-menu__list-item a:hover,
+.pf-v5-c-menu__item:hover {
+  background: var(--atria-surface-soft) !important;
+  color: var(--atria-ink) !important;
+}
+
+/* Divider between menu items (li.pf-v5-c-divider) — 1px hairline, no box */
+.pf-v5-c-menu .pf-v5-c-divider,
+li.pf-v5-c-divider {
+  height: 1px !important;
+  background: var(--atria-hairline-soft) !important;
+  border: none !important;
+  margin: 4px 4px !important;
+  padding: 0 !important;
+  list-style: none !important;
+}
+
+/* ── Page main / content ─────────────────────────────────────────────────── */
+
+.pf-v5-c-page__main,
+.pf-v5-c-page__main-section,
+section.pf-v5-c-page__main-section {
+  background: var(--atria-canvas) !important;
+  color: var(--atria-ink) !important;
+}
+
+.pf-v5-c-card,
+article.pf-v5-c-card {
+  background: var(--atria-canvas) !important;
+  border: 1px solid var(--atria-hairline) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  color: var(--atria-ink) !important;
+}
+
+.pf-v5-c-card__title,
+.pf-v5-c-card__header {
+  color: var(--atria-ink) !important;
+}
+
+/* ── Tabs ────────────────────────────────────────────────────────────────── */
+
+.pf-v5-c-tabs__list,
+.pf-v5-c-tabs,
+.pf-v5-c-tabs__scroll-button {
+  background: transparent !important;
+  border-bottom: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.pf-v5-c-tabs__item,
+.pf-v5-c-tabs__link,
+a.pf-v5-c-tabs__link,
+button.pf-v5-c-tabs__link {
+  color: var(--atria-ink-soft) !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  font-family: var(--pf-v5-global--FontFamily--text) !important;
+  font-weight: 400 !important;
+  font-size: 15px !important;
+  padding: 14px 18px !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  transition: color 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Reset the inner text span (we move the underline here so it hugs the label) */
+.pf-v5-c-tabs__item-text {
+  display: inline-block;
+  padding-bottom: 4px;
+  border-bottom: 2px solid transparent;
+  transition: border-color 160ms cubic-bezier(0.2, 0, 0, 1),
+    color 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Hover on inactive tabs */
+.pf-v5-c-tabs__item:not(.pf-m-current) .pf-v5-c-tabs__link:hover {
+  color: var(--atria-ink) !important;
+}
+
+.pf-v5-c-tabs__item:not(.pf-m-current) .pf-v5-c-tabs__link:hover .pf-v5-c-tabs__item-text {
+  border-bottom-color: var(--atria-hairline) !important;
+}
+
+/* Active tab — underline ONLY under the text span, not the full link padding */
+.pf-v5-c-tabs__item.pf-m-current,
+.pf-v5-c-tabs__item.pf-m-current .pf-v5-c-tabs__link,
+.pf-v5-c-tabs__link[aria-selected='true'],
+.pf-v5-c-tabs__link.pf-m-current {
+  color: var(--atria-ink) !important;
+  background: transparent !important;
+  border: none !important;
+  font-weight: 540 !important;
+  box-shadow: none !important;
+}
+
+.pf-v5-c-tabs__item.pf-m-current .pf-v5-c-tabs__item-text,
+.pf-v5-c-tabs__link[aria-selected='true'] .pf-v5-c-tabs__item-text {
+  border-bottom-color: var(--atria-ink) !important;
+  color: var(--atria-ink) !important;
+}
+
+/* Keyboard focus ring on the link, not on every child */
+.pf-v5-c-tabs__link:focus-visible {
+  outline: 2px solid var(--atria-ink) !important;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Kill PF v5's blue active rail + box on tabs (covers primary + secondary variants) */
+.pf-v5-c-tabs__item.pf-m-current::after,
+.pf-v5-c-tabs__link::after,
+.pf-v5-c-tabs__link::before,
+.pf-v5-c-tabs.pf-m-secondary .pf-v5-c-tabs__link::after,
+.pf-v5-c-tabs.pf-m-secondary .pf-v5-c-tabs__item.pf-m-current::after {
+  display: none !important;
+  border: none !important;
+}
+
+.pf-v5-c-tabs.pf-m-secondary .pf-v5-c-tabs__link,
+.pf-v5-c-tabs.pf-m-secondary .pf-v5-c-tabs__item.pf-m-current .pf-v5-c-tabs__link,
+.pf-v5-c-tabs.pf-m-secondary .pf-v5-c-tabs__link[aria-selected='true'] {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  box-shadow: inset 0 -2px 0 var(--atria-ink) !important;
+}
+
+.pf-v5-c-tabs.pf-m-secondary .pf-v5-c-tabs__link {
+  box-shadow: none !important;
+  color: var(--atria-ink-soft) !important;
+}
+
+/* ── Form sections — quiet hairline dividers, not boxed cards ────────────── */
+
+.pf-v5-c-form__section,
+.pf-v5-c-form-section,
+section.pf-v5-c-form__section {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid var(--atria-hairline-soft) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 24px 0 32px 0 !important;
+  margin: 0 !important;
+}
+
+.pf-v5-c-form__section:last-child {
+  border-bottom: none !important;
+}
+
+.pf-v5-c-form__section-title,
+.pf-v5-c-form-section__title,
+.pf-v5-c-form__section h2,
+.pf-v5-c-form__section h3 {
+  font-family: var(--pf-v5-global--FontFamily--heading) !important;
+  font-size: 18px !important;
+  font-weight: 540 !important;
+  letter-spacing: -0.2px !important;
+  color: var(--atria-ink) !important;
+  margin: 0 0 20px 0 !important;
+  padding: 0 !important;
+}
+
+/* ── Form rows — wider label column, no truncation ───────────────────────── */
+
+.pf-v5-c-form__group {
+  display: grid !important;
+  grid-template-columns: 240px 1fr !important;
+  gap: 24px !important;
+  align-items: start !important;
+  margin: 0 0 16px 0 !important;
+}
+
+/* Sticky form-action footer (Create / Cancel pair, etc.) — full-width row,
+   white surface, hairline top border. Overrides the 2-col grid above and
+   nukes the dark bg Keycloak's React CSS module ships. */
+.pf-v5-c-form__group.pf-m-action,
+.pf-v5-c-form__group[class*='buttonGroup'],
+.pf-v5-c-form__actions,
+[class*='_buttonGroup_'],
+[class*='buttonGroup'] {
+  display: block !important;
+  grid-template-columns: none !important;
+  background: var(--atria-canvas) !important;
+  background-color: var(--atria-canvas) !important;
+  background-image: none !important;
+  color: var(--atria-ink) !important;
+  border-top: 1px solid var(--atria-hairline) !important;
+  border-bottom: none !important;
+  padding: 16px 24px !important;
+  margin: 24px 0 0 0 !important;
+  box-shadow: none !important;
+}
+
+.pf-v5-c-form__group.pf-m-action .pf-v5-c-form__group-control,
+[class*='_buttonGroup_'] .pf-v5-c-form__group-control {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.pf-v5-c-form__group.pf-m-action .pf-v5-c-form__actions,
+[class*='_buttonGroup_'] .pf-v5-c-form__actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.pf-v5-c-form__group-label,
+.pf-v5-c-form__group-label-main {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  padding-top: 8px !important;
+  min-width: 0 !important;
+}
+
+.pf-v5-c-form__group-label .pf-v5-c-form__label,
+.pf-v5-c-form__group-label-main .pf-v5-c-form__label,
+.pf-v5-c-form__label {
+  font-family: var(--pf-v5-global--FontFamily--monospace) !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.6px !important;
+  text-transform: uppercase !important;
+  color: var(--atria-ink-soft) !important;
+  white-space: normal !important;
+  line-height: 1.5 !important;
+}
+
+.pf-v5-c-form__group-control {
+  min-width: 0 !important;
+}
+
+/* Help tooltip icon next to labels */
+.pf-v5-c-form__group-label-help,
+.pf-v5-c-form__label-help {
+  color: var(--atria-ink-muted) !important;
+  margin-left: 4px !important;
+}
+
+@media (max-width: 768px) {
+  .pf-v5-c-form__group {
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+}
+
+/* ── Toggle switch (PF v5 switch) — Atria ink ────────────────────────────── */
+
+.pf-v5-c-switch__toggle {
+  background: var(--atria-ink-muted) !important;
+  border-radius: 9999px !important;
+}
+
+.pf-v5-c-switch__input:checked ~ .pf-v5-c-switch__toggle,
+.pf-v5-c-switch.pf-m-on .pf-v5-c-switch__toggle {
+  background: var(--atria-ink) !important;
+}
+
+.pf-v5-c-switch__label {
+  font-family: var(--pf-v5-global--FontFamily--text) !important;
+  font-size: 14px !important;
+  color: var(--atria-ink) !important;
+  font-weight: 400 !important;
+}
+
+/* Realm name h1 + "Enabled" toggle area */
+.pf-v5-c-page__main-section h1,
+.pf-v5-c-page__main-section .pf-v5-c-title {
+  font-family: var(--pf-v5-global--FontFamily--heading) !important;
+  font-size: 28px !important;
+  font-weight: 540 !important;
+  letter-spacing: -0.4px !important;
+  color: var(--atria-ink) !important;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+
+.pf-v5-c-button.pf-m-primary {
+  background: var(--atria-ink) !important;
+  color: var(--atria-canvas) !important;
+  border: none !important;
+  border-radius: 9999px !important;
+  font-family: var(--pf-v5-global--FontFamily--text) !important;
+  font-weight: 480 !important;
+  letter-spacing: -0.1px !important;
+  padding: 8px 18px !important;
+  transition: opacity 160ms;
+}
+
+.pf-v5-c-button.pf-m-primary:hover {
+  background: var(--atria-ink) !important;
+  opacity: 0.92;
+}
+
+.pf-v5-c-button.pf-m-secondary {
+  background: var(--atria-canvas) !important;
+  color: var(--atria-ink) !important;
+  border: 1px solid var(--atria-ink) !important;
+  border-radius: 9999px !important;
+  font-weight: 480 !important;
+  padding: 7px 17px !important;
+  /* Kill PF v5's inset box-shadow border so we don't get a doubled outline */
+  box-shadow: none !important;
+  transition: background 160ms cubic-bezier(0.2, 0, 0, 1), opacity 160ms;
+}
+
+.pf-v5-c-button.pf-m-secondary:hover {
+  background: var(--atria-ink) !important;
+  color: var(--atria-canvas) !important;
+  border-color: var(--atria-ink) !important;
+  box-shadow: none !important;
+}
+
+/* Nuke PF v5 button pseudo-element rails (the cause of "double border") */
+.pf-v5-c-button::before,
+.pf-v5-c-button::after,
+.pf-v5-c-button.pf-m-secondary::before,
+.pf-v5-c-button.pf-m-secondary::after,
+.pf-v5-c-button.pf-m-primary::before,
+.pf-v5-c-button.pf-m-primary::after {
+  display: none !important;
+  content: none !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* ── Badges (taxonomy labels next to row names) — visible, low-noise ─────── */
+
+.pf-v5-c-badge,
+span.pf-v5-c-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: var(--atria-surface-soft) !important;
+  color: var(--atria-ink) !important;
+  border: 1px solid var(--atria-hairline) !important;
+  border-radius: 9999px !important;
+  font-family: var(--pf-v5-global--FontFamily--monospace) !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.3px !important;
+  line-height: 1.4 !important;
+  padding: 2px 10px !important;
+  min-width: 0 !important;
+  box-shadow: none !important;
+  text-transform: none !important;
+}
+
+/* Default "read" (quiet, informational) — light pill, ink text */
+.pf-v5-c-badge.pf-m-read,
+span.pf-v5-c-badge.pf-m-read {
+  background: var(--atria-surface-soft) !important;
+  color: var(--atria-ink) !important;
+  border-color: var(--atria-hairline) !important;
+}
+
+/* "Unread" / active (notification dot, count badge) — solid ink fill */
+.pf-v5-c-badge.pf-m-unread,
+span.pf-v5-c-badge.pf-m-unread {
+  background: var(--atria-ink) !important;
+  color: var(--atria-canvas) !important;
+  border-color: var(--atria-ink) !important;
+}
+
+/* ── Labels (similar shape to badges; used in some Keycloak surfaces) ────── */
+
+.pf-v5-c-label,
+span.pf-v5-c-label {
+  background: var(--atria-surface-soft) !important;
+  color: var(--atria-ink) !important;
+  border: 1px solid var(--atria-hairline) !important;
+  border-radius: 9999px !important;
+  font-family: var(--pf-v5-global--FontFamily--text) !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  padding: 2px 10px !important;
+  box-shadow: none !important;
+}
+
+.pf-v5-c-label__content,
+.pf-v5-c-label__text {
+  color: inherit !important;
+  background: transparent !important;
+}
+
+/* ── Chips (removable tags) — quiet hairline pill ────────────────────────── */
+
+.pf-v5-c-chip {
+  background: var(--atria-surface-soft) !important;
+  color: var(--atria-ink) !important;
+  border: 1px solid var(--atria-hairline) !important;
+  border-radius: 9999px !important;
+  padding: 3px 4px 3px 12px !important;
+  font-family: var(--pf-v5-global--FontFamily--text) !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 1.4 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  box-shadow: none !important;
+}
+
+.pf-v5-c-chip__content,
+.pf-v5-c-chip__text {
+  color: var(--atria-ink) !important;
+  font-size: 13px !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.pf-v5-c-chip__actions {
+  margin-left: 4px !important;
+}
+
+.pf-v5-c-chip__actions .pf-v5-c-button.pf-m-plain,
+.pf-v5-c-chip .pf-v5-c-button.pf-m-plain {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 9999px !important;
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  min-height: 20px !important;
+  padding: 0 !important;
+  color: var(--atria-ink-soft) !important;
+  box-shadow: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.pf-v5-c-chip__actions .pf-v5-c-button.pf-m-plain:hover {
+  background: var(--atria-hairline) !important;
+  color: var(--atria-ink) !important;
+}
+
+.pf-v5-c-chip__actions .pf-v5-c-button.pf-m-plain svg {
+  width: 10px !important;
+  height: 10px !important;
+}
+
+.pf-v5-c-chip-group,
+.pf-v5-c-chip-group__main,
+.pf-v5-c-chip-group__list {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  list-style: none !important;
+}
+
+.pf-v5-c-chip-group__list-item {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.pf-v5-c-button.pf-m-link {
+  color: var(--atria-ink) !important;
+  background: transparent !important;
+  border-radius: 6px !important;
+  padding: 7px 12px !important;
+  font-weight: 480 !important;
+  text-decoration: none !important;
+}
+
+.pf-v5-c-button.pf-m-link:hover {
+  background: var(--atria-surface-soft) !important;
+  text-decoration: none !important;
+}
+
+/* Toolbar buttons (e.g. Delete user, Refresh) — text-style with quiet hover */
+.pf-v5-c-toolbar .pf-v5-c-button {
+  font-weight: 480 !important;
+}
+
+.pf-v5-c-toolbar__group,
+.pf-v5-c-toolbar__item {
+  margin-right: 4px !important;
+}
+
+/* Search field group — flatten ALL inner wrappers; border lives only on the
+   actual <input> and the arrow <button>. */
+.pf-v5-c-input-group,
+.pf-v5-c-input-group__item,
+.pf-v5-c-text-input-group,
+.pf-v5-c-text-input-group__main,
+.pf-v5-c-text-input-group__text {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  outline: none !important;
+}
+
+.pf-v5-c-input-group {
+  display: flex !important;
+  gap: 4px !important;
+  align-items: stretch;
+}
+
+/* Kill PF v5's pseudo dividers between input-group items */
+.pf-v5-c-input-group::before,
+.pf-v5-c-input-group::after,
+.pf-v5-c-input-group__item::before,
+.pf-v5-c-input-group__item::after,
+.pf-v5-c-toolbar__item::before,
+.pf-v5-c-toolbar__item::after,
+.pf-v5-c-text-input-group::before,
+.pf-v5-c-text-input-group::after,
+.pf-v5-c-text-input-group__main::before,
+.pf-v5-c-text-input-group__main::after,
+.pf-v5-c-text-input-group__text::before,
+.pf-v5-c-text-input-group__text::after {
+  display: none !important;
+  content: none !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Nuke every border/shadow on input-group descendants except the actual
+   visual chrome (the `__text` wrapper holding the icon+input, and the
+   arrow `pf-m-control` button). Catches sibling-divider variants like
+   `.pf-v5-c-input-group__item + .pf-v5-c-input-group__item`. */
+.pf-v5-c-input-group__item,
+.pf-v5-c-input-group__item.pf-m-fill,
+.pf-v5-c-input-group__item + .pf-v5-c-input-group__item,
+.pf-v5-c-input-group .pf-v5-c-toolbar__item,
+.pf-v5-c-toolbar__item .pf-v5-c-input-group,
+.pf-v5-c-toolbar__item .pf-v5-c-input-group__item {
+  border: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* The actual text wrapper holding the icon + input — single border here */
+.pf-v5-c-text-input-group__text {
+  display: flex !important;
+  align-items: center !important;
+  background: var(--atria-canvas) !important;
+  border: 1px solid var(--atria-hairline) !important;
+  border-radius: 6px !important;
+  padding: 0 12px !important;
+  min-height: 36px !important;
+  transition: border-color 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.pf-v5-c-text-input-group__text:focus-within {
+  border-color: var(--atria-ink) !important;
+  box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.08) !important;
+}
+
+/* ── Typeahead / combobox menu-toggle ───────────────────────────────────────
+   When a text-input-group is nested inside a .pf-v5-c-menu-toggle (typeahead
+   pattern), the outer menu-toggle owns the chrome. Strip the inner border so
+   we don't get a box-in-box. */
+
+.pf-v5-c-menu-toggle.pf-m-typeahead,
+.pf-v5-c-menu-toggle.pf-m-full-width {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 0 4px 0 12px !important;
+  min-height: 40px !important;
+  width: 100% !important;
+  border: 1px solid var(--atria-hairline) !important;
+  border-radius: 6px !important;
+  background: var(--atria-canvas) !important;
+  transition: border-color 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.pf-v5-c-menu-toggle.pf-m-typeahead:focus-within,
+.pf-v5-c-menu-toggle.pf-m-full-width:focus-within {
+  border-color: var(--atria-ink) !important;
+  box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.08) !important;
+}
+
+.pf-v5-c-menu-toggle.pf-m-typeahead .pf-v5-c-text-input-group,
+.pf-v5-c-menu-toggle.pf-m-typeahead .pf-v5-c-text-input-group__main,
+.pf-v5-c-menu-toggle.pf-m-typeahead .pf-v5-c-text-input-group__text,
+.pf-v5-c-menu-toggle .pf-v5-c-text-input-group,
+.pf-v5-c-menu-toggle .pf-v5-c-text-input-group__main,
+.pf-v5-c-menu-toggle .pf-v5-c-text-input-group__text {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  min-height: 0 !important;
+  flex: 1 1 auto;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* The text-input-group utilities (X clear button area) — transparent strip */
+.pf-v5-c-text-input-group__utilities {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+/* Inline icon buttons inside the typeahead (clear X, dropdown ▾) — quiet */
+.pf-v5-c-menu-toggle .pf-v5-c-text-input-group__utilities .pf-v5-c-button.pf-m-plain,
+.pf-v5-c-menu-toggle__button,
+button.pf-v5-c-menu-toggle__button {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--atria-ink-soft) !important;
+  padding: 6px !important;
+  border-radius: 6px !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto;
+}
+
+.pf-v5-c-menu-toggle .pf-v5-c-text-input-group__utilities .pf-v5-c-button.pf-m-plain:hover,
+.pf-v5-c-menu-toggle__button:hover {
+  background: var(--atria-surface-soft) !important;
+  color: var(--atria-ink) !important;
+}
+
+.pf-v5-c-menu-toggle .pf-v5-c-text-input-group__utilities .pf-v5-c-button.pf-m-plain svg,
+.pf-v5-c-menu-toggle__button svg {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+/* Search icon inside the wrapper */
+.pf-v5-c-text-input-group__icon {
+  color: var(--atria-ink-soft) !important;
+  margin-right: 8px !important;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Strip the inner <input>'s own border — wrapper carries it now */
+.pf-v5-c-text-input-group__text-input,
+.pf-v5-c-text-input-group__main input,
+input.pf-v5-c-text-input-group__text-input,
+input[type='search'] {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  font-size: 14px !important;
+  min-height: auto !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: var(--atria-ink) !important;
+  width: 100%;
+}
+
+.pf-v5-c-text-input-group__text-input:focus,
+input[type='search']:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.pf-v5-c-text-input-group__text-input::placeholder {
+  color: var(--atria-ink-muted) !important;
+}
+
+/* Plain icon buttons (search arrow, refresh icon) */
+.pf-v5-c-button.pf-m-control {
+  background: var(--atria-canvas) !important;
+  border: 1px solid var(--atria-hairline) !important;
+  border-radius: 6px !important;
+  color: var(--atria-ink) !important;
+  padding: 7px 10px !important;
+  min-height: 36px;
+}
+
+.pf-v5-c-button.pf-m-control:hover {
+  border-color: var(--atria-ink) !important;
+  background: var(--atria-surface-soft) !important;
+}
+
+/* Username link in tables */
+.pf-v5-c-table a {
+  color: var(--atria-ink) !important;
+  font-weight: 480 !important;
+  text-decoration: none !important;
+}
+
+.pf-v5-c-table a:hover {
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+}
+
+.pf-v5-c-button.pf-m-tertiary {
+  background: var(--atria-surface-soft) !important;
+  color: var(--atria-ink) !important;
+  border: 1px solid var(--atria-hairline) !important;
+  border-radius: 9999px !important;
+}
+
+/* ── Form controls ───────────────────────────────────────────────────────── */
+
+/* Generic inputs — EXCLUDES the search input-group child, which is chromed by
+   its parent wrapper (.pf-v5-c-text-input-group__text) and must stay borderless
+   to avoid a box-in-box. */
+.pf-v5-c-form-control input:not(.pf-v5-c-text-input-group__text-input),
+input[type='text']:not(.pf-v5-c-text-input-group__text-input),
+input[type='email'],
+input[type='password'],
+input[type='number'],
+select,
+textarea {
+  background: var(--atria-canvas) !important;
+  color: var(--atria-ink) !important;
+  border: 1px solid var(--atria-hairline) !important;
+  border-radius: 8px !important;
+  font-family: var(--pf-v5-global--FontFamily--text) !important;
+  font-size: 14px !important;
+  padding: 8px 12px !important;
+  box-shadow: none !important;
+}
+
+/* Hard override (higher specificity) — search input chrome lives on the
+   wrapper, never on the input itself. */
+.pf-v5-c-text-input-group .pf-v5-c-text-input-group__text-input,
+.pf-v5-c-text-input-group input[type='text'],
+.pf-v5-c-text-input-group input {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-size: 14px !important;
+  color: var(--atria-ink) !important;
+  box-shadow: none !important;
+  outline: none !important;
+  min-height: 0 !important;
+  width: 100%;
+  flex: 1 1 auto;
+}
+
+/* Ensure the icon sits BEFORE the input in the flex row and never gets
+   overlapped */
+.pf-v5-c-text-input-group__text {
+  position: relative;
+  z-index: 0;
+}
+
+.pf-v5-c-text-input-group__icon {
+  flex: 0 0 auto;
+  position: static !important;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.pf-v5-c-form-control input:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--atria-ink) !important;
+  box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.08) !important;
+  outline: none !important;
+}
+
+.pf-v5-c-form__label {
+  font-family: var(--pf-v5-global--FontFamily--monospace) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.6px !important;
+  text-transform: uppercase !important;
+  color: var(--atria-ink-soft) !important;
+}
+
+/* ── Tables ──────────────────────────────────────────────────────────────── */
+
+.pf-v5-c-table,
+.pf-v5-c-table thead,
+.pf-v5-c-table tbody,
+.pf-v5-c-table tr,
+.pf-v5-c-table th,
+.pf-v5-c-table td {
+  background: var(--atria-canvas) !important;
+  color: var(--atria-ink) !important;
+}
+
+.pf-v5-c-table th {
+  font-family: var(--pf-v5-global--FontFamily--monospace) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.6px !important;
+  text-transform: uppercase !important;
+  color: var(--atria-ink-soft) !important;
+  border-bottom: 1px solid var(--atria-hairline) !important;
+}
+
+.pf-v5-c-table td {
+  border-bottom: 1px solid var(--atria-hairline-soft) !important;
+  font-size: 14px !important;
+}
+
+.pf-v5-c-table tr:hover td {
+  background: var(--atria-surface-soft) !important;
+}
+
+/* ── Modals ──────────────────────────────────────────────────────────────── */
+
+.pf-v5-c-modal-box,
+.pf-v5-c-modal-box__body,
+.pf-v5-c-modal-box__header,
+.pf-v5-c-modal-box__footer {
+  background: var(--atria-canvas) !important;
+  color: var(--atria-ink) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 24px 64px rgba(10, 10, 10, 0.18) !important;
+}
+
+.pf-v5-c-backdrop {
+  background: rgba(10, 10, 10, 0.6) !important;
+}
+
+/* ── Alerts ──────────────────────────────────────────────────────────────── */
+
+.pf-v5-c-alert.pf-m-warning {
+  background: #fdf5e6 !important;
+  border-color: #e8b34a !important;
+  color: #5c3a00 !important;
+}
+
+.pf-v5-c-alert.pf-m-danger,
+.pf-v5-c-alert.pf-m-error {
+  background: #fdf0ee !important;
+  border-color: var(--atria-danger) !important;
+  color: var(--atria-danger) !important;
+}
+
+.pf-v5-c-alert.pf-m-success {
+  background: #ebf3ee !important;
+  border-color: var(--atria-success) !important;
+  color: var(--atria-success) !important;
+}
+
+.pf-v5-c-alert.pf-m-info {
+  background: var(--atria-block-lilac) !important;
+  border-color: rgba(10, 10, 10, 0.15) !important;
+  color: var(--atria-ink) !important;
+}
+
+/* ── Misc kills ──────────────────────────────────────────────────────────── */
+
+/* Stock Keycloak hover blue → ink */
+*:focus-visible {
+  outline: 2px solid var(--atria-ink) !important;
+  outline-offset: 2px;
+}
+
+/* Code blocks */
+code,
+pre,
+.pf-v5-c-code-block,
+.pf-v5-c-code-block__code {
+  font-family: var(--pf-v5-global--FontFamily--monospace) !important;
+  background: var(--atria-surface-soft) !important;
+  color: var(--atria-ink) !important;
+  border-radius: 6px;
+}
+
+/* Scrollbar restraint per DESIGN.md */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--atria-hairline) !important;
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--atria-ink-muted) !important;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent !important;
+}

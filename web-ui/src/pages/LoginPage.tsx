@@ -96,20 +96,48 @@ export function LoginPage() {
                 Authenticate through your organization&rsquo;s identity provider.
               </p>
 
+              <Eyebrow className="mt-10 block text-ink/60">
+                Identity provider · Keycloak
+              </Eyebrow>
+
               {error && (
-                <p className="mt-6 text-body-sm text-semantic-danger font-[540]">{error}</p>
+                <p className="mt-3 text-body-sm text-semantic-danger font-[540]">{error}</p>
               )}
 
               <motion.button
                 type="button"
                 onClick={handleSso}
                 disabled={loading}
-                whileHover={reduce || loading ? undefined : { scale: 1.01 }}
+                whileHover={reduce || loading ? undefined : { opacity: 0.92 }}
                 whileTap={reduce || loading ? undefined : { scale: 0.98 }}
                 transition={transitions.tactile}
-                className="mt-10 w-full rounded-pill bg-ink text-inverse-ink text-btn px-6 py-3 active:scale-[0.98] whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ minWidth: '240px' }}
+                className="mt-4 inline-flex items-center justify-center gap-2 rounded-pill bg-ink text-inverse-ink text-btn px-6 py-3 whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {loading ? 'Redirecting…' : 'Continue with Keycloak'}
+                {loading ? (
+                  <>
+                    <svg
+                      className="h-4 w-4 animate-spin"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="9"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeDasharray="14 42"
+                        opacity="0.9"
+                      />
+                    </svg>
+                    <span>Redirecting</span>
+                  </>
+                ) : (
+                  <span>Continue with Keycloak</span>
+                )}
               </motion.button>
 
               <p className="mt-12 text-body-sm text-ink/60">

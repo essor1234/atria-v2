@@ -7,83 +7,60 @@ import select
 import subprocess
 import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from atria.models.config import AppConfig
 from atria.models.operation import BashResult, Operation
 from atria.core.context_engineering.tools.implementations.base import BaseTool
 from atria.core.context_engineering.tools.implementations.bash_tool.security import SecurityMixin
 from atria.core.context_engineering.tools.implementations.bash_tool.process import ProcessMixin
+from atria.web.ui_bridge import get_current_ui_callback
+
+# Re-exported for backwards compatibility (callers import these from this module).
+from atria.core.context_engineering.tools.implementations.bash_tool.constants import (  # noqa: F401,E501
+    SAFE_COMMANDS,
+    DANGEROUS_PATTERNS,
+    INTERACTIVE_COMMANDS,
+    IDLE_TIMEOUT,
+    MAX_TIMEOUT,
+    MAX_OUTPUT_CHARS,
+    KEEP_HEAD_CHARS,
+    KEEP_TAIL_CHARS,
+    MAX_LLM_METADATA_CHARS,
+    LLM_KEEP_HEAD_CHARS,
+    LLM_KEEP_TAIL_CHARS,
+)
 
 
-# Safe commands that are generally allowed
-SAFE_COMMANDS = [
-    "ls",
-    "cat",
-    "head",
-    "tail",
-    "grep",
-    "find",
-    "wc",
-    "echo",
-    "pwd",
-    "which",
-    "whoami",
-    "git",
-    "pytest",
-    "python",
-    "python3",
-    "pip",
-    "node",
-    "npm",
-    "npx",
-    "yarn",
-    "docker",
-    "kubectl",
-    "make",
-    "cmake",
-]
+def _build_exec_env(working_dir: Union[str, Path]) -> dict[str, str]:
+    """Compose the subprocess environment for bash tool calls.
 
-# Dangerous patterns that should be blocked
-DANGEROUS_PATTERNS = [
-    r"rm\s+-rf\s+/",  # Delete root
-    r"sudo",  # Privileged execution
-    r"chmod\s+-R\s+777",  # Permissive permissions
-    r":\(\)\{\s*:\|\:&\s*\};:",  # Fork bomb
-    r"mv\s+/",  # Move root directories
-    r">\s*/dev/sd[a-z]",  # Write to disk directly
-    r"dd\s+if=.*of=/dev",  # Disk operations
-    r"curl.*\|\s*bash",  # Download and execute
-    r"wget.*\|\s*bash",  # Download and execute
-]
+    Adds Atria-specific vars (session/conversation id, project slug,
+    workspace, API base) on top of os.environ. Pre-existing values
+    in os.environ take precedence so explicit overrides win.
+    """
+    env = os.environ.copy()
+    env["PYTHONUNBUFFERED"] = "1"
 
-# Commands that commonly require y/n confirmation (safe scaffolding tools)
-INTERACTIVE_COMMANDS = [
-    r"\bnpx\b",  # npx create-*, npx degit, etc.
-    r"\bnpm\s+(init|create)\b",  # npm init / npm create
-    r"\byarn\s+create\b",  # yarn create
-    r"\bng\s+new\b",  # Angular CLI
-    r"\bvue\s+create\b",  # Vue CLI
-    r"\bcreate-react-app\b",  # CRA
-    r"\bnext\s+create\b",  # Next.js
-    r"\bvite\s+create\b",  # Vite
-    r"\bpnpm\s+create\b",  # pnpm create
-]
+    session_id: Optional[str] = None
+    try:
+        cb = get_current_ui_callback()
+        session_id = getattr(cb, "session_id", None) if cb else None
+    except Exception:  # noqa: BLE001 — best-effort env injection
+        pass
 
-# Timeout configuration for activity-based timeout
-# Only timeout if command produces no output for IDLE_TIMEOUT seconds
-IDLE_TIMEOUT = 60  # Timeout after 60 seconds of no output
-MAX_TIMEOUT = 600  # Absolute max runtime: 10 minutes (safety cap)
+    if session_id:
+        env.setdefault("ATRIA_SESSION_ID", str(session_id))
+        env.setdefault("ATRIA_CONVERSATION_ID", str(session_id))
+        env.setdefault("ATRIA_PROJECT_SLUG", f"conv-{session_id}")
 
-# Output truncation
-MAX_OUTPUT_CHARS = 30_000
-KEEP_HEAD_CHARS = 10_000
-KEEP_TAIL_CHARS = 10_000
-
-# Metadata cap for LLM context (more compact than display truncation)
-MAX_LLM_METADATA_CHARS = 15_000
-LLM_KEEP_HEAD_CHARS = 5_000
-LLM_KEEP_TAIL_CHARS = 5_000
+    env.setdefault(
+        "ATRIA_API_BASE",
+        os.environ.get("ATRIA_API_BASE", "http://127.0.0.1:8080"),
+    )
+    env.setdefault("ATRIA_WORKSPACE", str(working_dir))
+    env.setdefault("ATRIA_SESSION_DIR", str(working_dir))
+    return env
 
 
 def truncate_output(
@@ -289,28 +266,10 @@ class BashTool(SecurityMixin, ProcessMixin, BaseTool):
         if not background and self._is_server_command(command):
             background = True
 
-        # Ensure Python output is unbuffered when piped to subprocess
-        # This fixes the issue where Flask/Django server output gets stuck in buffer
-        exec_env = os.environ.copy()
+        # Build subprocess environment with Atria-specific vars injected.
+        exec_env = _build_exec_env(work_dir)
         if env:
             exec_env.update(env)
-        # Force unbuffered Python output for immediate display
-        exec_env["PYTHONUNBUFFERED"] = "1"
-        # Expose the active session id + API base so module scripts can call
-        # the in-process push_block HTTP gateway (atria/web/routes/blocks.py).
-        try:
-            from atria.web.ui_bridge import get_current_ui_callback
-
-            _cb = get_current_ui_callback()
-            _sid = getattr(_cb, "session_id", None) if _cb else None
-            if _sid and "ATRIA_SESSION_ID" not in exec_env:
-                exec_env["ATRIA_SESSION_ID"] = _sid
-        except Exception:  # noqa: BLE001 — best-effort env injection
-            pass
-        exec_env.setdefault(
-            "ATRIA_API_BASE",
-            os.environ.get("ATRIA_API_BASE", "http://127.0.0.1:8080"),
-        )
 
         try:
             # Mark operation as executing

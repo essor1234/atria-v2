@@ -276,8 +276,7 @@ class PgSessionManager:
         # Keep in-memory current_session in sync if it matches.
         if self.current_session and self.current_session.id == session_id:
             self.current_session.messages = (
-                self.current_session.messages[:turn_index]
-                + self.current_session.messages[end:]
+                self.current_session.messages[:turn_index] + self.current_session.messages[end:]
             )
             remaining = self.current_session.messages
         else:

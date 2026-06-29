@@ -8,7 +8,6 @@ from typing import Any, Union, TYPE_CHECKING
 from atria.core.context_engineering.tools.context import ToolExecutionContext
 from atria.core.paths import get_paths
 from atria.core.skill_tools import SkillToolContext, SkillToolLoader, ToolSpec
-from atria.db.sync import run_sync
 import logging
 
 if TYPE_CHECKING:
@@ -28,6 +27,7 @@ from atria.core.context_engineering.tools.handlers.todo_handler import TodoHandl
 from atria.core.context_engineering.tools.handlers.thinking_handler import ThinkingHandler
 from atria.core.context_engineering.tools.handlers.search_tools_handler import SearchToolsHandler
 from atria.core.context_engineering.tools.handlers.batch_handler import BatchToolHandler
+from atria.core.context_engineering.tools.implementations.note_tool import execute_note
 from atria.core.context_engineering.tools.handlers.memory_handlers import MemoryToolHandler
 from atria.core.context_engineering.tools.handlers.session_handlers import SessionToolHandler
 from atria.core.context_engineering.tools.handlers.git_handlers import GitToolHandler
@@ -35,14 +35,10 @@ from atria.core.context_engineering.tools.handlers.browser_handlers import Brows
 from atria.core.context_engineering.tools.handlers.schedule_handlers import ScheduleToolHandler
 from atria.core.context_engineering.tools.handlers.message_handlers import MessageToolHandler
 from atria.core.context_engineering.tools.implementations.send_image_tool import SendImageHandler
-from atria.core.context_engineering.tools.implementations.send_data_tool import SendDataHandler
-from atria.core.context_engineering.tools.implementations.chart_tool import RenderChartHandler
 from atria.core.context_engineering.tools.implementations.md_to_pdf_tool import (
     MarkdownToPdfHandler,
 )
-from atria.core.context_engineering.tools.handlers.chart_handler import ChartHandler
 from atria.core.context_engineering.tools.handlers.md_to_pdf_handler import MdToPdfHandler
-from atria.core.context_engineering.tools.implementations.chart_tool import ChartTool
 from atria.core.context_engineering.tools.implementations.md_to_pdf_tool import MdToPdfTool
 from atria.core.context_engineering.tools.handlers.artifacts_handler import ArtifactsToolHandler
 
@@ -50,74 +46,6 @@ if TYPE_CHECKING:
     from atria.core.skills import SkillLoader
 
 logger = logging.getLogger(__name__)
-
-
-def _wire_llm_into_ctx(skill_ctx: SkillToolContext, app_config: Any | None) -> None:
-    """Build llm_chat/llm_vision closures that reuse the app's configured LLM.
-
-    If app_config is None, the skill engines fall back to env-var-driven OpenAI
-    calls (the original behaviour). When wired, the same api_key/api_base_url/
-    model the main agent uses are reused.
-    """
-    if app_config is None:
-        return
-
-    def _client():
-        from openai import OpenAI  # noqa: PLC0415
-
-        try:
-            api_key = app_config.get_api_key()
-        except Exception:
-            return None
-        base_url = getattr(app_config, "api_base_url", None) or "https://api.openai.com/v1"
-        # AppConfig stores ".../chat/completions" in some configs — strip the suffix
-        # since the OpenAI SDK appends it.
-        if base_url.endswith("/chat/completions"):
-            base_url = base_url[: -len("/chat/completions")]
-        return OpenAI(api_key=api_key, base_url=base_url)
-
-    model = getattr(app_config, "model", None) or "gpt-4o-mini"
-    vlm_model = getattr(app_config, "model_vlm", None) or model
-
-    def llm_chat(system: str, user: str) -> str:
-        client = _client()
-        if client is None:
-            raise RuntimeError("No API key configured for atria")
-        resp = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": user},
-            ],
-        )
-        return (resp.choices[0].message.content or "").strip()
-
-    def llm_vision(system: str, user: str, image_b64: str) -> str:
-        client = _client()
-        if client is None:
-            raise RuntimeError("No API key configured for atria")
-        resp = client.chat.completions.create(
-            model=vlm_model,
-            messages=[
-                {"role": "system", "content": system},
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": user},
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": f"data:image/png;base64,{image_b64}"},
-                        },
-                    ],
-                },
-            ],
-        )
-        return (resp.choices[0].message.content or "").strip()
-
-    skill_ctx.llm_chat = llm_chat
-    skill_ctx.llm_vision = llm_vision
-    skill_ctx.llm_model = model
-
 
 from atria.core.context_engineering.tools.implementations.agents_tool import AgentsTool
 from atria.core.context_engineering.tools.implementations.patch_tool import PatchTool
@@ -137,8 +65,15 @@ from atria.core.context_engineering.tools.symbol_tools import (
     handle_rename_symbol,
 )
 
+from atria.core.context_engineering.tools.registry_mixins import (
+    InlineToolsMixin,
+    OrchestrationOpsMixin,
+    SubagentOpsMixin,
+)
+from atria.core.context_engineering.tools.registry_mixins.llm_wiring import _wire_llm_into_ctx
 
-class ToolRegistry:
+
+class ToolRegistry(SubagentOpsMixin, OrchestrationOpsMixin, InlineToolsMixin):
     """Dispatches tool invocations to dedicated handlers."""
 
     def __init__(
@@ -158,6 +93,7 @@ class ToolRegistry:
         app_config: Union[Any, None] = None,
     ) -> None:
         self.file_ops = file_ops
+        self._app_config = app_config  # for per-run parallel orchestrator wiring
         self.write_tool = write_tool
         self.edit_tool = edit_tool
         self.bash_tool = bash_tool
@@ -192,8 +128,6 @@ class ToolRegistry:
             spec.name: spec
             for spec in SkillToolLoader(_skill_dirs).discover_and_register(self.skill_ctx)
         }
-        self._chart_tool = ChartTool()
-        self._chart_handler_new = ChartHandler(self._chart_tool)
         self._md_to_pdf_tool = MdToPdfTool()
         self._md_to_pdf_handler_new = MdToPdfHandler(self._md_to_pdf_tool)
         self._notebook_edit_handler = NotebookEditHandler(notebook_edit_tool)
@@ -208,6 +142,7 @@ class ToolRegistry:
         self._task_complete_tool = TaskCompleteTool()
         self._present_plan_tool = PresentPlanTool()
         self._subagent_manager: Union[Any, None] = None
+        self._parallel_orchestrator: Union[Any, None] = None  # built lazily per run
         self._hook_manager: Union["HookManager", None] = None
         self._skill_loader: Union["SkillLoader", None] = None
 
@@ -229,8 +164,6 @@ class ToolRegistry:
         self._schedule_handler = ScheduleToolHandler()
         self._message_handler = MessageToolHandler()
         self._send_image_handler = SendImageHandler()
-        self._send_data_handler = SendDataHandler()
-        self._render_chart_handler = RenderChartHandler()
         self._markdown_to_pdf_handler = MarkdownToPdfHandler()
         self._memory_handler = MemoryToolHandler()
         self._session_handler = SessionToolHandler()
@@ -251,7 +184,6 @@ class ToolRegistry:
             "kill_process": self._process_handler.kill_process,
             "fetch_url": self._web_handler.fetch_url,
             "web_search": self._web_search_handler.search,
-            "chart": self._chart_handler_new.chart,
             "md_to_pdf": self._md_to_pdf_handler_new.md_to_pdf,
             "notebook_edit": self._notebook_edit_handler.edit_cell,
             "ask_user": self._ask_user_handler.ask_questions,
@@ -275,6 +207,9 @@ class ToolRegistry:
             "spawn_subagent": self._execute_spawn_subagent,
             # Get output from background subagent
             "get_subagent_output": self._get_subagent_output,
+            # Unified solver tools (divide + parallel behind a strategy param)
+            "solve": self._execute_solve,
+            "get_solve_result": self._execute_get_solve_result,
             # PDF extraction tool
             "read_pdf": self._read_pdf,
             # MCP tool discovery (token-efficient)
@@ -295,9 +230,6 @@ class ToolRegistry:
             "send_message": self._message_handler.handle,
             # Image push tool (web UI)
             "send_image": self._send_image_handler.send,
-            # Data push tool (web UI)
-            "send_data": self._send_data_handler.send,
-            "render_chart": self._render_chart_handler.render,
             "markdown_to_pdf": self._markdown_to_pdf_handler.convert,
             # Memory tools
             "memory_search": self._memory_handler.search,
@@ -315,6 +247,10 @@ class ToolRegistry:
             # Artifact tools
             "list_artifact_images": self._artifacts_handler.list_artifact_images,
             "read_artifact_image": self._artifacts_handler.read_artifact_image,
+            # Blackboard note tool
+            "NOTE": lambda args, ctx=None: execute_note(
+                args, blackboard=getattr(ctx, "blackboard", None)
+            ),
         }
 
         # Merge skill-owned tool handlers. Each skill's tools.py returned a
@@ -424,247 +360,6 @@ class ToolRegistry:
         self._discovered_mcp_tools.clear()
         logger.debug("Cleared all discovered MCP tools")
 
-    def _execute_spawn_subagent(
-        self,
-        arguments: dict[str, Any],
-        context: Any = None,
-        tool_call_id: Union[str, None] = None,
-    ) -> dict[str, Any]:
-        """Execute the spawn_subagent tool to spawn a subagent.
-
-        Args:
-            arguments: Tool arguments with 'description', 'prompt', and 'subagent_type'
-            context: Tool execution context
-            tool_call_id: Unique tool call ID for parent context tracking
-
-        Returns:
-            Result from subagent execution
-        """
-        if not self._subagent_manager:
-            return {
-                "success": False,
-                "error": "SubAgentManager not configured. spawn_subagent tool unavailable.",
-                "output": None,
-            }
-
-        description = arguments.get("description", "")
-        # Use 'prompt' as task content, fallback to 'description' for backward compatibility
-        task = arguments.get("prompt") or description
-        subagent_type = arguments.get("subagent_type", "general-purpose")
-
-        if not task:
-            return {
-                "success": False,
-                "error": "Task prompt is required for spawn_subagent",
-                "output": None,
-            }
-
-        # Create deps from context
-        from atria.core.agents.subagents.manager import SubAgentDeps
-
-        deps = SubAgentDeps(
-            mode_manager=context.mode_manager if context else None,
-            approval_manager=context.approval_manager if context else None,
-            undo_manager=context.undo_manager if context else None,
-            session_manager=context.session_manager if context else None,
-        )
-
-        # Get ui_callback from context for nested tool call display
-        ui_callback = context.ui_callback if context else None
-
-        # Get task_monitor from context for interrupt support
-        task_monitor = context.task_monitor if context else None
-
-        # show_spawn_header=False because react_executor already showed the Spawn[] header
-        # via on_tool_call before calling this tool handler
-        result = self._subagent_manager.execute_subagent(
-            name=subagent_type,
-            task=task,
-            deps=deps,
-            ui_callback=ui_callback,
-            task_monitor=task_monitor,
-            show_spawn_header=False,
-            tool_call_id=tool_call_id,  # Pass for parent context tracking
-        )
-
-        # Save subagent conversation as a child session for navigation (Ctrl+G)
-        self._save_subagent_session(
-            result,
-            subagent_type,
-            tool_call_id,
-            context,
-        )
-
-        # Detect shallow subagent completions (≤1 tool call).
-        # Spawning a subagent has overhead (extra LLM call + context setup), so if it
-        # only made 1 tool call, the parent agent could have done it directly. Inject
-        # feedback via _llm_suffix so the LLM learns to avoid trivial spawns.
-        subagent_tool_calls = self._count_subagent_tool_calls(result)
-        shallow_suffix = ""
-        if subagent_tool_calls <= 1 and result.get("success"):
-            shallow_suffix = (
-                "\n\n[SHALLOW SUBAGENT WARNING] This subagent only made "
-                f"{subagent_tool_calls} tool call(s). Spawning a subagent for a task "
-                "that requires ≤1 tool call is wasteful — you should have used a "
-                "direct tool call instead. For future similar tasks, use read_file, "
-                "search, or list_files directly rather than spawning a subagent."
-            )
-
-        # Format output for consistency
-        if result.get("success"):
-            content = result.get("content", "")
-            # Always set completion_status for sync subagents (they complete immediately)
-            # This helps the LLM understand that results are already included
-            completion_status = result.get("completion_status", "success")
-            response = {
-                "success": True,
-                "output": "[SYNC COMPLETE] Subagent finished. Results included below.",
-                "separate_response": content,  # Show as separate assistant message
-                "subagent_type": subagent_type,
-                "completion_status": completion_status,  # Always include for sync completions
-            }
-            if shallow_suffix:
-                response["_llm_suffix"] = shallow_suffix
-            return response
-        else:
-            # Check both "error" and "content" fields for error message
-            # MainAgent.run_sync() puts errors in "content", not "error"
-            error = result.get("error") or result.get("content") or "Unknown error"
-            return {
-                "success": False,
-                "error": f"[{subagent_type}] {error}",
-                "output": None,
-                "interrupted": result.get("interrupted", False),  # Propagate interrupt flag
-            }
-
-    @staticmethod
-    def _count_subagent_tool_calls(result: dict[str, Any]) -> int:
-        """Count actual tool calls made by a subagent from its message history.
-
-        Counts assistant messages that contain tool_calls, which represents
-        the number of LLM turns where tools were invoked. This is more
-        accurate than counting tool result messages since one turn can
-        invoke multiple parallel tools.
-        """
-        messages = result.get("messages", [])
-        return sum(
-            1 for msg in messages if msg.get("role") == "assistant" and msg.get("tool_calls")
-        )
-
-    def _save_subagent_session(
-        self,
-        result: dict[str, Any],
-        subagent_type: str,
-        tool_call_id: Union[str, None],
-        context: Any,
-    ) -> None:
-        """Save subagent conversation as a child session and record mapping.
-
-        Creates a new session from the subagent's messages and stores a
-        tool_call_id -> child_session_id mapping in the parent session's
-        subagent_sessions field for later navigation (Ctrl+G).
-
-        Args:
-            result: Result dict from execute_subagent (contains 'messages')
-            subagent_type: Name of the subagent type
-            tool_call_id: Tool call ID from the parent context
-            context: Tool execution context with session_manager
-        """
-        if tool_call_id is None:
-            return
-
-        subagent_messages = result.get("messages")
-        if not subagent_messages:
-            return
-
-        session_manager = getattr(context, "session_manager", None) if context else None
-        if session_manager is None:
-            return
-
-        parent_session = run_sync(session_manager.get_current_session())
-        if parent_session is None:
-            return
-
-        try:
-            from atria.models.message import ChatMessage, Role
-            from atria.models.session import Session
-
-            # Create a child session for the subagent conversation
-            child_session = Session(
-                working_directory=parent_session.working_directory,
-                parent_id=parent_session.id,
-                metadata={"title": f"Subagent: {subagent_type}"},
-            )
-
-            # Convert raw message dicts to ChatMessage objects
-            valid_roles = {r.value for r in Role}
-            for msg in subagent_messages:
-                if isinstance(msg, dict):
-                    role_str = msg.get("role", "user")
-                    content = msg.get("content", "")
-                    # Skip system and tool messages (prompt and tool results)
-                    if role_str not in valid_roles or role_str == "system":
-                        continue
-                    child_session.add_message(
-                        ChatMessage(role=Role(role_str), content=str(content) if content else "")
-                    )
-
-            # Save child session
-            run_sync(session_manager.save_session(child_session))
-
-            # Record mapping in parent session
-            if not hasattr(parent_session, "subagent_sessions"):
-                parent_session.subagent_sessions = {}
-            parent_session.subagent_sessions[tool_call_id] = child_session.id
-            run_sync(session_manager.save_session(parent_session))
-        except Exception:
-            # Non-critical — don't break subagent execution if session save fails
-            logger.debug("Failed to save subagent session", exc_info=True)
-
-    def _get_subagent_output(
-        self, arguments: dict[str, Any], context: Any = None
-    ) -> dict[str, Any]:
-        """Get output from a background subagent task.
-
-        Args:
-            arguments: Tool arguments with 'task_id', optional 'block' and 'timeout'
-            context: Tool execution context
-
-        Returns:
-            Result from background subagent or status information
-        """
-        task_id = arguments.get("task_id", "")
-        block = arguments.get("block", True)
-        timeout = arguments.get("timeout", 30000)
-
-        if not task_id:
-            return {
-                "success": False,
-                "error": "task_id is required",
-                "output": None,
-            }
-
-        if not self._subagent_manager:
-            return {
-                "success": False,
-                "error": "SubAgentManager not configured",
-                "output": None,
-            }
-
-        # Check if manager has background task support
-        if hasattr(self._subagent_manager, "get_background_task_output"):
-            return self._subagent_manager.get_background_task_output(
-                task_id, block=block, timeout=timeout
-            )
-
-        # Fallback for managers without background support
-        return {
-            "success": False,
-            "error": f"Background task support not available. Task ID '{task_id}' not found.",
-            "output": "Background subagent execution is not yet fully implemented. "
-            "Subagents currently run synchronously.",
-        }
-
     def get_schemas(self) -> list[dict[str, Any]]:
         """Compatibility hook (schemas generated elsewhere)."""
         return []
@@ -682,6 +377,7 @@ class ToolRegistry:
         ui_callback: Union[Any, None] = None,
         is_subagent: bool = False,
         tool_call_id: Union[str, None] = None,
+        blackboard: Union[Any, None] = None,
     ) -> dict[str, Any]:
         """Execute a tool by delegating to registered handlers."""
         if tool_name.startswith("mcp__"):
@@ -735,6 +431,7 @@ class ToolRegistry:
             ui_callback=ui_callback,
             is_subagent=is_subagent,
             file_time_tracker=self._file_time_tracker,
+            blackboard=blackboard,
         )
 
         handler = self._handlers[tool_name]
@@ -752,9 +449,11 @@ class ToolRegistry:
                 "list_sessions",
                 "get_session_history",
                 "send_image",
-                "send_data",
                 "list_artifact_images",
                 "read_artifact_image",
+                "NOTE",
+                "solve",
+                "get_solve_result",
             }:
                 # Handlers requiring context
                 result = handler(arguments, context)
@@ -796,316 +495,3 @@ class ToolRegistry:
         self.mcp_manager = mcp_manager
         self._mcp_handler = McpToolHandler(mcp_manager)
         self._search_tools_handler.set_mcp_manager(mcp_manager)
-
-    def _open_browser(self, arguments: dict[str, Any]) -> dict[str, Any]:
-        """Execute the open_browser tool."""
-        if not self.open_browser_tool:
-            return {
-                "success": False,
-                "error": "open_browser tool not available",
-                "output": None,
-            }
-        return self.open_browser_tool.execute(**arguments)
-
-    def _analyze_image(self, arguments: dict[str, Any]) -> dict[str, Any]:
-        """Execute the analyze_image tool (VLM)."""
-        if not self.vlm_tool:
-            return {
-                "success": False,
-                "error": "VLM tool not available",
-                "output": None,
-            }
-        # Handle max_completion_tokens -> max_tokens conversion (OpenAI models use different param)
-        if "max_completion_tokens" in arguments:
-            arguments["max_tokens"] = arguments.pop("max_completion_tokens")
-        result = self.vlm_tool.analyze_image(**arguments)
-        # Format output for consistency with other tools
-        if result.get("success"):
-            return {
-                "success": True,
-                "output": result.get("content", ""),
-                "model": result.get("model"),
-                "provider": result.get("provider"),
-            }
-        else:
-            return {
-                "success": False,
-                "error": result.get("error", "Unknown error"),
-                "output": None,
-            }
-
-    def _capture_web_screenshot(self, arguments: dict[str, Any]) -> dict[str, Any]:
-        """Execute the capture_web_screenshot tool."""
-        if not self.web_screenshot_tool:
-            return {
-                "success": False,
-                "error": "Web screenshot tool not available",
-                "output": None,
-            }
-        result = self.web_screenshot_tool.capture_web_screenshot(**arguments)
-        # Format output for consistency
-        if result.get("success"):
-            output_lines = [
-                f"Screenshot captured: {result.get('screenshot_path')}",
-                f"URL: {result.get('url')}",
-            ]
-            if result.get("pdf_path"):
-                output_lines.append(f"PDF captured: {result.get('pdf_path')}")
-            if result.get("warning"):
-                output_lines.append(f"Warning: {result['warning']}")
-            if result.get("pdf_warning"):
-                output_lines.append(f"PDF Warning: {result['pdf_warning']}")
-
-            response = {
-                "success": True,
-                "output": "\n".join(output_lines),
-                "screenshot_path": result.get("screenshot_path"),
-            }
-            if result.get("pdf_path"):
-                response["pdf_path"] = result.get("pdf_path")
-            return response
-        else:
-            return {
-                "success": False,
-                "error": result.get("error", "Unknown error"),
-                "output": None,
-            }
-
-    def _write_todos(self, arguments: dict[str, Any], context: Any = None) -> dict[str, Any]:
-        """Execute the write_todos tool."""
-        return self.todo_handler.write_todos(arguments.get("todos", []))
-
-    def _update_todo(self, arguments: dict[str, Any], context: Any = None) -> dict[str, Any]:
-        """Execute the update_todo tool."""
-        return self.todo_handler.update_todo(
-            id=arguments.get("id"),
-            status=arguments.get("status"),
-            title=arguments.get("title"),
-        )
-
-    def _complete_todo(self, arguments: dict[str, Any], context: Any = None) -> dict[str, Any]:
-        """Execute the complete_todo tool."""
-        return self.todo_handler.complete_todo(id=arguments.get("id"))
-
-    def _read_pdf(self, arguments: dict[str, Any]) -> dict[str, Any]:
-        """Execute the read_pdf tool to extract text from a PDF file.
-
-        Args:
-            arguments: Dict with 'file_path' key
-
-        Returns:
-            Result with extracted text content and metadata
-        """
-        file_path = arguments.get("file_path", "")
-        if not file_path:
-            return {
-                "success": False,
-                "error": "file_path is required for read_pdf",
-                "output": None,
-            }
-
-        result = self._pdf_tool.extract_text(file_path)
-
-        if result.get("success"):
-            # Format output for display
-            content = result.get("content", "")
-            metadata = result.get("metadata", {})
-            page_count = result.get("page_count", 0)
-            sections = result.get("sections", [])
-
-            output_parts = []
-            if metadata:
-                if metadata.get("title"):
-                    output_parts.append(f"Title: {metadata['title']}")
-                if metadata.get("author"):
-                    output_parts.append(f"Author: {metadata['author']}")
-            output_parts.append(f"Pages: {page_count}")
-            if sections:
-                output_parts.append(f"Detected sections: {len(sections)}")
-                section_titles = [s.get("title", "") for s in sections[:10]]
-                output_parts.append(f"  {', '.join(section_titles)}")
-
-            output_parts.append("\n--- Content ---\n")
-            output_parts.append(content)
-
-            return {
-                "success": True,
-                "output": "\n".join(output_parts),
-                "metadata": metadata,
-                "page_count": page_count,
-                "sections": sections,
-            }
-        else:
-            return {
-                "success": False,
-                "error": result.get("error", "Unknown error"),
-                "output": None,
-            }
-
-    def _execute_task_complete(
-        self, arguments: dict[str, Any], context: Any = None
-    ) -> dict[str, Any]:
-        """Execute the task_complete tool to signal explicit task completion.
-
-        Args:
-            arguments: Dict with 'summary' (required) and 'status' keys
-            context: Tool execution context (unused)
-
-        Returns:
-            Result with _completion flag for loop termination
-        """
-        summary = arguments.get("summary", "")
-        status = arguments.get("status", "success")
-
-        return self._task_complete_tool.execute(summary=summary, status=status)
-
-    def _execute_present_plan(
-        self, arguments: dict[str, Any], context: Any = None
-    ) -> dict[str, Any]:
-        """Execute the present_plan tool to present plan for approval.
-
-        Args:
-            arguments: Dict with 'plan_file_path' key.
-            context: Tool execution context.
-
-        Returns:
-            Result indicating approval status.
-        """
-        kwargs: dict[str, Any] = {
-            "plan_file_path": arguments.get("plan_file_path", ""),
-        }
-        if context:
-            kwargs["ui_callback"] = getattr(context, "ui_callback", None)
-            kwargs["session_manager"] = getattr(context, "session_manager", None)
-
-        result = self._present_plan_tool.execute(**kwargs)
-
-        # Set autonomy to AUTO if user chose "Start implementation (auto-approve)"
-        if result.get("auto_approve") and context:
-            approval_manager = getattr(context, "approval_manager", None)
-            if approval_manager and hasattr(approval_manager, "set_autonomy_level"):
-                approval_manager.set_autonomy_level("Auto")
-
-        # Auto-create todos from plan steps
-        if result.get("plan_approved"):
-            plan_content = result.get("plan_content", "")
-            if plan_content:
-                self._create_todos_from_plan(plan_content, result)
-
-        return result
-
-    def _create_todos_from_plan(self, plan_content: str, result: dict[str, Any]) -> None:
-        """Parse plan and create todos from implementation steps.
-
-        Args:
-            plan_content: Raw plan text.
-            result: The present_plan result dict to augment with todo count.
-        """
-        from atria.core.agents.components.response.plan_parser import parse_plan
-
-        # Ensure content has delimiters (safety net)
-        if "---BEGIN PLAN---" not in plan_content:
-            plan_content = f"---BEGIN PLAN---\n{plan_content}\n---END PLAN---"
-
-        parsed = parse_plan(plan_content)
-        if parsed and parsed.steps:
-            todos = parsed.get_todo_items()
-            todo_result = self.todo_handler.write_todos(todos)
-            if todo_result.get("success"):
-                count = todo_result.get("created_count", len(todos))
-                result["todos_created"] = count
-                result["output"] += f"\n\nCreated {count} implementation todos."
-
-    def _execute_batch_tool(self, arguments: dict[str, Any], context: Any = None) -> dict[str, Any]:
-        """Execute the batch_tool for parallel/serial multi-tool invocations.
-
-        Args:
-            arguments: Dict with 'invocations' list and optional 'mode'
-            context: Tool execution context
-
-        Returns:
-            Result with list of tool outputs
-        """
-        if not self._batch_handler:
-            return {"success": False, "error": "Batch handler not initialized", "results": []}
-
-        # Pass context-related kwargs for tool execution
-        kwargs: dict[str, Any] = {}
-        if context:
-            kwargs["mode_manager"] = getattr(context, "mode_manager", None)
-            kwargs["approval_manager"] = getattr(context, "approval_manager", None)
-            kwargs["undo_manager"] = getattr(context, "undo_manager", None)
-            kwargs["task_monitor"] = getattr(context, "task_monitor", None)
-            kwargs["session_manager"] = getattr(context, "session_manager", None)
-            kwargs["ui_callback"] = getattr(context, "ui_callback", None)
-
-        return self._batch_handler.handle(arguments, **kwargs)
-
-    def _handle_invoke_skill(
-        self, arguments: dict[str, Any], context: Any = None
-    ) -> dict[str, Any]:
-        """Execute the invoke_skill tool to load skill content into context.
-
-        Args:
-            arguments: Dict with 'skill_name' key
-            context: Tool execution context (unused)
-
-        Returns:
-            Result with skill content or error
-        """
-        if not self._skill_loader:
-            return {
-                "success": False,
-                "error": "Skills system not configured. invoke_skill tool unavailable.",
-                "output": None,
-            }
-
-        skill_name = arguments.get("skill_name", "")
-        if not skill_name:
-            # List available skills if no name provided
-            available = self._skill_loader.get_skill_names()
-            return {
-                "success": True,
-                "output": f"Available skills: {', '.join(available) if available else 'None'}",
-            }
-
-        skill = self._skill_loader.load_skill(skill_name)
-        if not skill:
-            available = self._skill_loader.get_skill_names()
-            return {
-                "success": False,
-                "error": f"Skill not found: '{skill_name}'. Available: {', '.join(available) if available else 'None'}",
-                "output": None,
-            }
-
-        # Dedup: if already invoked this session, return a short reminder
-        if skill_name in self._invoked_skills:
-            return {
-                "success": True,
-                "output": (
-                    f"Skill '{skill.metadata.name}' is already loaded in this conversation. "
-                    "Refer to the skill content above and proceed with the next action step — "
-                    "do not invoke this skill again."
-                ),
-                "skill_name": skill.metadata.name,
-                "skill_namespace": skill.metadata.namespace,
-            }
-
-        self._invoked_skills.add(skill_name)
-        return {
-            "success": True,
-            "output": f"Loaded skill: {skill.metadata.name}\n\n{skill.content}",
-            "skill_name": skill.metadata.name,
-            "skill_namespace": skill.metadata.namespace,
-        }
-
-    def _handle_list_agents(self, arguments: dict[str, Any], context: Any = None) -> dict[str, Any]:
-        """List available subagent types."""
-        return self._agents_tool.list_agents(subagent_manager=self._subagent_manager)
-
-    def _handle_apply_patch(self, arguments: dict[str, Any], context: Any = None) -> dict[str, Any]:
-        """Apply a unified diff patch."""
-        return self._patch_tool.apply_patch(
-            patch=arguments.get("patch", ""),
-            dry_run=arguments.get("dry_run", False),
-        )

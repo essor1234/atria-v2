@@ -2,6 +2,7 @@
 
 Skipped unless ATRIA_KEYCLOAK_INTEGRATION=1 is set and `docker compose up -d keycloak` is running.
 """
+
 from __future__ import annotations
 
 import os

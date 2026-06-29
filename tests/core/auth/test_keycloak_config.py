@@ -1,5 +1,3 @@
-import os
-
 import pytest
 
 from atria.core.auth.keycloak.config import KeycloakConfig, AuthMode

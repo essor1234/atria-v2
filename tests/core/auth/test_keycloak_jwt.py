@@ -83,7 +83,13 @@ def test_validator_rejects_wrong_issuer():
     validator = TokenValidator(cfg, cache)
     now = int(time.time())
     token = _sign(
-        {"iss": "http://evil/realms/atria", "sub": "x", "aud": "account", "exp": now + 60, "iat": now},
+        {
+            "iss": "http://evil/realms/atria",
+            "sub": "x",
+            "aud": "account",
+            "exp": now + 60,
+            "iat": now,
+        },
         pem,
     )
     with pytest.raises(InvalidTokenError):

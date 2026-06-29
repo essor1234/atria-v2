@@ -7,23 +7,21 @@ Optionally pre-fills the form by reading the current row from the CSV.
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 import os
 import sys
 import urllib.error
 import urllib.request
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-CSV_PATH = ROOT / "data" / "inventory.csv"
+import _db
 
 
 def _load_all() -> list[dict]:
-    if not CSV_PATH.exists():
-        return []
-    with CSV_PATH.open("r", newline="", encoding="utf-8") as fh:
-        return list(csv.DictReader(fh))
+    conn = _db.connect()
+    try:
+        return [_db.item_dict(r) for r in conn.execute("SELECT * FROM items").fetchall()]
+    finally:
+        conn.close()
 
 
 def _load_row(rows: list[dict], sku: str) -> dict | None:
@@ -36,7 +34,7 @@ def _load_row(rows: list[dict], sku: str) -> dict | None:
 def _distinct(rows: list[dict], field: str) -> list[str]:
     seen: dict[str, None] = {}
     for r in rows:
-        v = (r.get(field) or "").strip()
+        v = str(r.get(field) or "").strip()
         if v and v not in seen:
             seen[v] = None
     return sorted(seen.keys())

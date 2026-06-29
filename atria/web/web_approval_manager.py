@@ -36,6 +36,17 @@ class WebApprovalManager:
         self.session_id = session_id
         self.state = get_state()
 
+    def _simple_mode_enabled(self) -> bool:
+        """True when Simple Mode is on — auto-approve all tool calls.
+
+        The dangerous-command safety floor lives in the bash tool and is
+        independent of approval, so this never bypasses it.
+        """
+        try:
+            return bool(getattr(self.state.config_manager.get_config(), "simple_mode", False))
+        except Exception:  # noqa: BLE001 — config access must never break the gate
+            return False
+
     def request_approval(
         self,
         operation: Operation,
@@ -64,6 +75,10 @@ class WebApprovalManager:
         Returns:
             ApprovalResult with approval status
         """
+        # Simple Mode (non-technical UX): never prompt. Safety floor still applies.
+        if self._simple_mode_enabled():
+            return ApprovalResult(approved=True, choice="approve")
+
         # Check autonomy level before prompting
         autonomy = self.state.get_autonomy_level()
 

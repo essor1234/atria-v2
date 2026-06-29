@@ -18,7 +18,7 @@ class CurrentPrincipal:
     email: str
     username: str
     tenant_id: str
-    tenant_role: str           # "admin" or "member"
+    tenant_role: str  # "admin" or "member"
     is_platform_admin: bool
     raw_groups: tuple[str, ...]
     raw_roles: tuple[str, ...]
@@ -44,13 +44,9 @@ def build_principal(claims: dict, requested_tenant: str) -> CurrentPrincipal:
         effective_role = tenant_role or "admin"
     else:
         if not in_group:
-            raise PrincipalResolutionError(
-                f"User is not a member of tenant '{requested_tenant}'"
-            )
+            raise PrincipalResolutionError(f"User is not a member of tenant '{requested_tenant}'")
         if not tenant_role:
-            raise PrincipalResolutionError(
-                f"User has no role in tenant '{requested_tenant}'"
-            )
+            raise PrincipalResolutionError(f"User has no role in tenant '{requested_tenant}'")
         effective_role = tenant_role
 
     return CurrentPrincipal(
@@ -67,7 +63,7 @@ def build_principal(claims: dict, requested_tenant: str) -> CurrentPrincipal:
 
 # --- FastAPI integration ---------------------------------------------------
 
-from fastapi import HTTPException, Request, status, Depends  # noqa: E402
+from fastapi import HTTPException, Request, status  # noqa: E402
 from typing import Callable  # noqa: E402
 
 from atria.core.auth.keycloak.config import KeycloakConfig  # noqa: E402
@@ -99,6 +95,7 @@ def get_current_principal_factory(
             raise HTTPException(status.HTTP_403_FORBIDDEN, str(exc)) from exc
         request.state.principal = principal
         return principal
+
     return dep
 
 
