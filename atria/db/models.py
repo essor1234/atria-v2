@@ -12,6 +12,7 @@ from typing import Optional
 from sqlalchemy import (
     Boolean,
     DateTime,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -182,6 +183,20 @@ class Artifact(Base):
             postgresql_where="is_deleted = false",
         ),
     )
+
+
+class BlackboardNote(Base):
+    """Archived blackboard note (post-hoc inspection only)."""
+
+    __tablename__ = "blackboard_notes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    task_id: Mapped[str] = mapped_column(String, index=True, nullable=False)
+    owner_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    thread_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    type: Mapped[str] = mapped_column(String, nullable=False)
+    content: Mapped[str] = mapped_column(String, nullable=False)
+    ts: Mapped[float] = mapped_column(Float, nullable=False)
 
 
 class PendingReview(Base):

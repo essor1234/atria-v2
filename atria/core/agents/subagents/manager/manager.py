@@ -9,6 +9,7 @@ from typing import Any
 
 from atria.models.config import AppConfig
 
+from atria.core.agents.subagents.manager.background import BackgroundMixin
 from atria.core.agents.subagents.manager.docker import DockerMixin
 from atria.core.agents.subagents.manager.execution import ExecutionMixin
 from atria.core.agents.subagents.manager.registration import RegistrationMixin
@@ -67,9 +68,10 @@ class SubAgentDeps:
     approval_manager: Any
     undo_manager: Any
     session_manager: Any = None
+    blackboard: Any = None  # BlackboardHandle for shared verified notes (Phase 2a/2b)
 
 
-class SubAgentManager(RegistrationMixin, DockerMixin, ExecutionMixin):
+class SubAgentManager(RegistrationMixin, DockerMixin, ExecutionMixin, BackgroundMixin):
     """Manages subagent creation and execution.
 
     SubAgents are ephemeral agents that handle isolated tasks.
@@ -102,6 +104,7 @@ class SubAgentManager(RegistrationMixin, DockerMixin, ExecutionMixin):
         self._hook_manager = None
         self._agents: dict[str, CompiledSubAgent] = {}
         self._all_tool_names: list[str] = self._get_all_tool_names()
+        self._task_client = None  # set later via set_task_client()
 
     def set_hook_manager(self, hook_manager: Any) -> None:
         """Set the hook manager for SubagentStart/SubagentStop hooks.

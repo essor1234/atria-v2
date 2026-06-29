@@ -51,14 +51,5 @@ def suppress_console_output(log_file: str | None = None):
         fh.setLevel(logging.DEBUG)
         fh.setFormatter(formatter)
         logger.addHandler(fh)
-        # Also add file handler to bridge-related loggers so their
-        # diagnostics (e.g. _web_broadcast_sync, _forward_web) are captured.
-        for name in (
-            "atria.ui_textual.runner",
-            "atria.ui_textual.bridge_callback",
-        ):
-            bridge_logger = logging.getLogger(name)
-            bridge_logger.addHandler(fh)
-            bridge_logger.setLevel(logging.DEBUG)
     else:
         logger.addHandler(logging.NullHandler())

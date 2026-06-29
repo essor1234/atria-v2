@@ -261,6 +261,10 @@ class APIClient {
   }
 
   // Auth
+  authMode() {
+    return request<{ mode: 'keycloak' | 'none' }>('/auth/mode');
+  }
+
   login(email: string) {
     return request<{ username: string; email: string | null; role: string }>('/auth/login', {
       method: 'POST',
@@ -268,9 +272,24 @@ class APIClient {
     });
   }
 
+  keycloakLoginUrl(next: string = '/chat'): string {
+    const qs = new URLSearchParams({ next });
+    return `${API_BASE}/auth/keycloak/login?${qs.toString()}`;
+  }
+
   async logout(): Promise<void> {
     try {
-      await request<void>('/auth/logout', { method: 'POST' });
+      const resp = await request<{ status: string; end_session_url?: string }>('/auth/logout', {
+        method: 'POST',
+      });
+      if (resp?.end_session_url) {
+        const redirect = `${window.location.origin}/`;
+        const qs = new URLSearchParams({
+          post_logout_redirect_uri: redirect,
+          client_id: 'atria-web',
+        });
+        window.location.href = `${resp.end_session_url}?${qs.toString()}`;
+      }
     } catch {
       // ignore — logout is best-effort
     }
@@ -433,13 +452,37 @@ class APIClient {
   }
 
   writeFsText(scope: FsScope, path: string, content: string): Promise<void> {
-    if (scope.kind !== 'module') {
-      throw new Error('writeFsText only supported for module scope');
-    }
     return request<void>(`${fsPath(scope)}/write`, {
       method: 'PUT',
       body: { path, content },
     });
+  }
+
+  async writeFsBinary(
+    scope: FsScope,
+    path: string,
+    bytes: Uint8Array | ArrayBuffer,
+  ): Promise<void> {
+    const qs = new URLSearchParams({ path });
+    // Normalize to ArrayBuffer regardless of input shape.
+    const buffer: ArrayBuffer =
+      bytes instanceof ArrayBuffer
+        ? bytes
+        : (bytes.buffer.slice(
+            bytes.byteOffset,
+            bytes.byteOffset + bytes.byteLength,
+          ) as ArrayBuffer);
+    const body = new Blob([buffer], { type: 'application/octet-stream' });
+    const response = await fetch(
+      `${fsBase(scope)}/write-binary?${qs.toString()}`,
+      {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body,
+      },
+    );
+    if (!response.ok) throw await apiError(response);
   }
 
   deleteFsFile(scope: FsScope, path: string): Promise<void> {

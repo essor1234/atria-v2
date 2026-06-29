@@ -69,6 +69,7 @@ async def get_config() -> Dict[str, Any]:
             "temperature": config.temperature,
             "max_tokens": config.max_tokens,
             "enable_bash": config.enable_bash,
+            "simple_mode": config.simple_mode,
             "mode": mode,
             "autonomy_level": autonomy_level,
             "thinking_level": state.get_thinking_level(),

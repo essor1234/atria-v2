@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Item Flow Tracking</title>
+  <link rel="stylesheet" href="__base.css" />
+  <link rel="preconnect" href="https://rsms.me" crossorigin />
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" />
+  <style>
+    /* ── Token bridge — re-projects onto the host editorial system so the
+         iframe matches the rest of the app (ink/canvas/hairline), then layers
+         real-time monitoring status semantics on top. ──────────────────── */
+    :root {
+      --ink: 0 0% 0%;
+      --canvas: 0 0% 100%;
+      --surface-soft: 40 22% 96%;
+      --hairline: 0 0% 12%;
+      --hairline-soft: 0 0% 88%;
+      --muted-ink: 0 0% 38%;
+
+      /* resource status */
+      --st-free: 150 46% 42%;
+      --st-busy: 212 90% 50%;
+      --st-maint: 38 92% 46%;
+      --st-redo: 8 78% 54%;
+
+      --st-free-soft: 150 50% 92%;
+      --st-busy-soft: 212 90% 94%;
+      --st-maint-soft: 38 80% 92%;
+      --st-redo-soft: 8 80% 94%;
+
+      --motion-fast: 160ms;
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      font-family: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
+      font-feature-settings: 'kern' 1, 'cv11' 1, 'ss01' 1;
+      -webkit-font-smoothing: antialiased;
+      font-weight: 360;
+      color: hsl(var(--ink));
+      background: hsl(var(--canvas));
+    }
+    body { padding: 26px 22px 40px; }
+    .wrap { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+    .mono { font-family: 'JetBrains Mono', SF Mono, Menlo, monospace; font-variant-numeric: tabular-nums; }
+    h1 { font-size: 26px; font-weight: 560; letter-spacing: -0.02em; margin: 0; }
+    h2 { font-size: 12.5px; font-weight: 560; letter-spacing: 0.01em; margin: 0; }
+    .eyebrow {
+      font-family: 'JetBrains Mono', SF Mono, Menlo, monospace;
+      text-transform: uppercase; letter-spacing: 0.08em; font-size: 10.5px;
+      font-weight: 500; color: hsl(var(--muted-ink));
+    }
+
+    /* ── Header ──────────────────────────────────────────────────────── */
+    header.top {
+      display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
+      padding-bottom: 16px; border-bottom: 1px solid hsl(var(--hairline));
+    }
+    header .crumb { display: block; margin-bottom: 6px; }
+    header .sub { margin-top: 6px; font-size: 13px; color: hsl(var(--muted-ink)); }
+    .toolbar { display: flex; gap: 10px; align-items: center; }
+    .live {
+      display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px;
+      color: hsl(var(--muted-ink)); font-family: 'JetBrains Mono', monospace;
+    }
+    .live .dot {
+      width: 7px; height: 7px; border-radius: 50%; background: hsl(var(--st-free));
+    }
+    .live.busy .dot { background: hsl(var(--st-busy)); }
+    @media (prefers-reduced-motion: no-preference) {
+      .live.busy .dot { animation: pulse 1.4s var(--ease-out) infinite; }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 hsl(var(--st-busy) / 0.5); }
+      50% { opacity: 0.7; box-shadow: 0 0 0 5px hsl(var(--st-busy) / 0); }
+    }
+    button {
+      font: inherit; cursor: pointer; background: hsl(var(--ink)); color: hsl(var(--canvas));
+      border: 1px solid hsl(var(--ink)); border-radius: 999px; padding: 8px 15px;
+      font-size: 13px; font-weight: 500; line-height: 1; display: inline-flex; align-items: center; gap: 7px;
+      transition: opacity var(--motion-fast) var(--ease-out);
+    }
+    button:hover:not(:disabled) { opacity: 0.86; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    button:focus-visible { outline: none; box-shadow: 0 0 0 2px hsl(var(--canvas)), 0 0 0 4px hsl(var(--ink)); }
+    button svg { width: 14px; height: 14px; }
+
+    /* ── KPI strip ───────────────────────────────────────────────────── */
+    .kpis {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+      border: 1px solid hsl(var(--hairline)); border-radius: 12px; overflow: hidden;
+    }
+    .kpi {
+      padding: 16px 18px; display: flex; flex-direction: column; gap: 7px;
+      border-right: 1px solid hsl(var(--hairline-soft));
+    }
+    .kpi:last-child { border-right: 0; }
+    .kpi .value { font-size: 28px; font-weight: 560; letter-spacing: -0.025em; line-height: 1; }
+    .kpi .sub { font-size: 11.5px; color: hsl(var(--muted-ink)); }
+    .kpi.alert .value { color: hsl(var(--st-redo)); }
+    .kpi.alert { background: hsl(var(--st-redo-soft) / 0.5); }
+    @media (max-width: 720px) { .kpis { grid-template-columns: repeat(2, 1fr); } .kpi:nth-child(2n) { border-right: 0; } }
+
+    /* ── Panels ──────────────────────────────────────────────────────── */
+    .panel { border: 1px solid hsl(var(--hairline)); border-radius: 12px; overflow: hidden; }
+    .panel > header {
+      padding: 13px 16px; border-bottom: 1px solid hsl(var(--hairline-soft));
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .panel > header .hint { font-size: 11px; color: hsl(var(--muted-ink)); }
+    .panel .body { padding: 14px 16px; }
+
+    /* ── Pipeline (WIP funnel) ───────────────────────────────────────── */
+    .pipe { display: flex; align-items: stretch; gap: 6px; overflow-x: auto; }
+    .stage { flex: 1 0 92px; display: flex; flex-direction: column; gap: 7px; min-width: 92px; }
+    .stage .top { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+    .stage .name { font-size: 11px; color: hsl(var(--muted-ink)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stage .cnt { font-size: 17px; font-weight: 560; }
+    .stage .track { height: 6px; border-radius: 999px; background: hsl(var(--hairline-soft)); overflow: hidden; }
+    .stage .fill { height: 100%; border-radius: 999px; transition: width var(--motion-fast) var(--ease-out); }
+    .stage.empty .cnt { color: hsl(var(--muted-ink)); opacity: 0.5; }
+
+    /* ── Kanban detail ───────────────────────────────────────────────── */
+    .board { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 2px; }
+    .col { flex: 1 0 130px; min-width: 130px; display: flex; flex-direction: column; gap: 7px; }
+    .col .chead { display: flex; align-items: center; gap: 7px; font-size: 11px; color: hsl(var(--muted-ink)); }
+    .col .chead .swatch { width: 9px; height: 9px; border-radius: 3px; flex: 0 0 auto; }
+    .card {
+      font-size: 11.5px; padding: 7px 9px; border-radius: 8px; background: hsl(var(--canvas));
+      border: 1px solid hsl(var(--hairline-soft)); border-left-width: 3px;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .card .cid { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: hsl(var(--muted-ink)); }
+    .card .cwhere { font-weight: 500; }
+    .card.redo { border-left-color: hsl(var(--st-redo)); background: hsl(var(--st-redo-soft) / 0.45); }
+    .col .cempty { font-size: 11px; color: hsl(var(--muted-ink)); opacity: 0.6; padding: 4px 0; }
+
+    /* ── Resource grid ───────────────────────────────────────────────── */
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; }
+    .legend .lg { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: hsl(var(--muted-ink)); }
+    .legend .lg .sw { width: 10px; height: 10px; border-radius: 3px; }
+    .res-group { margin-bottom: 14px; }
+    .res-group:last-child { margin-bottom: 0; }
+    .res-group .glabel {
+      display: flex; align-items: baseline; gap: 8px; margin-bottom: 7px;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: hsl(var(--muted-ink));
+    }
+    .res-group .gutil { font-family: 'JetBrains Mono', monospace; letter-spacing: 0; text-transform: none; color: hsl(var(--ink)); }
+    .res-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+    .cell {
+      position: relative; min-width: 50px; padding: 7px 6px 6px; border-radius: 8px;
+      border: 1px solid hsl(var(--hairline-soft)); text-align: center; cursor: default;
+      transition: transform var(--motion-fast) var(--ease-out);
+    }
+    .cell .num { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; }
+    .cell .who { display: block; font-size: 9px; color: hsl(var(--muted-ink)); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 64px; }
+    .cell .sdot { position: absolute; top: 5px; right: 5px; width: 6px; height: 6px; border-radius: 50%; }
+    .cell.free { background: hsl(var(--st-free-soft) / 0.55); }
+    .cell.free .sdot { background: hsl(var(--st-free)); }
+    .cell.busy { background: hsl(var(--st-busy-soft) / 0.7); border-color: hsl(var(--st-busy) / 0.3); }
+    .cell.busy .sdot { background: hsl(var(--st-busy)); }
+    .cell.maintenance { background: hsl(var(--st-maint-soft) / 0.7); }
+    .cell.maintenance .sdot { background: hsl(var(--st-maint)); }
+    .cell:hover { transform: translateY(-1px); }
+    @media (prefers-reduced-motion: no-preference) {
+      .cell.busy .sdot { animation: pulse 1.6s var(--ease-out) infinite; }
+    }
+
+    /* ── Orders ──────────────────────────────────────────────────────── */
+    .order { padding: 12px 0; border-bottom: 1px solid hsl(var(--hairline-soft)); }
+    .order:last-child { border-bottom: 0; }
+    .order .hd { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    .order .who { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+    .order .oid { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; }
+    .order .phone { font-size: 13px; color: hsl(var(--ink)); }
+    .order .name { font-size: 12px; color: hsl(var(--muted-ink)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .order .total { font-size: 12px; color: hsl(var(--muted-ink)); white-space: nowrap; }
+    .order .total strong { color: hsl(var(--ink)); font-weight: 560; }
+    .parts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 11px;
+      padding: 3px 9px 3px 7px; border-radius: 999px; border: 1px solid hsl(var(--hairline-soft));
+      background: hsl(var(--canvas));
+    }
+    .chip .pdot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; }
+    .chip .plabel { font-weight: 500; }
+    .chip .pat { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: hsl(var(--muted-ink)); }
+    .chip.redo { border-color: hsl(var(--st-redo) / 0.5); background: hsl(var(--st-redo-soft) / 0.5); }
+    .chip .redo-tag { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.04em; color: hsl(var(--st-redo)); font-weight: 600; }
+
+    .items { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+    .iline { font-size: 11px; padding: 3px 8px; border-radius: 999px; border: 1px solid hsl(var(--hairline-soft)); font-family: 'JetBrains Mono', monospace; }
+    .iline.owed { border-color: hsl(var(--st-redo) / 0.5); background: hsl(var(--st-redo-soft) / 0.5); color: hsl(var(--st-redo)); }
+
+    .empty { padding: 28px 12px; text-align: center; color: hsl(var(--muted-ink)); font-size: 13px; }
+    .err { min-height: 16px; font-size: 12px; color: hsl(var(--st-redo)); }
+    .skeleton { opacity: 0.55; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="root">
+    <header class="top">
+      <div class="title">
+        <span class="eyebrow crumb">Module · Item Flow</span>
+        <h1>Đơn giặt là</h1>
+        <div class="sub">Theo dõi đơn hàng, tài nguyên và tiến độ theo từng bước.</div>
+      </div>
+      <div class="toolbar">
+        <span class="live" id="live" aria-live="polite">
+          <span class="dot"></span><span id="live-text">trực tiếp</span>
+        </span>
+        <button type="button" id="refresh" aria-label="Làm mới dữ liệu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 4v6h-6"/></svg>
+          Làm mới
+        </button>
+      </div>
+    </header>
+
+    <div class="err" id="err" role="alert"></div>
+
+    <section class="kpis" id="kpis" aria-label="Chỉ số tổng quan">
+      <div class="kpi">
+        <span class="eyebrow">Đơn đang xử lý</span>
+        <div class="value mono" id="kpi-orders">—</div>
+        <div class="sub">đơn hàng active</div>
+      </div>
+      <div class="kpi">
+        <span class="eyebrow">Phần đang chạy</span>
+        <div class="value mono" id="kpi-parts">—</div>
+        <div class="sub">lot trong quy trình</div>
+      </div>
+      <div class="kpi">
+        <span class="eyebrow">Tài nguyên bận</span>
+        <div class="value mono" id="kpi-util">—</div>
+        <div class="sub" id="kpi-util-sub">bin / máy đang dùng</div>
+      </div>
+      <div class="kpi" id="kpi-redo-card">
+        <span class="eyebrow">Cần làm lại</span>
+        <div class="value mono" id="kpi-redo">—</div>
+        <div class="sub">phần đánh dấu redo</div>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Tiến độ theo bước">
+      <header>
+        <h2>Tiến độ theo bước (WIP)</h2>
+        <span class="hint">số phần đang ở mỗi bước</span>
+      </header>
+      <div class="body">
+        <div class="pipe" id="pipe"></div>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Chi tiết theo bước">
+      <header><h2>Chi tiết phần theo bước</h2><span class="hint">click làm mới để cập nhật</span></header>
+      <div class="body"><div class="board" id="board"></div></div>
+    </section>
+
+    <section class="panel" aria-label="Tài nguyên">
+      <header>
+        <h2>Tài nguyên</h2>
+        <div class="legend" aria-hidden="true">
+          <span class="lg"><span class="sw" style="background:hsl(var(--st-free))"></span>Trống</span>
+          <span class="lg"><span class="sw" style="background:hsl(var(--st-busy))"></span>Đang dùng</span>
+          <span class="lg"><span class="sw" style="background:hsl(var(--st-maint))"></span>Bảo trì</span>
+        </div>
+      </header>
+      <div class="body"><div id="resources"></div></div>
+    </section>
+
+    <section class="panel" aria-label="Đơn đang xử lý">
+      <header><h2>Đơn đang xử lý</h2><span class="hint">phần · bước hiện tại · vị trí</span></header>
+      <div class="body"><div id="orders"></div></div>
+    </section>
+  </div>
+
+  <script src="__bridge.js"></script>
+  <script>
+    (function () {
+      var STEPS = ["nhan_hang", "giat", "say", "gap", "kiem_dem", "giao_hang", "done"];
+      var STEP_LABELS = {
+        nhan_hang: "Nhận hàng", giat: "Giặt", say: "Sấy", gap: "Gấp",
+        kiem_dem: "Kiểm đếm", giao_hang: "Giao hàng", done: "Xong"
+      };
+      // Sequential cool→warm ramp across the pipeline; done = settled green.
+      var STEP_COLORS = {
+        nhan_hang: "210 12% 55%", giat: "200 80% 50%", say: "180 60% 42%",
+        gap: "40 90% 50%", kiem_dem: "26 88% 52%", giao_hang: "8 78% 54%", done: "150 46% 42%"
+      };
+      var KIND_LABELS = { bin: "Bins", washer: "Máy giặt", dryer: "Máy sấy", fold: "Khu gấp", count: "Khu đếm" };
+
+      var el = {
+        orders: document.getElementById("orders"),
+        resources: document.getElementById("resources"),
+        board: document.getElementById("board"),
+        pipe: document.getElementById("pipe"),
+        err: document.getElementById("err"),
+        refresh: document.getElementById("refresh"),
+        live: document.getElementById("live"),
+        liveText: document.getElementById("live-text"),
+        kOrders: document.getElementById("kpi-orders"),
+        kParts: document.getElementById("kpi-parts"),
+        kUtil: document.getElementById("kpi-util"),
+        kUtilSub: document.getElementById("kpi-util-sub"),
+        kRedo: document.getElementById("kpi-redo"),
+        kRedoCard: document.getElementById("kpi-redo-card"),
+      };
+
+      function setErr(m) { el.err.textContent = m || ""; }
+      function reportSize() {
+        AtriaDash.resize(Math.max(document.body.scrollHeight, document.getElementById("root").offsetHeight + 48));
+      }
+      function setBusy(on) {
+        el.live.classList.toggle("busy", !!on);
+        el.liveText.textContent = on ? "đang tải…" : "trực tiếp";
+        el.refresh.disabled = !!on;
+      }
+
+      function renderKpis(data) {
+        var orders = data.orders || [];
+        var resources = data.resources || [];
+        var steps = data.steps || {};
+        var activeParts = 0, redo = 0;
+        STEPS.forEach(function (s) {
+          if (s === "done") return;
+          var lots = steps[s] || [];
+          activeParts += lots.length;
+          lots.forEach(function (l) { if (l.is_redo) redo++; });
+        });
+        var busy = resources.filter(function (r) { return r.status === "busy"; }).length;
+        var total = resources.length;
+
+        el.kOrders.textContent = String(orders.length);
+        el.kParts.textContent = String(activeParts);
+        el.kUtil.textContent = busy + "/" + total;
+        var pct = total ? Math.round((busy / total) * 100) : 0;
+        el.kUtilSub.textContent = pct + "% công suất";
+        el.kRedo.textContent = String(redo);
+        el.kRedoCard.classList.toggle("alert", redo > 0);
+
+        AtriaDash.setBadge(
+          redo > 0 ? { count: redo, severity: "warning" }
+            : busy > 0 ? { count: busy, severity: "info" } : null
+        );
+      }
+
+      function renderPipe(steps) {
+        el.pipe.innerHTML = "";
+        var counts = STEPS.map(function (s) { return ((steps && steps[s]) || []).length; });
+        var max = Math.max.apply(null, counts.concat([1]));
+        STEPS.forEach(function (s, i) {
+          var n = counts[i];
+          var stage = document.createElement("div");
+          stage.className = "stage" + (n === 0 ? " empty" : "");
+          var top = document.createElement("div");
+          top.className = "top";
+          var name = document.createElement("span");
+          name.className = "name";
+          name.textContent = STEP_LABELS[s];
+          var cnt = document.createElement("span");
+          cnt.className = "cnt mono";
+          cnt.textContent = String(n);
+          top.appendChild(name); top.appendChild(cnt);
+          var track = document.createElement("div");
+          track.className = "track";
+          var fill = document.createElement("div");
+          fill.className = "fill";
+          fill.style.width = Math.round((n / max) * 100) + "%";
+          fill.style.background = "hsl(" + STEP_COLORS[s] + ")";
+          track.appendChild(fill);
+          stage.appendChild(top); stage.appendChild(track);
+          el.pipe.appendChild(stage);
+        });
+      }
+
+      function renderBoard(steps) {
+        el.board.innerHTML = "";
+        STEPS.forEach(function (s) {
+          var lots = (steps && steps[s]) || [];
+          var col = document.createElement("div");
+          col.className = "col";
+          var chead = document.createElement("div");
+          chead.className = "chead";
+          var sw = document.createElement("span");
+          sw.className = "swatch";
+          sw.style.background = "hsl(" + STEP_COLORS[s] + ")";
+          var ctxt = document.createElement("span");
+          ctxt.textContent = STEP_LABELS[s] + " (" + lots.length + ")";
+          chead.appendChild(sw); chead.appendChild(ctxt);
+          col.appendChild(chead);
+          if (!lots.length) {
+            var e = document.createElement("div");
+            e.className = "cempty";
+            e.textContent = "—";
+            col.appendChild(e);
+          }
+          lots.forEach(function (lot) {
+            var c = document.createElement("div");
+            c.className = "card" + (lot.is_redo ? " redo" : "");
+            c.style.borderLeftColor = "hsl(" + STEP_COLORS[s] + ")";
+            var id = document.createElement("span");
+            id.className = "cid";
+            id.textContent = (lot.order_id || "").replace("DH-", "") + " · " + lot.label;
+            var where = document.createElement("span");
+            where.className = "cwhere";
+            where.textContent = lot.current_resource || "—";
+            c.appendChild(id); c.appendChild(where);
+            col.appendChild(c);
+          });
+          el.board.appendChild(col);
+        });
+      }
+
+      function renderResources(resources) {
+        el.resources.innerHTML = "";
+        var byKind = {};
+        resources.forEach(function (r) { (byKind[r.kind] = byKind[r.kind] || []).push(r); });
+        Object.keys(KIND_LABELS).forEach(function (kind) {
+          var list = byKind[kind] || [];
+          if (!list.length) return;
+          var busy = list.filter(function (r) { return r.status === "busy"; }).length;
+          var group = document.createElement("div");
+          group.className = "res-group";
+          var glabel = document.createElement("div");
+          glabel.className = "glabel";
+          var gname = document.createElement("span");
+          gname.textContent = KIND_LABELS[kind];
+          var gutil = document.createElement("span");
+          gutil.className = "gutil";
+          gutil.textContent = busy + "/" + list.length + " bận";
+          glabel.appendChild(gname); glabel.appendChild(gutil);
+          var grid = document.createElement("div");
+          grid.className = "res-grid";
+          list.forEach(function (r) {
+            var c = document.createElement("div");
+            c.className = "cell " + r.status;
+            c.title = r.label + " · " + r.status;
+            var dot = document.createElement("span");
+            dot.className = "sdot";
+            var num = document.createElement("span");
+            num.className = "num";
+            var parts = String(r.resource_id).split("-");
+            num.textContent = parts.length > 1 ? parts[parts.length - 1] : r.resource_id;
+            c.appendChild(dot); c.appendChild(num);
+            if (r.occupant) {
+              var who = document.createElement("span");
+              who.className = "who";
+              who.textContent = (r.occupant.order_id || "").replace("DH-", "");
+              c.appendChild(who);
+            }
+            grid.appendChild(c);
+          });
+          group.appendChild(glabel); group.appendChild(grid);
+          el.resources.appendChild(group);
+        });
+      }
+
+      function renderOrders(orders) {
+        el.orders.innerHTML = "";
+        if (!orders.length) {
+          var empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = "Chưa có đơn nào đang xử lý.";
+          el.orders.appendChild(empty);
+          return;
+        }
+        orders.forEach(function (o) {
+          var d = document.createElement("div");
+          d.className = "order";
+          var hd = document.createElement("div");
+          hd.className = "hd";
+          var who = document.createElement("div");
+          who.className = "who";
+          var oid = document.createElement("span");
+          oid.className = "oid";
+          oid.textContent = o.order_id;
+          var phone = document.createElement("span");
+          phone.className = "phone";
+          phone.textContent = o.customer_phone;
+          who.appendChild(oid); who.appendChild(phone);
+          if (o.customer_name) {
+            var nm = document.createElement("span");
+            nm.className = "name";
+            nm.textContent = o.customer_name;
+            who.appendChild(nm);
+          }
+          var total = document.createElement("span");
+          total.className = "total";
+          var tv = (o.total_items == null ? "—" : o.total_items);
+          total.appendChild(document.createTextNode("tổng "));
+          var ts = document.createElement("strong");
+          ts.textContent = String(tv);
+          total.appendChild(ts);
+          hd.appendChild(who); hd.appendChild(total);
+
+          var parts = document.createElement("div");
+          parts.className = "parts";
+          (o.lots || []).forEach(function (lot) {
+            var chip = document.createElement("span");
+            chip.className = "chip" + (lot.is_redo ? " redo" : "");
+            var dot = document.createElement("span");
+            dot.className = "pdot";
+            dot.style.background = "hsl(" + (STEP_COLORS[lot.step] || "0 0% 60%") + ")";
+            var lab = document.createElement("span");
+            lab.className = "plabel";
+            lab.textContent = lot.label;
+            var stp = document.createElement("span");
+            stp.textContent = STEP_LABELS[lot.step] || lot.step;
+            chip.appendChild(dot); chip.appendChild(lab); chip.appendChild(stp);
+            if (lot.is_redo) {
+              var rt = document.createElement("span");
+              rt.className = "redo-tag";
+              rt.textContent = "làm lại";
+              chip.appendChild(rt);
+            }
+            var at = document.createElement("span");
+            at.className = "pat";
+            at.textContent = "@" + (lot.current_resource || "-");
+            chip.appendChild(at);
+            parts.appendChild(chip);
+          });
+          d.appendChild(hd); d.appendChild(parts);
+          var items = document.createElement("div");
+          items.className = "items";
+          (o.items || []).forEach(function (it) {
+            var line = document.createElement("span");
+            var counted = it.counted_qty == null ? "—" : it.counted_qty;
+            var owed = it.counted_qty != null && it.counted_qty < it.declared_qty;
+            line.className = "iline" + (owed ? " owed" : "");
+            line.textContent = it.item_type + " " + (it.counted_qty == null ? "" : counted + "/") + it.declared_qty;
+            items.appendChild(line);
+          });
+          if ((o.items || []).length) d.appendChild(items);
+          el.orders.appendChild(d);
+        });
+      }
+
+      function load() {
+        setBusy(true);
+        AtriaDash.json("flow.py", ["dashboard", "--json"])
+          .then(function (data) {
+            data = data || {};
+            setErr("");
+            renderKpis(data);
+            renderPipe(data.steps || {});
+            renderBoard(data.steps || {});
+            renderResources(data.resources || []);
+            renderOrders(data.orders || []);
+            reportSize();
+          })
+          .catch(function (e) {
+            setErr("Lỗi tải dashboard: " + (e && e.message ? e.message : e));
+          })
+          .then(function () { setBusy(false); reportSize(); });
+      }
+
+      el.refresh.addEventListener("click", load);
+      AtriaDash.onChange(function () { load(); });
+      AtriaDash.onVisibility(function (v) { if (v) load(); });
+      if (typeof ResizeObserver !== "undefined") new ResizeObserver(reportSize).observe(document.body);
+      window.addEventListener("load", reportSize);
+
+      load();
+      AtriaDash.ready();
+    })();
+  </script>
+</body>
+</html>

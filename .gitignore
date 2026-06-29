@@ -5,7 +5,8 @@ __pycache__/
 
 # C extensions
 *.so
-
+.slide/
+data_analysis/
 # Distribution / packaging
 .Python
 build/
@@ -196,3 +197,16 @@ modules/*
 testingData
 
 *.csv
+
+.slide/
+
+# Warehouse module live SQLite store (bootstrapped at runtime)
+modules/warehouse/data/warehouse.db
+modules/warehouse/data/warehouse.db-*
+
+# Item Flow Tracking module live SQLite store (bootstrapped at runtime)
+modules/item_flow_tracking/data/flow.db
+modules/item_flow_tracking/data/flow.db-*
+
+# Local reference material / scratch (not source)
+.references/

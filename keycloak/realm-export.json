@@ -1,0 +1,90 @@
+{
+  "realm": "atria",
+  "enabled": true,
+  "loginTheme": "atria",
+  "adminTheme": "atria",
+  "accountTheme": "atria",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "verifyEmail": false,
+  "accessTokenLifespan": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "roles": {
+    "realm": [
+      { "name": "platform:admin", "description": "Platform super-admin" }
+    ]
+  },
+  "groups": [
+    { "name": "tenants" }
+  ],
+  "clients": [
+    {
+      "clientId": "atria-web",
+      "name": "Atria Web SPA",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://localhost:8080/*",
+        "http://127.0.0.1:8080/*",
+        "http://0.0.0.0:8080/*",
+        "http://host.docker.internal:8080/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "http://0.0.0.0:8080",
+        "http://host.docker.internal:8080"
+      ],
+      "attributes": { "pkce.code.challenge.method": "S256" },
+      "protocolMappers": [
+        {
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "config": {
+            "full.path": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "groups",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "atria-backend",
+      "name": "Atria Backend Service",
+      "enabled": true,
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "standardFlowEnabled": false,
+      "secret": "CHANGE-ME-IN-ENV",
+      "attributes": {}
+    }
+  ],
+  "users": [
+    {
+      "username": "platformadmin",
+      "email": "admin@atria.local",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "admin", "temporary": true }],
+      "realmRoles": ["platform:admin"]
+    },
+    {
+      "username": "service-account-atria-backend",
+      "enabled": true,
+      "serviceAccountClientId": "atria-backend",
+      "clientRoles": {
+        "realm-management": ["manage-users", "manage-clients", "view-realm", "view-users", "query-users", "query-groups"]
+      }
+    }
+  ]
+}

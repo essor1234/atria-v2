@@ -155,9 +155,7 @@ class RedisBus(MessageBus):
         assert self._pubsub is not None
         while not self._stopping.is_set():
             try:
-                msg = await self._pubsub.get_message(
-                    ignore_subscribe_messages=True, timeout=1.0
-                )
+                msg = await self._pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
             except asyncio.CancelledError:
                 raise
             except Exception:  # noqa: BLE001

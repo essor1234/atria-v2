@@ -31,6 +31,11 @@ class WSMessageType(str, Enum):
     SUBAGENT_COMPLETE = "subagent_complete"
     PARALLEL_AGENTS_START = "parallel_agents_start"
     PARALLEL_AGENTS_DONE = "parallel_agents_done"
+    # Unified solver lifecycle events (divide + parallel merged behind a
+    # ``strategy`` discriminator in the payload).
+    SOLVER_STARTED = "solver_started"
+    SOLVER_PROGRESS = "solver_progress"
+    SOLVER_DONE = "solver_done"
     THINKING_BLOCK = "thinking_block"
     PROGRESS = "progress"
     NESTED_TOOL_CALL = "nested_tool_call"
@@ -46,7 +51,6 @@ class WSMessageType(str, Enum):
     THINKING_TOKEN = "thinking"
     THINKING_DONE = "thinking_done"
     IMAGE_MESSAGE = "image_message"
-    DATA_MESSAGE = "data_message"
     CUSTOM_BLOCK = "custom_block"
     CUSTOM_BLOCK_UPDATE = "custom_block_update"
     CUSTOM_BLOCK_REMOVE = "custom_block_remove"

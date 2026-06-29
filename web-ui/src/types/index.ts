@@ -1,3 +1,8 @@
+export interface ActivityLabel {
+  running: string;
+  done: string;
+}
+
 // Tool call information
 export interface ToolCallInfo {
   id: string;
@@ -74,6 +79,7 @@ export interface Message {
   tool_args?: Record<string, any>;
   tool_result?: any;
   tool_args_display?: string | null;
+  activity?: ActivityLabel | null;
   tool_summary?: string | string[] | null;
   tool_success?: boolean;
   tool_error?: string | null;
@@ -214,9 +220,43 @@ export interface Config {
   working_directory: string;
 }
 
+// Parallel solver WS payload shapes
+export interface ParallelSolverStartedData {
+  job_id: string;
+  n: number;
+  task: string;
+  worktree_names: string[];
+  session_id: string;
+}
+
+export interface ParallelSolverProgressData {
+  job_id: string;
+  done: number;
+  n: number;
+  session_id: string;
+}
+
+export interface ParallelSolverCandidateData {
+  thread: number;
+  ok: boolean;
+  summary: string;
+}
+
+export interface ParallelSolverDoneData {
+  job_id: string;
+  status: string;
+  applied: boolean;
+  winner_thread: number;
+  reasoning: string;
+  conflicted_files: string[];
+  dropped_threads: number[];
+  candidates: ParallelSolverCandidateData[];
+  session_id: string;
+}
+
 // WebSocket event types
 export interface WSMessage {
-  type: 'user_message' | 'message_start' | 'message_chunk' | 'message_complete' | 'tool_call' | 'tool_result' | 'approval_required' | 'approval_resolved' | 'error' | 'pong' | 'mcp_status_update' | 'mcp_servers_update' | 'connected' | 'disconnected' | 'thinking_block' | 'thinking' | 'thinking_done' | 'search_done' | 'status_update' | 'ask_user_required' | 'ask_user_resolved' | 'session_activity' | 'plan_approval_required' | 'plan_approval_resolved' | 'plan_content' | 'subagent_start' | 'subagent_complete' | 'parallel_agents_start' | 'parallel_agents_done' | 'task_completed' | 'progress' | 'nested_tool_call' | 'nested_tool_result' | 'deep_research_taxonomy_ready' | 'deep_research_queued' | 'deep_research_start' | 'deep_research_section_start' | 'deep_research_section_done' | 'deep_research_done' | 'deep_research_error' | 'analyze.started' | 'analyze.phase' | 'analyze.subtable' | 'analyze.plan_ready' | 'analyze.clarify' | 'analyze.chart_data' | 'analyze.chart_image' | 'analyze.chart_insight' | 'analyze.section_synthesized' | 'analyze.report' | 'analyze.done' | 'analyze.failed' | 'analyze.cancelled' | 'analyze.agent_message' | 'image_message' | 'data_message' | 'custom_block' | 'custom_block_update' | 'custom_block_remove' | 'block_rpc_result' | 'session_messages_replaced';
+  type: 'user_message' | 'message_start' | 'message_chunk' | 'message_complete' | 'tool_call' | 'tool_result' | 'approval_required' | 'approval_resolved' | 'error' | 'pong' | 'mcp_status_update' | 'mcp_servers_update' | 'connected' | 'disconnected' | 'thinking_block' | 'thinking' | 'thinking_done' | 'search_done' | 'status_update' | 'ask_user_required' | 'ask_user_resolved' | 'session_activity' | 'plan_approval_required' | 'plan_approval_resolved' | 'plan_content' | 'subagent_start' | 'subagent_complete' | 'parallel_agents_start' | 'parallel_agents_done' | 'parallel_solver_started' | 'parallel_solver_progress' | 'parallel_solver_done' | 'divide_job_started' | 'divide_task_update' | 'divide_job_done' | 'task_completed' | 'progress' | 'nested_tool_call' | 'nested_tool_result' | 'deep_research_taxonomy_ready' | 'deep_research_queued' | 'deep_research_start' | 'deep_research_section_start' | 'deep_research_section_done' | 'deep_research_done' | 'deep_research_error' | 'analyze.started' | 'analyze.phase' | 'analyze.subtable' | 'analyze.plan_ready' | 'analyze.clarify' | 'analyze.chart_data' | 'analyze.chart_image' | 'analyze.chart_insight' | 'analyze.section_synthesized' | 'analyze.report' | 'analyze.done' | 'analyze.failed' | 'analyze.cancelled' | 'analyze.agent_message' | 'image_message' | 'data_message' | 'custom_block' | 'custom_block_update' | 'custom_block_remove' | 'block_rpc_result' | 'session_messages_replaced';
   data: any;
 }
 
@@ -245,6 +285,7 @@ export interface StatusInfo {
   git_branch?: string | null;
   session_cost?: number;
   context_usage_pct?: number;
+  simple_mode?: boolean;
 }
 
 // Ask-user question types

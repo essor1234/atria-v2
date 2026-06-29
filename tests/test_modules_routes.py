@@ -40,6 +40,28 @@ def test_create_then_list_then_get(client: TestClient):
     assert "# demo" in r.json()["skill_md"]
 
 
+def test_get_surfaces_description_from_frontmatter(client: TestClient):
+    client.post("/api/modules", json={"name": "demo"})
+    skill = (
+        "---\n"
+        "name: demo\n"
+        "description: Demo module for inventory stuff.\n"
+        "---\n\n"
+        "# demo\n\nBody prose.\n"
+    )
+    r = client.put(
+        "/api/modules/demo/fs/write",
+        json={"path": "SKILL.md", "content": skill},
+    )
+    assert r.status_code == 204, r.text
+    r = client.get("/api/modules/demo")
+    assert r.status_code == 200
+    assert r.json()["description"] == "Demo module for inventory stuff."
+    # And the list endpoint carries it too.
+    r = client.get("/api/modules")
+    assert r.json()[0]["description"] == "Demo module for inventory stuff."
+
+
 def test_create_with_dashboard_template(client: TestClient):
     r = client.post("/api/modules", json={"name": "demo", "template": "skill_dashboard"})
     assert r.status_code == 201, r.text
@@ -116,6 +138,7 @@ def test_list_has_dashboard_filter(client: TestClient):
     client.post("/api/modules", json={"name": "with-dash"})
     client.post("/api/modules", json={"name": "no-dash"})
     from atria.web.dependencies.modules import get_modules_registry
+
     reg = client.app.dependency_overrides[get_modules_registry]()
     (reg.root / "with-dash" / "dashboard.html").write_text("<html></html>")
     reg.reload_one("with-dash")

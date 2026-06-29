@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { apiClient } from '../../api/client';
 import { signOut } from '../../lib/auth';
+import { ViewSwitcher } from './ViewSwitcher';
 
 interface MeInfo {
   username: string;
@@ -62,16 +63,6 @@ export function AppNavBar() {
     }
   };
 
-  const isActive = (path: string) => {
-    if (path === '/chat') {
-      return location.pathname === '/chat' || location.pathname === '/';
-    }
-    return location.pathname.startsWith(path);
-  };
-
-  const linkBase =
-    'px-3 py-1.5 text-[13px] tracking-[-0.1px] rounded-md transition-colors';
-
   const displayName = me?.username ?? '';
   const displayEmail = me?.email ?? '';
   const initial = (displayName || displayEmail || '?').slice(0, 1).toUpperCase();
@@ -95,28 +86,8 @@ export function AppNavBar() {
             </span>
           </Link>
 
-          <div className="flex items-center gap-1">
-            <Link
-              to="/chat"
-              className={`${linkBase} ${
-                isActive('/chat')
-                  ? 'bg-surface-soft text-ink font-[480]'
-                  : 'text-ink/60 hover:text-ink hover:bg-surface-soft font-[400]'
-              }`}
-            >
-              Chat
-            </Link>
-            <Link
-              to="/codewiki"
-              className={`${linkBase} ${
-                isActive('/codewiki')
-                  ? 'bg-surface-soft text-ink font-[480]'
-                  : 'text-ink/60 hover:text-ink hover:bg-surface-soft font-[400]'
-              }`}
-            >
-              CodeWiki
-            </Link>
-          </div>
+          {/* Primary navigation: Chat ⇄ Dispatch (shared, consistent control) */}
+          <ViewSwitcher />
         </div>
 
         {/* Right: Actions + User menu */}

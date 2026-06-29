@@ -1,0 +1,27 @@
+{
+  "display_name": "Item Flow Tracking",
+  "tooltip": "Đơn giặt là · tài nguyên & tiến độ",
+  "icon": "icon.svg",
+  "dashboard": {
+    "title": "Item Flow · Đơn giặt là",
+    "default_height": 820,
+    "badge_color": "info"
+  },
+  "activity": {
+    "default": { "running": "Đang xử lý đơn…", "done": "Xong" },
+    "actions": {
+      "order":     { "running": "Đang xử lý đơn hàng…",   "done": "Xong" },
+      "lot":       { "running": "Đang xử lý phần…",        "done": "Xong" },
+      "customer":  { "running": "Đang tra cứu khách…",     "done": "Xong" },
+      "resource":  { "running": "Đang cập nhật tài nguyên…", "done": "Xong" },
+      "data":      { "running": "Đang xử lý dữ liệu…",     "done": "Xong" },
+      "dashboard": { "running": "Đang dựng dashboard…",    "done": "Sẵn sàng" },
+      "report":    { "running": "Đang đối chiếu…",          "done": "Đã đối chiếu" }
+    }
+  },
+  "subagent": {
+    "enabled": true,
+    "model": null,
+    "tools": null
+  }
+}

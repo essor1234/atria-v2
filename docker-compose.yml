@@ -30,6 +30,34 @@ services:
       db:
         condition: service_healthy
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    restart: unless-stopped
+    command: ["start-dev", "--import-realm"]
+    environment:
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://db:5432/keycloak
+      - KC_DB_USERNAME=atria
+      - KC_DB_PASSWORD=atria
+      - KC_HOSTNAME=localhost
+      - KC_HTTP_ENABLED=true
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+      - ./keycloak/themes:/opt/keycloak/themes:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080; printf 'GET /realms/master HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n' >&3; head -n 1 <&3 | grep -q '200'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
   atria:
     build: .
     ports:
@@ -39,12 +67,67 @@ services:
       - ATRIA_API_BASE_URL=${ATRIA_API_BASE_URL}
       - ATRIA_MODEL=${ATRIA_MODEL}
       - DATABASE_URL=${DATABASE_URL:-postgresql://atria:atria@db:5432/atria}
+      - ATRIA_REDIS_URL=redis://redis:6379/0
+      - AUTH_MODE=${AUTH_MODE:-keycloak}
+      - KEYCLOAK_URL=http://keycloak:8080
+      - KEYCLOAK_PUBLIC_URL=${KEYCLOAK_PUBLIC_URL:-http://localhost:8082}
+      - KEYCLOAK_REALM=atria
+      - KEYCLOAK_BACKEND_CLIENT_ID=atria-backend
+      - KEYCLOAK_BACKEND_CLIENT_SECRET=${KEYCLOAK_BACKEND_CLIENT_SECRET:-CHANGE-ME-IN-ENV}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - atria_data:/root/.atria
+      # Mount modules so new/edited modules appear without rebuilding the image
+      - ./modules:/app/modules
     depends_on:
       db:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Redis — backs the TaskIQ broker, job state, blackboard, and message bus.
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # TaskIQ worker — consumes dispatched subagent tasks (the `solve` tool:
+  # divide + parallel). Shares modules + ~/.atria with the web service so
+  # dispatched work and the dashboard read/write the same data.
+  atria-worker:
+    build: .
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ATRIA_API_BASE_URL=${ATRIA_API_BASE_URL}
+      - ATRIA_MODEL=${ATRIA_MODEL}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://atria:atria@db:5432/atria}
+      - ATRIA_REDIS_URL=redis://redis:6379/0
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - atria_data:/root/.atria
+      - ./modules:/app/modules
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >
+        mkdir -p /root/.atria &&
+        printf '{"model":"%s","api_base_url":"%s"}\n'
+          "$${ATRIA_MODEL:-gpt-4o}"
+          "$${ATRIA_API_BASE_URL:-https://api.openai.com/v1/chat/completions}"
+          > /root/.atria/settings.json &&
+        exec taskiq worker atria.core.tasks.broker:broker atria.core.tasks.tasks
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
 volumes:

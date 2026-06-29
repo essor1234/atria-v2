@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Dict, List
 
 from atria.core.modules import store
+from atria.core.modules.deps import install_module_deps
 from atria.core.modules.store import Module, ModuleNotFound
 from atria.core.paths import atria_dir
 
@@ -54,7 +55,10 @@ class ModuleRegistry:
     def load_all(self) -> None:
         """Replace contents with everything currently on disk. Bumps version."""
         with self._lock:
-            self._modules = {m.name: m for m in store.list_modules(self.root)}
+            modules = store.list_modules(self.root)
+            for m in modules:
+                install_module_deps(m.dir)
+            self._modules = {m.name: m for m in modules}
             self._version += 1
         logger.info(
             "module registry: loaded %d module(s) (v=%d)", len(self._modules), self._version
@@ -64,7 +68,9 @@ class ModuleRegistry:
         """Reload a single module from disk. If gone, remove it. Bumps version."""
         with self._lock:
             try:
-                self._modules[name] = store.read_module(self.root, name)
+                module = store.read_module(self.root, name)
+                install_module_deps(module.dir)
+                self._modules[name] = module
             except ModuleNotFound:
                 self._modules.pop(name, None)
             self._version += 1

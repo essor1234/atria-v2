@@ -15,6 +15,12 @@ from atria.web.routes.modules import router as modules_router
 from atria.web.routes.blocks import router as blocks_router
 from atria.web.routes.module_dashboard import router as module_dashboard_router
 from atria.web.routes.connect import router as connect_router
+from atria.web.routes.me import router as me_router
+from atria.web.routes.admin_tenants import router as admin_tenants_router
+from atria.web.routes.admin_tenant_users import (
+    router as admin_tenant_users_router,
+    invites_router as admin_tenant_invites_router,
+)
 
 __all__ = [
     "connect_router",
@@ -32,4 +38,8 @@ __all__ = [
     "modules_router",
     "blocks_router",
     "module_dashboard_router",
+    "me_router",
+    "admin_tenants_router",
+    "admin_tenant_users_router",
+    "admin_tenant_invites_router",
 ]

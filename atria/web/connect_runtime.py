@@ -9,15 +9,17 @@ and returns the reply text.
 from __future__ import annotations
 
 import asyncio
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from atria.core.channels.connect_store import Connection, load_connect_config
-from atria.core.channels.router import MessageRouter
 from atria.core.channels.telegram import TelegramAdapter
 from atria.core.paths import get_paths
 from atria.core.runtime.approval.constants import AutonomyLevel
 from atria.web.logging_config import logger
 from atria.web.state import get_state
+
+if TYPE_CHECKING:
+    from atria.core.channels.router import MessageRouter
 
 
 class _NoOpBroadcaster:
@@ -48,7 +50,11 @@ class ConnectManager:
         ws.mkdir(parents=True, exist_ok=True)
         return str(ws)
 
-    def _ensure_router(self) -> MessageRouter:
+    def _ensure_router(self) -> "MessageRouter":
+        # Imported lazily to avoid a circular import: channels.router pulls in
+        # session_manager, whose import chain reaches back into atria.web.
+        from atria.core.channels.router import MessageRouter
+
         if self._router is None:
             state = get_state()
             self._router = MessageRouter(

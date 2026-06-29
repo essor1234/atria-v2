@@ -17,12 +17,23 @@ import re
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
+
+try:
+    import yaml
+
+    _YAML_AVAILABLE = True
+except ImportError:  # pragma: no cover — yaml is a hard dep in practice
+    _YAML_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
 
 MODULE_NAME_RE = re.compile(r"[a-z0-9_-]+")
+# Leading YAML frontmatter block: --- ... --- at the very top of a markdown file.
+_FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n?", re.DOTALL)
+# Sub-skills live as markdown files under ``<module>/skills/``.
+SUBSKILLS_DIR = "skills"
 SKILL_FILE = "SKILL.md"
 MANIFEST_FILE = "manifest.json"
 SCRIPT_FILE = "script.py"  # legacy starter; tolerated but not required
@@ -55,10 +66,27 @@ class ModuleNotFound(FileNotFoundError):
 
 
 @dataclass
+class ActivityLabel:
+    """Friendly running/done wording for a module action (Simple Mode UI)."""
+
+    running: str
+    done: str
+
+
+@dataclass
 class ModuleDashboardManifest:
     title: Optional[str] = None
     default_height: Optional[int] = None
     badge_color: Optional[str] = None
+
+
+@dataclass
+class ModuleSubagentManifest:
+    """Opt-in config for routing a module's work to a dedicated subagent."""
+
+    enabled: bool = False
+    model: Optional[str] = None
+    tools: Optional[List[str]] = None
 
 
 @dataclass
@@ -73,6 +101,22 @@ class ModuleManifest:
     tooltip: Optional[str] = None
     icon: Optional[str] = None  # rel path inside the module dir
     dashboard: Optional[ModuleDashboardManifest] = None
+    activity_default: Optional[ActivityLabel] = None
+    activity_actions: Dict[str, ActivityLabel] = field(default_factory=dict)
+    subagent: Optional[ModuleSubagentManifest] = None
+
+
+@dataclass
+class SubSkill:
+    """A lazily-loadable sub-skill: a frontmatter'd markdown file under ``skills/``.
+
+    Only ``name`` + ``description`` are surfaced in the prompt catalog; the body
+    is loaded on demand via ``invoke_skill("<module>:<name>")``.
+    """
+
+    name: str
+    description: str
+    rel_path: str  # e.g. "skills/reporting.md"
 
 
 @dataclass
@@ -83,6 +127,10 @@ class Module:
     mtime: float
     files: List[str] = field(default_factory=list)
     manifest: Optional[ModuleManifest] = None
+    # One-line summary for the prompt catalog (frontmatter ``description`` or the
+    # first non-heading line of SKILL.md).
+    description: str = ""
+    subskills: List[SubSkill] = field(default_factory=list)
 
 
 def _validate_name(name: str) -> None:
@@ -161,11 +209,15 @@ def _read_manifest(module_dir: Path) -> Optional[ModuleManifest]:
         logger.warning("manifest.json in %s is not an object", module_dir)
         return None
 
+    activity_default, activity_actions = _parse_activity(raw.get("activity"))
     return ModuleManifest(
         display_name=_nonempty_str(raw.get("display_name")),
         tooltip=_nonempty_str(raw.get("tooltip")),
         icon=_nonempty_str(raw.get("icon")),
         dashboard=_parse_dashboard(raw.get("dashboard")),
+        activity_default=activity_default,
+        activity_actions=activity_actions,
+        subagent=_parse_subagent(raw.get("subagent")),
     )
 
 
@@ -183,6 +235,60 @@ def _parse_dashboard(raw: Any) -> Optional[ModuleDashboardManifest]:
         default_height=int(height) if isinstance(height, (int, float)) and height > 0 else None,
         badge_color=badge if isinstance(badge, str) and badge in _BADGE_COLORS else None,
     )
+
+
+def _parse_subagent(raw: Any) -> Optional[ModuleSubagentManifest]:
+    """Lenient parser for the optional ``subagent`` manifest block.
+
+    Anything malformed degrades to ``None`` so old/invalid manifests keep working.
+    """
+    if not isinstance(raw, dict):
+        return None
+    enabled = raw.get("enabled")
+    if not isinstance(enabled, bool):
+        enabled = False
+    tools_raw = raw.get("tools")
+    tools: Optional[List[str]] = None
+    if isinstance(tools_raw, list):
+        cleaned = [t for t in tools_raw if isinstance(t, str) and t.strip()]
+        tools = cleaned or None
+    return ModuleSubagentManifest(
+        enabled=enabled,
+        model=_nonempty_str(raw.get("model")),
+        tools=tools,
+    )
+
+
+def _parse_activity(
+    raw: Any,
+) -> tuple[Optional[ActivityLabel], Dict[str, ActivityLabel]]:
+    """Parse the optional ``activity`` manifest block leniently.
+
+    Shape: ``{"default": {running, done}, "actions": {name: {running, done}}}``.
+    Anything malformed degrades to ``(None, {})`` so old/invalid manifests keep
+    working.
+    """
+    if not isinstance(raw, dict):
+        return None, {}
+
+    def _label(d: Any) -> Optional[ActivityLabel]:
+        if not isinstance(d, dict):
+            return None
+        running = _nonempty_str(d.get("running"))
+        done = _nonempty_str(d.get("done"))
+        if running is None and done is None:
+            return None
+        return ActivityLabel(running=running or "Working…", done=done or "Done")
+
+    default = _label(raw.get("default"))
+    actions: Dict[str, ActivityLabel] = {}
+    raw_actions = raw.get("actions")
+    if isinstance(raw_actions, dict):
+        for key, value in raw_actions.items():
+            label = _label(value)
+            if label is not None:
+                actions[str(key)] = label
+    return default, actions
 
 
 def _starter_dashboard_html(name: str) -> str:
@@ -590,6 +696,80 @@ def _walk_files(d: Path) -> List[str]:
     return sorted(out)
 
 
+def parse_frontmatter(text: str) -> tuple[dict, str]:
+    """Split leading YAML frontmatter from a markdown document.
+
+    Returns ``(metadata, body)``. If there is no frontmatter, ``metadata`` is
+    empty and ``body`` is the original text.
+    """
+    m = _FRONTMATTER_RE.match(text)
+    if not m:
+        return {}, text
+    raw = m.group(1)
+    data: dict = {}
+    if _YAML_AVAILABLE:
+        try:
+            loaded = yaml.safe_load(raw)
+            if isinstance(loaded, dict):
+                data = loaded
+        except yaml.YAMLError as exc:
+            logger.warning("invalid frontmatter: %s", exc)
+    else:
+        data = _simple_yaml(raw)
+    return data, text[m.end() :]
+
+
+def _simple_yaml(text: str) -> dict:
+    """Minimal ``key: value`` parser used only when PyYAML is unavailable."""
+    out: dict = {}
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or ":" not in line:
+            continue
+        key, _, value = line.partition(":")
+        value = value.strip().strip("\"'")
+        out[key.strip()] = value
+    return out
+
+
+def _description_from(meta: dict, body: str, fallback_name: str) -> str:
+    """Derive a 1-line description: frontmatter ``description`` else first prose line."""
+    desc = meta.get("description")
+    if isinstance(desc, str) and desc.strip():
+        return desc.strip()[:200]
+    for raw in body.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        return line[:200]
+    return f"Module: {fallback_name}"
+
+
+def _read_subskills(module_dir: Path) -> List[SubSkill]:
+    """Discover ``<module>/skills/*.md`` sub-skills (sorted), reading only metadata."""
+    skills_dir = module_dir / SUBSKILLS_DIR
+    if not skills_dir.is_dir():
+        return []
+    out: List[SubSkill] = []
+    for p in sorted(skills_dir.glob("*.md")):
+        try:
+            text = p.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        meta, body = parse_frontmatter(text)
+        name = meta.get("name")
+        if not (isinstance(name, str) and name.strip()):
+            name = p.stem
+        out.append(
+            SubSkill(
+                name=name.strip(),
+                description=_description_from(meta, body, name),
+                rel_path=f"{SUBSKILLS_DIR}/{p.name}",
+            )
+        )
+    return out
+
+
 def _read_module(root: Path, name: str) -> Module:
     d = _module_dir(root, name)
     skill_path = d / SKILL_FILE
@@ -602,13 +782,17 @@ def _read_module(root: Path, name: str) -> Module:
             mtime = max(mtime, (d / rel).stat().st_mtime)
         except OSError:
             continue
+    skill_md = skill_path.read_text(encoding="utf-8")
+    meta, body = parse_frontmatter(skill_md)
     return Module(
         name=name,
-        skill_md=skill_path.read_text(encoding="utf-8"),
+        skill_md=skill_md,
         dir=d,
         mtime=mtime,
         files=files,
         manifest=_read_manifest(d),
+        description=_description_from(meta, body, name),
+        subskills=_read_subskills(d),
     )
 
 
@@ -715,10 +899,14 @@ def write_file(root: Path, name: str, rel_path: str, content: str) -> None:
     _atomic_write(target, content)
 
 
-def write_bytes(root: Path, name: str, rel_path: str, data: bytes) -> None:
+def write_file_bytes(root: Path, name: str, rel_path: str, data: bytes) -> None:
     """Binary sibling of write_file (for uploaded data: xlsx, csv, images...)."""
     target = _resolve_in_module(root, name, rel_path)
     _atomic_write_bytes(target, data)
+
+
+# Backwards-compatible alias used by the data-module template builder.
+write_bytes = write_file_bytes
 
 
 def _sanitize_data_relpath(rel: str) -> Optional[str]:

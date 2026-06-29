@@ -34,6 +34,10 @@ from atria.web.routes import (
     blocks_router,
     module_dashboard_router,
     connect_router,
+    me_router,
+    admin_tenants_router,
+    admin_tenant_users_router,
+    admin_tenant_invites_router,
 )
 from atria.web.websocket import websocket_endpoint
 from atria.core.modules.watcher import start_global_watcher, stop_global_watcher
@@ -149,6 +153,30 @@ async def lifespan(app: FastAPI):
 
         logging.getLogger(__name__).exception("Connect: start_all failed")
 
+    # Start the TaskIQ client for background subagents (server side only).
+    from atria.core.tasks.broker import broker as _task_broker
+    from atria.core.tasks.lifecycle import make_task_client
+
+    tasks_cfg = getattr(cfg, "tasks", None) if cfg else None
+    state.task_client = None
+    if not _task_broker.is_worker_process:
+        try:
+            client = make_task_client(
+                tasks_cfg.redis_url if tasks_cfg else "redis://localhost:6379/0",
+                tasks_cfg.orphan_after if tasks_cfg else 1800,
+            )
+            client.startup()
+            state.task_client = client
+            app.state.task_client = client
+        except Exception as exc:  # noqa: BLE001
+            import logging as _logging
+
+            _logging.getLogger(__name__).warning(
+                "TaskIQ client unavailable (%s); background subagents disabled.", exc
+            )
+            state.task_client = None
+            app.state.task_client = None
+
     # Signal that the server is ready (event loop + ws_manager are set)
     ready_event = getattr(app.state, "_ready_event", None)
     if ready_event is not None:
@@ -164,6 +192,12 @@ async def lifespan(app: FastAPI):
             await get_connect_manager().stop_all()
         except Exception:
             pass
+        _task_client = getattr(app.state, "task_client", None)
+        if _task_client is not None:
+            try:
+                _task_client.shutdown()
+            except Exception:  # noqa: BLE001
+                pass
         active_bus = getattr(app.state, "bus", None)
         if active_bus is not None:
             try:
@@ -211,6 +245,10 @@ def create_app() -> FastAPI:
     app.include_router(blocks_router)
     app.include_router(module_dashboard_router)
     app.include_router(connect_router)
+    app.include_router(me_router)
+    app.include_router(admin_tenants_router)
+    app.include_router(admin_tenant_users_router)
+    app.include_router(admin_tenant_invites_router)
 
     # WebSocket endpoint
     app.add_websocket_route("/ws", websocket_endpoint)
@@ -236,7 +274,6 @@ def create_app() -> FastAPI:
         # Registered AFTER API routes so they take priority in Starlette's route matching
         index_file = static_dir / "index.html"
         if index_file.exists():
-            spa_html = index_file.read_text()
 
             @app.get("/{full_path:path}")
             async def serve_spa(full_path: str):
@@ -246,7 +283,9 @@ def create_app() -> FastAPI:
                     from fastapi.responses import FileResponse
 
                     return FileResponse(str(file_path))
-                return HTMLResponse(spa_html)
+                # Read index.html on each request so a UI rebuild takes effect
+                # without restarting the server (the file is tiny).
+                return HTMLResponse(index_file.read_text())
 
     else:
         # Development: Return placeholder HTML

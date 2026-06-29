@@ -1,0 +1,44 @@
+# Host-side venvs (would shadow image-built ones and break symlinks)
+.venv
+**/.venv
+
+# Node / web build cache
+node_modules
+**/node_modules
+web-ui/dist
+web-ui/.vite
+
+# Python caches
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Local artifacts / sessions
+.atria
+**/.atria
+.artifacts
+**/.artifacts
+
+# Git
+.git
+.gitignore
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store
+
+# Test / dist outputs
+htmlcov
+coverage.xml
+.coverage
+dist
+build
+*.egg-info
+
+# Misc
+*.log

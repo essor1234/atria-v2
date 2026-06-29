@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Network } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import type { Message } from '../../types';
 
 interface ToolCallMessageProps {
@@ -28,6 +29,8 @@ function getToolDisplayParts(toolName: string): { verb: string; label: string } 
     'git_commit': { verb: 'Commit', label: 'changes' },
     'present_plan': { verb: 'Present', label: 'plan' },
     'spawn_subagent': { verb: 'Spawn', label: 'agent' },
+    'solve': { verb: 'Dispatch', label: 'job' },
+    'get_solve_result': { verb: 'Collect', label: 'dispatch result' },
     'task_complete': { verb: 'Complete', label: 'task' },
     'invoke_skill': { verb: 'Invoke', label: 'skill' },
     'get_process_output': { verb: 'Get Output', label: 'process' },
@@ -567,6 +570,19 @@ export function ToolCallMessage({ message, hasResult }: ToolCallMessageExtProps)
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Dispatch affordance — jump from chat to the live monitor */}
+        {(toolName === 'solve' || toolName === 'get_solve_result') && (
+          <div className="px-3 pb-2 pl-5">
+            <Link
+              to="/dispatch"
+              className="inline-flex items-center gap-1.5 text-[12px] font-[450] text-semantic-success hover:underline cursor-pointer focus-visible:outline-none focus-visible:shadow-focus-ring rounded"
+            >
+              <Network className="w-3 h-3" strokeWidth={1.75} aria-hidden="true" />
+              Mở Dispatch để theo dõi →
+            </Link>
           </div>
         )}
 

@@ -368,6 +368,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           model: configData.model,
           working_dir: configData.working_dir || '',
           git_branch: configData.git_branch,
+          simple_mode: configData.simple_mode ?? true,
         },
       });
     } catch (_) { /* ignore */ }
@@ -710,6 +711,7 @@ wsClient.on('tool_call', (message) => {
     tool_name: message.data.tool_name,
     tool_args: message.data.arguments,
     tool_args_display: message.data.arguments_display || null,
+    activity: message.data.activity || null,
     timestamp: new Date().toISOString(),
   };
 

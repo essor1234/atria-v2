@@ -182,6 +182,7 @@ class RunLoopMixin:
                     task_monitor=task_monitor,
                     is_subagent=is_subagent,
                     ui_callback=ui_callback,
+                    blackboard=deps.blackboard,
                 )
             except Exception as e:
                 result = {"success": False, "error": str(e)}
@@ -638,6 +639,7 @@ class RunLoopMixin:
                         task_monitor=task_monitor,
                         is_subagent=is_subagent,
                         ui_callback=ui_callback,
+                        blackboard=deps.blackboard,
                     )
 
                     # Notify UI callback after tool execution

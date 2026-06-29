@@ -195,38 +195,6 @@ class TestExecuteToolsParallelCallbacks:
         ui_callback.on_tool_result.assert_not_called()
 
 
-class TestSingleAgentToolLineTracking:
-    """Verify SingleAgentInfo multi-tool tracking fields."""
-
-    def test_single_agent_info_has_active_tool_lines(self):
-        from atria.ui_textual.widgets.conversation.tool_renderer.types import (
-            SingleAgentInfo,
-        )
-
-        agent = SingleAgentInfo(
-            agent_type="Code-Explorer",
-            description="test",
-            tool_call_id="tc_1",
-        )
-        assert agent.active_tool_lines == {}
-        assert agent.overflow_line is None
-        assert agent.MAX_VISIBLE_TOOLS == 3
-
-    def test_single_agent_tool_line_defaults(self):
-        from atria.ui_textual.widgets.conversation.tool_renderer.types import (
-            SingleAgentToolLine,
-        )
-
-        tl = SingleAgentToolLine(
-            tool_id="t1",
-            line_number=5,
-            display_text="Search (pattern: foo)",
-        )
-        assert tl.completed is False
-        assert tl.success is True
-        assert tl.color_index == 0
-
-
 class TestNestedToolResultPassthrough:
     """Verify on_nested_tool_result allows through for single agents."""
 

@@ -14,6 +14,7 @@ export interface ModuleManifest {
 export interface Module {
   name: string;
   skill_md: string;
+  description: string;
   mtime: number;
   files: string[];
   manifest?: ModuleManifest | null;

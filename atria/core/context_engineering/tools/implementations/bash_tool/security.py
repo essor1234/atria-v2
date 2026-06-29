@@ -20,7 +20,7 @@ class SecurityMixin:
         Returns:
             True if command matches known interactive patterns
         """
-        from atria.core.context_engineering.tools.implementations.bash_tool.tool import (
+        from atria.core.context_engineering.tools.implementations.bash_tool.constants import (
             INTERACTIVE_COMMANDS,
         )
 
@@ -61,7 +61,7 @@ class SecurityMixin:
         Returns:
             True if command is dangerous
         """
-        from atria.core.context_engineering.tools.implementations.bash_tool.tool import (
+        from atria.core.context_engineering.tools.implementations.bash_tool.constants import (
             DANGEROUS_PATTERNS,
         )
 

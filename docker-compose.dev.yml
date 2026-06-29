@@ -39,12 +39,15 @@ services:
       - ATRIA_API_BASE_URL=${ATRIA_API_BASE_URL}
       - ATRIA_MODEL=${ATRIA_MODEL}
       - DATABASE_URL=${DATABASE_URL:-postgresql://atria:atria@db:5432/atria}
+      - ATRIA_REDIS_URL=redis://redis:6379/0
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - atria_data:/root/.atria
       # Mount Python source for hot reload — no rebuild needed on code change
       - ./atria:/app/atria
+      # Mount modules so new/edited modules appear without rebuilding the image
+      - ./modules:/app/modules
     command: >
       /bin/sh -c "
         mkdir -p /root/.atria &&
@@ -60,6 +63,49 @@ services:
       "
     depends_on:
       db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Redis — backs the TaskIQ broker, job state, blackboard, and message bus.
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # TaskIQ worker — consumes dispatched subagent tasks (the `solve` tool).
+  atria-worker:
+    build: .
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ATRIA_API_BASE_URL=${ATRIA_API_BASE_URL}
+      - ATRIA_MODEL=${ATRIA_MODEL}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://atria:atria@db:5432/atria}
+      - ATRIA_REDIS_URL=redis://redis:6379/0
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - atria_data:/root/.atria
+      - ./atria:/app/atria
+      - ./modules:/app/modules
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >
+        mkdir -p /root/.atria &&
+        printf '{"model":"%s","api_base_url":"%s"}\n'
+          "$${ATRIA_MODEL:-gpt-4o}"
+          "$${ATRIA_API_BASE_URL:-https://api.openai.com/v1/chat/completions}"
+          > /root/.atria/settings.json &&
+        exec taskiq worker atria.core.tasks.broker:broker atria.core.tasks.tasks
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
 volumes:

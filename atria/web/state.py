@@ -10,6 +10,7 @@ from threading import Lock
 from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict, List, Optional
 
 from atria.core.context_engineering.history import UndoManager
+from atria.core.auth.keycloak.services import KeycloakServices
 from atria.core.auth.pg_user_store import PgUserStore
 from atria.core.runtime import ConfigManager, ModeManager
 from atria.core.runtime.approval import ApprovalManager
@@ -53,6 +54,7 @@ class WebState:
         self.undo_manager = undo_manager
         self.user_store = user_store
         self.mcp_manager = mcp_manager
+        self.keycloak: KeycloakServices | None = KeycloakServices.from_env()
         self._current_users: Dict[str, User] = {}
         self._lock = Lock()
 
@@ -92,6 +94,9 @@ class WebState:
 
         # Agent executor (lazily created by websocket handler)
         self._agent_executor: Optional[Any] = None
+
+        # TaskIQ client for background subagents (set at server startup; None when disabled)
+        self.task_client: Optional[Any] = None
 
     def add_ws_client(self, client: Any) -> None:
         """Add a WebSocket client."""

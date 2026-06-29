@@ -6,6 +6,7 @@ import logging
 from typing import Any, TYPE_CHECKING
 
 from atria.core.agents.prompts import load_prompt
+from atria.core.blackboard.injection import render_shared_lessons_section
 
 if TYPE_CHECKING:
     from atria.core.skills import SkillLoader
@@ -47,12 +48,14 @@ class BasePromptBuilder:
         skill_loader: "SkillLoader | None" = None,
         subagent_manager: "SubAgentManager | None" = None,
         env_context: "EnvironmentContext | None" = None,
+        blackboard: Any | None = None,
     ) -> None:
         self._tool_registry = tool_registry
         self._working_dir = working_dir
         self._skill_loader = skill_loader
         self._subagent_manager = subagent_manager
         self._env_context = env_context
+        self._blackboard = blackboard
 
     def build(self) -> str:
         """Build complete system prompt from components.
@@ -168,6 +171,13 @@ class BasePromptBuilder:
                 f"{modular_sections}\n\n{skill_block}" if modular_sections else skill_block
             )
 
+        # Append Shared Lessons from blackboard when present and non-empty (dynamic).
+        shared_lessons = render_shared_lessons_section(self._blackboard)
+        if shared_lessons:
+            modular_sections = (
+                f"{modular_sections}\n\n{shared_lessons}" if modular_sections else shared_lessons
+            )
+
         # Combine core prompt + modular sections
         return f"{core_prompt}\n\n{modular_sections}" if modular_sections else core_prompt
 
@@ -208,6 +218,14 @@ class BasePromptBuilder:
         if skill_block:
             dynamic_sections = (
                 f"{dynamic_sections}\n\n{skill_block}" if dynamic_sections else skill_block
+            )
+
+        # Append Shared Lessons from blackboard to the DYNAMIC part — lesson
+        # content accumulates during a run and must not be prompt-cached.
+        shared_lessons = render_shared_lessons_section(self._blackboard)
+        if shared_lessons:
+            dynamic_sections = (
+                f"{dynamic_sections}\n\n{shared_lessons}" if dynamic_sections else shared_lessons
             )
 
         # Core prompt is always stable

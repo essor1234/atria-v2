@@ -70,6 +70,7 @@ export function ProjectSidebar() {
     setCreatingChat(true);
     try {
       await createWorkspaceConversation("New Chat");
+      closeModuleDashboard();
     } finally {
       setCreatingChat(false);
     }
@@ -353,7 +354,10 @@ export function ProjectSidebar() {
                       return (
                         <div
                           key={conv.id}
-                          onClick={() => loadSession(conv.id)}
+                          onClick={() => {
+                            closeModuleDashboard();
+                            loadSession(conv.id);
+                          }}
                           className={`group flex items-center gap-1.5 px-3 py-1.5 cursor-pointer transition-colors ${
                             isActive
                               ? "bg-accent-main-100/10 border-r-2 border-accent-main-100"
