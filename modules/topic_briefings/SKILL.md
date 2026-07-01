@@ -44,9 +44,13 @@ tell the user why.
 
 Plain JSON under `<modules>/topic_briefings/data/` (auto-created):
 
-- `data/briefings/<topic>.json` — one per topic: `headline`, `key_points`
-  (list of 3), `reading_time_min`, `confidence` (0–1), `tags` (list). All
-  fields derived deterministically from the topic name.
+- `data/stages/<topic>/<stage>.json` — one per pipeline stage
+  (`research`, `outline`, `keypoints`, `tags`, `sources`, `score`, `render`,
+  `assemble`, `verify`). Each stage reads the prior stage(s) and writes its
+  own file, so the pipeline is resumable and inspectable.
+- `data/briefings/<topic>.json` — written by the `assemble` stage: final
+  briefing with `headline`, `key_points`, `reading_time_min`,
+  `confidence` (0–1), `tags` (list), optional `sources`.
 - `data/digest.json` — written by `merge`: totals, top topic, and the full
   ranking by `confidence * reading_time_min`.
 
@@ -56,16 +60,31 @@ Override the output dir with `ATRIA_TOPIC_BRIEFINGS_DIR`.
 
 Absolute paths. Let `<b>` = `python <modules>/topic_briefings/scripts/briefing.py`.
 
-Generate ONE topic's briefing (the independent, dispatchable unit):
+Run ONE pipeline stage for ONE topic (the atomic dispatchable unit):
 
 ```
-<b> gen --topic ai
+<b> research --topic ai
+<b> outline  --topic ai
+<b> keypoints --topic ai
+<b> tags     --topic ai
+<b> sources  --topic ai
+<b> score    --topic ai
+<b> render   --topic ai
+<b> assemble --topic ai
+<b> verify   --topic ai
 ```
 
-Merge every generated briefing into the digest (run AFTER all `gen`s):
+Merge every verified briefing into the digest (run AFTER all `verify`s):
 
 ```
 <b> merge
+```
+
+Backward-compat shortcut — run the full 9-stage pipeline for one topic in
+one process (useful for manual testing, NOT for dispatch):
+
+```
+<b> gen --topic ai
 ```
 
 Inspect results:
@@ -78,16 +97,46 @@ Inspect results:
 
 ## Decomposition guidance (for divide)
 
-When dispatched with `solve(strategy="divide")`, split the request into
-exactly:
+When dispatched with `solve(strategy="divide")`, split the request into a
+chained DAG per topic + one final merge. For each topic emit these 9
+subtasks in order, each depending on the previous one:
 
-- one task per topic: `id="gen_<topic>"`, no `depends_on`, description =
-  "Run `python <modules>/topic_briefings/scripts/briefing.py gen --topic <topic>`".
-- one final task: `id="merge"`, `depends_on=[all gen_* ids]`, description =
-  "Run `python <modules>/topic_briefings/scripts/briefing.py merge`".
+- `id="research_<topic>"`, no `depends_on`, description =
+  "Run `<b> research --topic <topic>`".
+- `id="outline_<topic>"`, `depends_on=["research_<topic>"]`, description =
+  "Run `<b> outline --topic <topic>`".
+- `id="keypoints_<topic>"`, `depends_on=["research_<topic>"]`, description =
+  "Run `<b> keypoints --topic <topic>`".
+- `id="tags_<topic>"`, `depends_on=["research_<topic>"]`, description =
+  "Run `<b> tags --topic <topic>`".
+- `id="sources_<topic>"`, `depends_on=["research_<topic>"]`, description =
+  "Run `<b> sources --topic <topic>`".
+- `id="score_<topic>"`, `depends_on=["keypoints_<topic>"]`, description =
+  "Run `<b> score --topic <topic>`".
+- `id="render_<topic>"`,
+  `depends_on=["outline_<topic>","keypoints_<topic>","tags_<topic>","sources_<topic>","score_<topic>"]`,
+  description = "Run `<b> render --topic <topic>`".
+- `id="assemble_<topic>"`, `depends_on=["render_<topic>"]`, description =
+  "Run `<b> assemble --topic <topic>`".
+- `id="verify_<topic>"`, `depends_on=["assemble_<topic>"]`, description =
+  "Run `<b> verify --topic <topic>`".
+
+Then one final task:
+
+- `id="merge"`, `depends_on=[all verify_<topic> ids]`, description =
+  "Run `<b> merge`".
+
+Result: for N topics the DAG has **9N + 1** subtasks, giving the Dispatch
+tab sustained visible progress instead of a two-shot flash. NEVER emit the
+old single `gen_<topic>` task in a dispatched plan — that shortcut is only
+for manual, single-process runs.
 
 ## Files
 
 - `SKILL.md` — this overview.
-- `scripts/briefing.py` — the CLI (`gen`, `merge`, `list`, `show`, `reset`, `dashboard`).
-- `data/` — generated JSON briefings + digest (auto-created; gitignored).
+- `scripts/briefing.py` — the CLI. Pipeline stages:
+  `research`, `outline`, `keypoints`, `tags`, `sources`, `score`, `render`,
+  `assemble`, `verify`. Aggregate/utility: `merge`, `gen` (shortcut), `list`,
+  `show`, `dashboard`, `reset`.
+- `data/stages/<topic>/` — per-stage intermediate JSON (auto-created; gitignored).
+- `data/briefings/` + `data/digest.json` — final outputs (auto-created; gitignored).
