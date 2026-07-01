@@ -110,17 +110,32 @@
         el.content.innerHTML = html;
       }
 
-      async function load() {
-        try {
-          var res = await window.__bridge.run(['dashboard']);
-          render(res);
-        } catch (e) {
-          el.err.textContent = String(e && e.message || e);
-          el.err.style.display = '';
+      function reportSize() {
+        if (window.AtriaDash && AtriaDash.resize) {
+          AtriaDash.resize(document.body.scrollHeight + 24);
         }
       }
 
+      function load() {
+        el.err.style.display = 'none';
+        AtriaDash.json('briefing.py', ['dashboard', '--json'])
+          .then(function (data) { render(data); })
+          .catch(function (e) {
+            el.err.textContent = 'Lỗi tải dashboard: ' + (e && e.message ? e.message : e);
+            el.err.style.display = '';
+          })
+          .then(reportSize);
+      }
+
       el.refresh.addEventListener('click', load);
+      if (window.AtriaDash && AtriaDash.ready) AtriaDash.ready();
+
+      var _visible = true;
+      if (window.AtriaDash && AtriaDash.onVisibility) {
+        AtriaDash.onVisibility(function (v) { _visible = !!v; if (v) load(); });
+      }
+      setInterval(function () { if (_visible) load(); }, 5000);
+
       load();
     })();
   </script>
