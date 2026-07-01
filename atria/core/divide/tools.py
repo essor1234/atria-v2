@@ -10,8 +10,10 @@ import asyncio
 import logging
 from typing import Any, Callable
 
-from atria.core.divide.job_store import JobStore
 from atria.core.divide.orchestrator import DivideOrchestrator
+from atria.core.orchestration.bridge import ensure_async_redis, make_run_async
+from atria.core.orchestration.gating import assess_heavy_path
+from atria.core.orchestration.job_store import DIVIDE_PREFIX, JobStore
 from atria.core.tasks.payload import SubagentTaskPayload
 
 logger = logging.getLogger(__name__)
@@ -43,17 +45,10 @@ def build_divide_orchestrator(
         A configured DivideOrchestrator ready to start jobs.
     """
     divide_cfg = getattr(config, "divide", None) or config
-    task_client.startup()
-
-    def run_async(coro: Any) -> Any:
-        return asyncio.run_coroutine_threadsafe(coro, task_client._loop).result()
-
-    if redis_client is None:
-        import redis.asyncio as aioredis
-
-        redis_client = aioredis.from_url(
-            getattr(divide_cfg, "redis_url", "redis://localhost:6379/0")
-        )
+    run_async = make_run_async(task_client)
+    redis_client = ensure_async_redis(
+        redis_client, getattr(divide_cfg, "redis_url", "redis://localhost:6379/0")
+    )
 
     broker = task_client._broker
 
@@ -80,8 +75,8 @@ def build_divide_orchestrator(
                     return tid, {**val, "status": "done"}
             await asyncio.sleep(0.25)
 
-    return DivideOrchestrator(
-        job_store=JobStore(redis_client),
+    orch = DivideOrchestrator(
+        job_store=JobStore(redis_client, DIVIDE_PREFIX),
         redis_client=redis_client,
         llm_call=llm_call,
         config=divide_cfg,
@@ -93,6 +88,9 @@ def build_divide_orchestrator(
         session_id=session_id,
         progress_cb=progress_cb,
     )
+    # S5: low-ROI advisory for strong base models (assessed against the full AppConfig).
+    orch._advisory = assess_heavy_path(config)
+    return orch
 
 
 def execute_divide_work(
@@ -120,14 +118,18 @@ def execute_divide_work(
     except Exception as exc:  # noqa: BLE001 — surface as tool error, never crash the loop
         logger.warning("divide_work start failed: %s", exc)
         return {"success": False, "error": f"divide_work failed: {exc}", "output": None}
+    advisory = getattr(orchestrator, "_advisory", "")
+    output = (
+        f"[DIVIDE STARTED] job_id={job_id}. "
+        "Use get_solve_result(job_id) to poll progress and collect results."
+    )
+    if advisory:
+        output += f"\n{advisory}"
     return {
         "success": True,
         "job_id": job_id,
         "status": "running",
-        "output": (
-            f"[DIVIDE STARTED] job_id={job_id}. "
-            "Use get_solve_result(job_id) to poll progress and collect results."
-        ),
+        "output": output,
     }
 
 

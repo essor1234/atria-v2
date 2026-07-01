@@ -30,7 +30,6 @@ from atria.core.context_engineering.tools.handlers.batch_handler import BatchToo
 from atria.core.context_engineering.tools.implementations.note_tool import execute_note
 from atria.core.context_engineering.tools.handlers.memory_handlers import MemoryToolHandler
 from atria.core.context_engineering.tools.handlers.session_handlers import SessionToolHandler
-from atria.core.context_engineering.tools.handlers.git_handlers import GitToolHandler
 from atria.core.context_engineering.tools.handlers.browser_handlers import BrowserToolHandler
 from atria.core.context_engineering.tools.handlers.schedule_handlers import ScheduleToolHandler
 from atria.core.context_engineering.tools.handlers.message_handlers import MessageToolHandler
@@ -159,7 +158,6 @@ class ToolRegistry(SubagentOpsMixin, OrchestrationOpsMixin, InlineToolsMixin):
             mcp_manager=mcp_manager,
             on_discover=self.discover_mcp_tool,
         )
-        self._git_handler = GitToolHandler()
         self._browser_handler = BrowserToolHandler()
         self._schedule_handler = ScheduleToolHandler()
         self._message_handler = MessageToolHandler()
@@ -195,7 +193,7 @@ class ToolRegistry(SubagentOpsMixin, OrchestrationOpsMixin, InlineToolsMixin):
             "update_todo": self._update_todo,
             "complete_todo": self._complete_todo,
             "list_todos": lambda args, ctx=None: self.todo_handler.list_todos(),
-            "clear_todos": lambda args, ctx=None: self.todo_handler.clear_todos(),
+            "clear_todos": self._clear_todos,
             # Symbol tools (LSP-based)
             "find_symbol": lambda args: handle_find_symbol(args),
             "find_referencing_symbols": lambda args: handle_find_referencing_symbols(args),
@@ -220,8 +218,6 @@ class ToolRegistry(SubagentOpsMixin, OrchestrationOpsMixin, InlineToolsMixin):
             "present_plan": self._execute_present_plan,
             # Skills system tool
             "invoke_skill": self._handle_invoke_skill,
-            # Git tool
-            "git": self._git_handler.handle,
             # Browser automation
             "browser": self._browser_handler.handle,
             # Schedule tool
@@ -458,6 +454,10 @@ class ToolRegistry(SubagentOpsMixin, OrchestrationOpsMixin, InlineToolsMixin):
                 "NOTE",
                 "solve",
                 "get_solve_result",
+                "write_todos",
+                "update_todo",
+                "complete_todo",
+                "clear_todos",
             }:
                 # Handlers requiring context
                 result = handler(arguments, context)

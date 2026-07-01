@@ -6,8 +6,8 @@ import uuid
 from pathlib import Path
 from typing import Any, Awaitable, Callable
 
-from atria.core.divide.decompose import DecomposeError, decompose
-from atria.core.divide.job_store import JobStore
+from atria.core.divide.decompose import DecomposeError, decompose, redecompose
+from atria.core.orchestration.job_store import JobStore
 from atria.core.divide.models import DivideJob, DivideTask
 from atria.core.divide.scheduler import schedule
 from atria.core.modules.subagent import build_module_gateway_block
@@ -110,6 +110,30 @@ class DivideOrchestrator:
 
         await schedule(tasks, enqueue, self._await, self._cfg.max_parallel, on_change)
 
+        # DeLM stage 4: when the queue drains, inspect the shared context and decide
+        # whether more subtasks are needed. New tasks join the same DAG (by_id is updated
+        # in place so the enqueue closure sees them) and are run by another schedule pass.
+        rounds = getattr(self._cfg, "max_redecompose_rounds", 1)
+        for _ in range(max(0, rounds)):
+            digest = await self._read_digest(bb_id)
+            completed = "; ".join(f"{t.id}[{t.status}]" for t in tasks)
+            new_tasks = redecompose(
+                request, module_skill, completed, digest,
+                {t.id for t in tasks}, self._llm, self._cfg.max_tasks,
+            )
+            if not new_tasks:
+                break
+            tasks.extend(new_tasks)
+            by_id.update({t.id: t for t in new_tasks})
+            job.tasks = tasks
+            await self._js.save(job_id, job.model_dump(), ttl=self._cfg.pjob_ttl)
+            self._emit("redecomposed", {
+                "job_id": job_id,
+                "new_tasks": [{"id": t.id, "description": t.description,
+                               "depends_on": t.depends_on} for t in new_tasks],
+            })
+            await schedule(tasks, enqueue, self._await, self._cfg.max_parallel, on_change)
+
         n_done = sum(1 for t in tasks if t.status == "done")
         n_fail = sum(1 for t in tasks if t.status in ("failed", "skipped"))
         job.status = "done"
@@ -117,6 +141,19 @@ class DivideOrchestrator:
         await self._js.save(job_id, job.model_dump(), ttl=self._cfg.pjob_ttl)
         self._emit("done", {"job_id": job_id, "status": "done", "summary": job.summary})
         return job_id
+
+    async def _read_digest(self, bb_id: str) -> str:
+        """Render the current shared-context digest for re-decomposition, or "" on error."""
+        try:
+            from atria.core.blackboard.render import render_digest
+            from atria.core.blackboard.store import BlackboardStore
+
+            store = BlackboardStore(self._redis, task_id=bb_id, ttl=self._cfg.pjob_ttl)
+            notes = await store.read_all()
+            return render_digest(notes, viewer_id=0, window_tokens=2000)
+        except Exception as exc:  # noqa: BLE001 — digest is advisory, never break the job
+            logger.warning("divide read digest failed for %s: %s", bb_id, exc)
+            return ""
 
     async def collect_async(self, job_id: str) -> dict:
         rec = await self._js.load(job_id)

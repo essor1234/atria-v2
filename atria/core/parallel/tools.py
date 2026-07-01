@@ -7,12 +7,13 @@ loop (and the redis client binds to it consistently).
 """
 from __future__ import annotations
 
-import asyncio
 import logging
 from pathlib import Path
 from typing import Any, Callable
 
-from atria.core.parallel.job_store import JobStore
+from atria.core.orchestration.bridge import ensure_async_redis, make_run_async
+from atria.core.orchestration.gating import assess_heavy_path
+from atria.core.orchestration.job_store import PARALLEL_PREFIX, JobStore
 from atria.core.parallel.orchestrator import ParallelOrchestrator
 
 logger = logging.getLogger(__name__)
@@ -39,21 +40,12 @@ def build_orchestrator(
             client's loop on first use.
     """
     parallel_cfg = getattr(config, "parallel", None) or config
-    # Ensure the task client's background loop is running, then reuse it for the
-    # orchestrator's coroutines (job-store + blackboard reads).
-    task_client.startup()
-
-    def run_async(coro: Any) -> Any:
-        return asyncio.run_coroutine_threadsafe(coro, task_client._loop).result()
-
-    if redis_client is None:
-        import redis.asyncio as aioredis
-
-        redis_client = aioredis.from_url(
-            getattr(parallel_cfg, "redis_url", "redis://localhost:6379/0")
-        )
-    job_store = JobStore(redis_client)
-    return ParallelOrchestrator(
+    run_async = make_run_async(task_client)
+    redis_client = ensure_async_redis(
+        redis_client, getattr(parallel_cfg, "redis_url", "redis://localhost:6379/0")
+    )
+    job_store = JobStore(redis_client, PARALLEL_PREFIX)
+    orch = ParallelOrchestrator(
         task_client=task_client,
         worktree_manager=worktree_manager,
         job_store=job_store,
@@ -63,6 +55,9 @@ def build_orchestrator(
         run_async=run_async,
         progress_cb=progress_cb,
     )
+    # S5: low-ROI advisory for strong base models (assessed against the full AppConfig).
+    orch._advisory = assess_heavy_path(config)
+    return orch
 
 
 def make_worktree_manager(repo_dir: str) -> Any:
@@ -91,14 +86,18 @@ def execute_solve_parallel(
     except Exception as exc:  # noqa: BLE001 — surface as a tool error, never crash the loop
         logger.warning("solve_parallel start failed: %s", exc)
         return {"success": False, "error": f"solve_parallel failed: {exc}", "output": None}
+    advisory = getattr(orchestrator, "_advisory", "")
+    output = (
+        f"[PARALLEL STARTED] job_id={job_id}. "
+        "Use get_solve_result(job_id) to judge + apply the winner."
+    )
+    if advisory:
+        output += f"\n{advisory}"
     return {
         "success": True,
         "job_id": job_id,
         "status": "running",
-        "output": (
-            f"[PARALLEL STARTED] job_id={job_id}. "
-            "Use get_solve_result(job_id) to judge + apply the winner."
-        ),
+        "output": output,
     }
 
 

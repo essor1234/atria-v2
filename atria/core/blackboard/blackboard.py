@@ -7,7 +7,7 @@ import threading
 import time
 from typing import Any, Callable
 
-from atria.core.blackboard.archive import archive_to_postgres
+from atria.core.blackboard.admission import admit_notes
 from atria.core.blackboard.models import Note
 from atria.core.blackboard.render import render_digest
 from atria.core.blackboard.verifier import verify_notes
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class Blackboard:
-    """Compose verifier + store + render + archive for one task."""
+    """Compose verifier + store + render for one task's shared context."""
 
     def __init__(
         self,
@@ -24,22 +24,37 @@ class Blackboard:
         *,
         thread_id: int = 0,
         window_tokens: int = 2000,
-        session_factory: Callable[[], object] | None = None,
         owner_id: str = "",
+        verify_llm: Callable[[str, str], str] | None = None,
     ) -> None:
         self._store = store
         self._thread_id = thread_id
         self._window_tokens = window_tokens
-        self._session_factory = session_factory
-        self._owner_id = owner_id
+        self._owner_id = owner_id  # run/owner identity (telemetry); not persisted
+        self._verify_llm = verify_llm
         self._task_id = getattr(store, "_key", "atria:bb:?").removeprefix("atria:bb:")
 
     async def write(self, raw_notes: list[dict]) -> str:
-        """Verify then append notes. Returns the verifier status, or a soft-failure string."""
+        """Hygiene-check, LLM-verify, then append notes.
+
+        Two gates run in order: deterministic hygiene (``verify_notes``) and, when a
+        verifier model is wired, admission-time LLM verification (``admit_notes``,
+        DeLM §A.3) that rejects ungrounded/speculative claims. Returns a status string
+        (e.g. ``"ok:2/3,rejected=1"``), or a soft-failure string on error.
+        """
         try:
             clean, status = verify_notes(raw_notes)
             if not clean:
                 return status
+            if self._verify_llm is not None:
+                admitted, reasons = await admit_notes(clean, self._verify_llm)
+                if reasons:
+                    status += f",rejected={len(reasons)}"
+                    for reason in reasons:
+                        logger.info("blackboard admission rejected — %s", reason)
+                clean = admitted
+                if not clean:
+                    return status
             now = self._now()
             await self._store.append(
                 [Note(type=c["type"], content=c["content"], thread_id=self._thread_id, ts=now)
@@ -60,18 +75,6 @@ class Blackboard:
             logger.warning("blackboard render failed: %s", exc)
             return ""
 
-    async def archive(self) -> int:
-        """Flush the final blackboard to Postgres (best-effort)."""
-        if self._session_factory is None:
-            return 0
-        try:
-            notes = await self._store.read_all()
-            return await archive_to_postgres(
-                self._session_factory, self._task_id, self._owner_id, notes
-            )
-        except Exception:  # noqa: BLE001
-            return 0
-
     @staticmethod
     def _now() -> float:
         return time.time()
@@ -80,8 +83,13 @@ class Blackboard:
 class BlackboardHandle:
     """Synchronous proxy over Blackboard for the (loopless) agent thread.
 
-    Owns one persistent daemon-thread event loop, same shape as
-    atria.core.tasks.client.TaskIQClient.
+    The bridge is load-bearing, not incidental: the blackboard store is async
+    (``redis.asyncio``), but its only callers are synchronous — the NOTE tool
+    (``note_tool.py``, ``blackboard.write``) and prompt assembly
+    (``injection.py``, ``blackboard.render``) both run on the agent's loopless
+    tool-execution thread. This handle owns one persistent daemon-thread event
+    loop (same shape as ``atria.core.tasks.client.TaskIQClient``) so those sync
+    callers can drive the async store without each spinning up its own loop.
     """
 
     def __init__(self, blackboard: Blackboard, redis_client: Any = None) -> None:
@@ -167,10 +175,3 @@ class BlackboardHandle:
             return self._submit(self._bb.render())
         except Exception:  # noqa: BLE001
             return ""
-
-    def archive(self) -> int:
-        """Archive to Postgres synchronously; returns 0 on any error."""
-        try:
-            return self._submit(self._bb.archive())
-        except Exception:  # noqa: BLE001
-            return 0

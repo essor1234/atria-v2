@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { Message, ApprovalRequest, StatusInfo, AskUserRequest, PlanApprovalRequest, PerSessionState, ToolCallInfo, DataColumn, ChartSuggestion } from '../types';
+import { applyTodosUpdate } from '../lib/todos';
 import { apiClient } from '../api/client';
 import { wsClient } from '../api/websocket';
 import { useToastStore } from './toast';
@@ -196,6 +197,15 @@ function expandMessages(rawMessages: Message[]): Message[] {
       continue;
     }
 
+    // Reconstruct a persisted todo snapshot (role 'todos') into a live card.
+    if (msg.role === 'todos') {
+      const todos = msg.metadata?.todos ?? msg.todos ?? [];
+      if (Array.isArray(todos) && todos.length > 0) {
+        expanded.push({ role: 'todos', content: '', todos, timestamp: msg.timestamp });
+      }
+      continue;
+    }
+
     if (msg.tool_calls && msg.tool_calls.length > 0) {
       if (msg.content && msg.content.trim()) {
         expanded.push({
@@ -233,7 +243,9 @@ interface ChatState {
   runningSessions: Set<string>;
   sessionListVersion: number;
   sidebarCollapsed: boolean;
+  mobileSidebarOpen: boolean;
   settingsModalOpen: boolean;
+  commandPaletteOpen: boolean;
 
   // Actions
   loadSession: (sessionId: string) => Promise<void>;
@@ -253,9 +265,14 @@ interface ChatState {
   bumpSessionList: () => void;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
+  openMobileSidebar: () => void;
+  closeMobileSidebar: () => void;
+  toggleMobileSidebar: () => void;
   setSelectedPersona: (personaName: string | null) => void;
   openSettingsModal: () => void;
   closeSettingsModal: () => void;
+  openCommandPalette: () => void;
+  closeCommandPalette: () => void;
 }
 
 const AUTONOMY_CYCLE: Array<'Manual' | 'Semi-Auto' | 'Auto'> = ['Manual', 'Semi-Auto', 'Auto'];
@@ -271,11 +288,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
   runningSessions: new Set<string>(),
   sessionListVersion: 0,
   sidebarCollapsed: false,
+  mobileSidebarOpen: false,
   settingsModalOpen: false,
+  commandPaletteOpen: false,
 
   bumpSessionList: () => set(state => ({ sessionListVersion: state.sessionListVersion + 1 })),
   toggleSidebar: () => set(state => ({ sidebarCollapsed: !state.sidebarCollapsed })),
   setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
+  openMobileSidebar: () => set({ mobileSidebarOpen: true }),
+  closeMobileSidebar: () => set({ mobileSidebarOpen: false }),
+  toggleMobileSidebar: () => set(state => ({ mobileSidebarOpen: !state.mobileSidebarOpen })),
   setSelectedPersona: (personaName: string | null) => {
     const sessionId = get().currentSessionId;
     if (sessionId) {
@@ -286,6 +308,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
   openSettingsModal: () => set({ settingsModalOpen: true }),
   closeSettingsModal: () => set({ settingsModalOpen: false }),
+  openCommandPalette: () => set({ commandPaletteOpen: true }),
+  closeCommandPalette: () => set({ commandPaletteOpen: false }),
   loadSession: async (sessionId: string) => {
     console.log(`[Frontend] Loading session ${sessionId}`);
 
@@ -986,6 +1010,24 @@ wsClient.on('task_completed', (message) => {
   const sid = resolveSessionId(message.data);
   if (!sid) return;
   console.log('[Frontend] Task completed:', message.data.summary);
+});
+
+// ─── Todo List Events ────────────────────────────────────────────────────────
+// A single live "todos" card lives in the message flow and updates in place as
+// the agent writes/updates/completes todos. Empty payload removes the card.
+// Reducer lives in lib/todos.ts (applyTodosUpdate) for isolated testing.
+
+wsClient.on('todos_updated', (message) => {
+  const sid = resolveSessionId(message.data);
+  if (!sid) return;
+  const todos = Array.isArray(message.data.todos) ? message.data.todos : [];
+
+  useChatStore.setState(state => {
+    const sessionState = getSessionState(state.sessionStates, sid);
+    const next = applyTodosUpdate(sessionState.messages, todos, new Date().toISOString());
+    if (next === sessionState.messages) return {};
+    return patchSession(state, sid, { messages: next });
+  });
 });
 
 // ─── Progress Events ─────────────────────────────────────────────────────────

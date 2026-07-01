@@ -82,21 +82,46 @@ class InlineToolsMixin:
                 "output": None,
             }
 
+    def _emit_todos(self, context: Any) -> None:
+        """Broadcast the current structured todo list to the UI, if supported.
+
+        Duck-typed: only callbacks that implement ``on_todos_updated`` (e.g. the
+        web UI callback) receive the event; others are no-ops.
+        """
+        ui_callback = getattr(context, "ui_callback", None) if context else None
+        if ui_callback is not None and hasattr(ui_callback, "on_todos_updated"):
+            try:
+                ui_callback.on_todos_updated(self.todo_handler.to_payload())
+            except Exception:  # noqa: BLE001 - UI broadcast must never break tools
+                pass
+
     def _write_todos(self, arguments: dict[str, Any], context: Any = None) -> dict[str, Any]:
         """Execute the write_todos tool."""
-        return self.todo_handler.write_todos(arguments.get("todos", []))
+        result = self.todo_handler.write_todos(arguments.get("todos", []))
+        self._emit_todos(context)
+        return result
 
     def _update_todo(self, arguments: dict[str, Any], context: Any = None) -> dict[str, Any]:
         """Execute the update_todo tool."""
-        return self.todo_handler.update_todo(
+        result = self.todo_handler.update_todo(
             id=arguments.get("id"),
             status=arguments.get("status"),
             title=arguments.get("title"),
         )
+        self._emit_todos(context)
+        return result
 
     def _complete_todo(self, arguments: dict[str, Any], context: Any = None) -> dict[str, Any]:
         """Execute the complete_todo tool."""
-        return self.todo_handler.complete_todo(id=arguments.get("id"))
+        result = self.todo_handler.complete_todo(id=arguments.get("id"))
+        self._emit_todos(context)
+        return result
+
+    def _clear_todos(self, arguments: dict[str, Any], context: Any = None) -> dict[str, Any]:
+        """Execute the clear_todos tool."""
+        result = self.todo_handler.clear_todos()
+        self._emit_todos(context)
+        return result
 
     def _read_pdf(self, arguments: dict[str, Any]) -> dict[str, Any]:
         """Execute the read_pdf tool to extract text from a PDF file.

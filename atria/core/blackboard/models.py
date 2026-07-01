@@ -4,10 +4,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 VALID_TYPES: tuple[str, ...] = ("FACT", "TRIED", "OBSERVED", "FAIL", "CLAIM", "PATCH_SUMMARY")
-MAX_CONTENT_CHARS = 100
-# PATCH_SUMMARY uses the structured "files=A | idea=B | evidence=C | risk=D" schema,
-# which doesn't fit the 100-char durable-note cap.
-MAX_PATCH_SUMMARY_CHARS = 300
+# Single note budget. The DeLM paper (Fig 4b) shows accuracy is insensitive to gist
+# length past ~100 tokens, so per-type char caps are tuning noise; one budget that
+# fits the largest type (PATCH_SUMMARY's "files=A | idea=B | evidence=C | risk=D"
+# schema) suffices for all types.
+MAX_NOTE_CHARS = 300
 
 
 @dataclass(frozen=True)

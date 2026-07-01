@@ -60,6 +60,25 @@ def test_any_file_change_in_module_triggers_reload(reg: ModuleRegistry):
         w.stop()
 
 
+def test_data_db_write_triggers_change(reg: ModuleRegistry):
+    """A module's DB write (e.g. agent runs flow.py) must reach on_change so the
+    dashboard iframe live-refreshes. This is the realtime contract the Item Flow
+    dashboard relies on."""
+    events = []
+    w = ModuleWatcher(reg, on_change=lambda name: events.append(name))
+    w.start()
+    try:
+        store.create_module(reg.root, "demo")
+        assert _wait_for(lambda: "demo" in events)
+        events.clear()
+        # Simulate an agent mutating the module's SQLite store under data/.
+        (reg.root / "demo" / "data").mkdir(exist_ok=True)
+        (reg.root / "demo" / "data" / "flow.db").write_bytes(b"SQLite format 3\x00")
+        assert _wait_for(lambda: "demo" in events), events
+    finally:
+        w.stop()
+
+
 def test_pycache_and_tmp_files_are_ignored(reg: ModuleRegistry):
     events = []
     w = ModuleWatcher(reg, on_change=lambda name: events.append(name))

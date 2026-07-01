@@ -33,24 +33,12 @@ READ_ONLY_TOOLS: frozenset[str] = frozenset(
         "get_session_history",
         "list_subagents",
         "memory_search",
-        # Git (read-only actions)
-        "git",  # Note: partitioner checks action param for git
         # Meta (read-only)
         "list_todos",
         "search_tools",
         "task_complete",
         # Agents listing
         "list_agents",
-    }
-)
-
-# Git actions that are safe to parallelize
-READ_ONLY_GIT_ACTIONS: frozenset[str] = frozenset(
-    {
-        "status",
-        "diff",
-        "log",
-        "branch",
     }
 )
 
@@ -148,16 +136,6 @@ class ParallelPolicy:
 
         # Standard read-only tools
         if name in READ_ONLY_TOOLS:
-            # Special case: git tool depends on action
-            if name == "git":
-                import json
-
-                try:
-                    args = json.loads(tool_call.get("function", {}).get("arguments", "{}"))
-                    action = args.get("action", "")
-                    return action in READ_ONLY_GIT_ACTIONS
-                except (json.JSONDecodeError, TypeError):
-                    return False
             return True
 
         # MCP tools: check readOnly metadata if available

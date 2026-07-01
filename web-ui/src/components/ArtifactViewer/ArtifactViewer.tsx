@@ -1,6 +1,6 @@
-import React, { useCallback } from 'react';
-import { useLocalStorage } from 'usehooks-ts';
-import { PanelRightOpen, PanelRightClose } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useLocalStorage, useMediaQuery } from 'usehooks-ts';
+import { PanelRightOpen, PanelRightClose, FolderTree, X } from 'lucide-react';
 import { Resizable, type ResizeCallbackData } from 'react-resizable';
 import { useChatStore } from '../../stores/chat';
 import { useViewerTabsStore } from '../../stores/viewerTabs';
@@ -28,12 +28,27 @@ export function ArtifactViewer() {
   const [treeWidth, setTreeWidth] = useLocalStorage<number>(KEY_TREE_WIDTH, 220);
   const [leftMode, setLeftMode] = useLeftMode();
 
+  // Below lg the viewer is a full-screen overlay rather than a side column, and
+  // it starts collapsed so the chat keeps the full width on entry.
+  const isMobile = useMediaQuery('(max-width: 1023px)');
+  const [mobileShowTree, setMobileShowTree] = useState(false);
+  useEffect(() => {
+    if (isMobile) setCollapsed(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMobile]);
+
   const activeTab = useViewerTabsStore(s => {
     if (!currentSessionId) return null;
     const slice = s.tabsByConv[currentSessionId];
     if (!slice) return null;
     return slice.tabs.find(t => t.id === slice.activeId) ?? null;
   });
+
+  // On mobile, selecting a file (activeTab gains an id) flips the overlay from
+  // the file list back to the viewer automatically.
+  useEffect(() => {
+    if (activeTab) setMobileShowTree(false);
+  }, [activeTab?.id]);
 
   const effectiveTreeWidth = Math.min(treeWidth, panelWidth - 2 - MIN_VIEWER);
 
@@ -59,6 +74,19 @@ export function ArtifactViewer() {
   if (Number.isNaN(convInt)) return null;
 
   if (collapsed) {
+    // Mobile: a floating button that doesn't steal width from the chat column.
+    if (isMobile) {
+      return (
+        <button
+          onClick={() => setCollapsed(false)}
+          aria-label="Open artifact viewer"
+          title="Open artifact viewer"
+          className="fixed bottom-24 right-3 z-30 p-2.5 rounded-full bg-canvas border border-hairline-soft text-ink/70 hover:text-ink shadow-modal cursor-pointer transition-colors"
+        >
+          <PanelRightOpen className="w-5 h-5" />
+        </button>
+      );
+    }
     return (
       <button
         onClick={() => setCollapsed(false)}
@@ -68,6 +96,56 @@ export function ArtifactViewer() {
       >
         <PanelRightOpen className="w-5 h-5" />
       </button>
+    );
+  }
+
+  // Mobile: full-screen overlay with a master/detail switch (file list ⇄ viewer).
+  if (isMobile) {
+    const showTree = !activeTab || mobileShowTree;
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col bg-canvas">
+        <div className="flex items-center gap-1 border-b border-hairline-soft/60 bg-surface-soft/30 px-2 py-1.5 flex-shrink-0">
+          <button
+            onClick={() => setMobileShowTree(v => !v)}
+            aria-label={showTree ? 'Show viewer' : 'Show files'}
+            title={showTree ? 'Show viewer' : 'Show files'}
+            className={`flex-shrink-0 p-2 rounded transition-colors ${
+              showTree ? 'text-accent-main-100 bg-accent-main-100/10' : 'text-ink/50 hover:text-ink hover:bg-ink/6'
+            }`}
+          >
+            <FolderTree className="w-4 h-4" />
+          </button>
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <TabBar convId={currentSessionId} />
+          </div>
+          <button
+            onClick={() => setCollapsed(true)}
+            aria-label="Close viewer"
+            title="Close viewer"
+            className="flex-shrink-0 p-2 rounded text-ink/45 hover:text-ink hover:bg-ink/6 cursor-pointer transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="flex-1 min-h-0 overflow-hidden">
+          {showTree ? (
+            <div className="flex flex-col h-full">
+              <LeftPaneTabs mode={leftMode} onChange={setLeftMode} />
+              <div className="flex-1 min-h-0 overflow-hidden">
+                {leftMode === 'files'
+                  ? <FileTree
+                      convId={currentSessionId}
+                      scope={{ kind: 'conv', id: convInt }}
+                      autoExpand={['.artifacts']}
+                    />
+                  : <ModuleGallery convId={currentSessionId} />}
+              </div>
+            </div>
+          ) : activeTab ? (
+            <ViewerDispatcher convId={convInt} tab={activeTab} />
+          ) : null}
+        </div>
+      </div>
     );
   }
 

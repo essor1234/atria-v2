@@ -65,14 +65,6 @@ class TestResultSanitizer:
         result = s.sanitize("read_file", {"success": True, "output": long_output})
         assert "strategy=head" in result["output"]
 
-    def test_truncation_git_head_tail_strategy(self):
-        from atria.core.context_engineering.tools.result_sanitizer import ToolResultSanitizer
-
-        s = ToolResultSanitizer()
-        long_output = "commit " + "x" * 20000
-        result = s.sanitize("git", {"success": True, "output": long_output})
-        assert "middle truncated" in result["output"]
-
     def test_error_truncation(self):
         from atria.core.context_engineering.tools.result_sanitizer import ToolResultSanitizer
 
@@ -312,80 +304,6 @@ class TestSessionTools:
 
 
 # ============================================================
-# A6: Git Operations Tool
-# ============================================================
-
-
-class TestGitTool:
-    def test_import(self):
-        from atria.core.context_engineering.tools.implementations.git_tool import GitTool
-
-        assert GitTool is not None
-
-    def test_unknown_action(self):
-        from atria.core.context_engineering.tools.implementations.git_tool import GitTool
-
-        gt = GitTool()
-        result = gt.execute("unknown_action")
-        assert not result["success"]
-        assert "Unknown git action" in result["error"]
-
-    def test_status(self):
-        from atria.core.context_engineering.tools.implementations.git_tool import GitTool
-
-        # Run in the actual repo
-        gt = GitTool(working_dir=str(Path(__file__).parent.parent))
-        result = gt.execute("status")
-        assert result["success"]
-        assert "Branch:" in result["output"]
-
-    def test_log(self):
-        from atria.core.context_engineering.tools.implementations.git_tool import GitTool
-
-        gt = GitTool(working_dir=str(Path(__file__).parent.parent))
-        result = gt.execute("log", limit=3)
-        assert result["success"]
-
-    def test_diff(self):
-        from atria.core.context_engineering.tools.implementations.git_tool import GitTool
-
-        gt = GitTool(working_dir=str(Path(__file__).parent.parent))
-        result = gt.execute("diff")
-        assert result["success"]
-
-    def test_commit_no_message(self):
-        from atria.core.context_engineering.tools.implementations.git_tool import GitTool
-
-        gt = GitTool()
-        result = gt.execute("commit", message="")
-        assert not result["success"]
-
-    def test_push_force_protected_branch(self):
-        from atria.core.context_engineering.tools.implementations.git_tool import GitTool
-
-        gt = GitTool(working_dir=str(Path(__file__).parent.parent))
-        result = gt.execute("push", force=True, branch="main")
-        assert not result["success"]
-        assert "Refusing" in result["error"]
-
-    def test_checkout_dirty_tree(self):
-        from atria.core.context_engineering.tools.implementations.git_tool import GitTool
-
-        gt = GitTool(working_dir=str(Path(__file__).parent.parent))
-        # Our working tree IS dirty (we just created files)
-        result = gt.execute("checkout", branch="nonexistent-branch-12345")
-        # Should either fail with dirty tree warning or branch not found
-        assert not result["success"]
-
-    def test_handler_delegation(self):
-        from atria.core.context_engineering.tools.handlers.git_handlers import GitToolHandler
-
-        handler = GitToolHandler(working_dir=str(Path(__file__).parent.parent))
-        result = handler.handle({"action": "status"})
-        assert result["success"]
-
-
-# ============================================================
 # B2: Tool Profile & Group System
 # ============================================================
 
@@ -404,7 +322,6 @@ class TestToolPolicy:
         assert "read_file" in tools
         assert "write_file" in tools
         assert "run_command" in tools
-        assert "git" in tools
 
     def test_minimal_profile(self):
         from atria.core.context_engineering.tools.tool_policy import ToolPolicy
@@ -422,7 +339,6 @@ class TestToolPolicy:
 
         tools = ToolPolicy.resolve("review")
         assert "read_file" in tools
-        assert "git" in tools
         assert "web_search" in tools
         assert "write_file" not in tools
 
@@ -974,16 +890,6 @@ class TestParallelPolicy:
         groups = ParallelPolicy.partition(calls)
         assert len(groups) == 2  # Sequential since same file
 
-    def test_git_read_actions_parallel(self):
-        from atria.core.context_engineering.tools.parallel_policy import ParallelPolicy
-
-        calls = [
-            {"function": {"name": "git", "arguments": json.dumps({"action": "status"})}},
-            {"function": {"name": "read_file", "arguments": "{}"}},
-        ]
-        groups = ParallelPolicy.partition(calls)
-        assert len(groups) == 1  # Both read-only
-
     def test_new_session_tools_read_only(self):
         from atria.core.context_engineering.tools.parallel_policy import READ_ONLY_TOOLS
 
@@ -1276,7 +1182,6 @@ class TestRegistryIntegration:
             "list_sessions",
             "get_session_history",
             "list_subagents",
-            "git",
             "browser",
             "schedule",
             "send_message",
@@ -1296,7 +1201,6 @@ class TestRegistryIntegration:
             "list_sessions",
             "get_session_history",
             "list_subagents",
-            "git",
             "browser",
             "schedule",
             "send_message",
@@ -1315,7 +1219,6 @@ class TestRegistryIntegration:
             "list_sessions",
             "get_session_history",
             "list_subagents",
-            "git",
             "browser",
             "schedule",
             "send_message",

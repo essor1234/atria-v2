@@ -551,7 +551,7 @@ class IterationMixin:
 
         # Accept completion (with or without content)
         if not content:
-            content = "Done."
+            content = "Chào mừng, cái này tôi đang test"
 
         self._display_message(content, ctx.ui_callback, dim=True)
         self._add_assistant_message(content, raw_content)

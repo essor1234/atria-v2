@@ -8,6 +8,19 @@ version: 2.1.0
 
 Subagents are specialized agents with focused capabilities. Each has a specific purpose and tool set. Choose the right subagent based on your task requirements.
 
+## Delegation-First Policy
+
+**Prefer spawn_subagent over handling work inline.** Your job is to plan and orchestrate; subagents do the execution. Delegate whenever a task is more than a trivial single-tool operation. Examples of work that must be delegated, not done inline:
+
+- Any multi-step implementation (writing/editing across files, refactors, feature builds) — dispatch a subagent
+- Codebase research beyond one known-path file read — dispatch Code-Explorer
+- Code review, PR review, security audit — dispatch the matching reviewer subagent
+- Building/generating UI or web artifacts — dispatch web-clone / web-generator
+- Any task where multiple candidate approaches are worth racing — dispatch with `strategy="parallel"`
+- Any task that decomposes into dependent subtasks — dispatch with `strategy="divide"`
+
+Handle inline ONLY when the work is a single small operation (see "When NOT to use subagents" below). If unsure, dispatch — the cost of one extra spawn is far smaller than the cost of doing multi-step work in the main loop, losing context, and re-doing it.
+
 ## ask-user
 **Purpose**: Gather clarifying information through structured multiple-choice questions.
 **When to use**: Need to clarify ambiguous requirements, gather user preferences, or confirm critical decisions before implementation.
@@ -53,15 +66,13 @@ Subagents are specialized agents with focused capabilities. Each has a specific 
 - Independent research tasks exploring different parts of the codebase
 - Tasks that can be divided into non-overlapping areas of investigation
 
-**When NOT to use subagents** (use direct tools instead — spawning has LLM overhead):
-- Analyzing or reading a file whose path you already know — use `read_file` directly
-- Simple grep/search for a specific pattern — use `search` directly
-- Reading output you just produced (logs, test results, command output) — use `read_file` directly
-- Single file edits or quick checks
-- Running a single command
-- Any task achievable in 1-2 tool calls — subagent overhead is never justified for these
-- Creative or greenfield tasks with no existing codebase (game design, brainstorming, writing specs from scratch) — handle directly
-- When the task doesn't match any subagent's purpose — don't force-fit
+**When NOT to use subagents** — this list is deliberately narrow. If your task isn't on it, dispatch:
+- Reading a file whose exact path you already know — use `read_file`
+- One-liner grep/search for a specific pattern — use `search`
+- Reading output you just produced (logs, test results, tool output) — use `read_file`
+- A single file edit that changes only a few lines and touches no other file — use `edit_file`
+- Running a single command whose output you can act on directly
+- When the task doesn't match any subagent's purpose — don't force-fit, but reconsider whether it should be dispatched with `strategy="divide"` instead
 
 **Anti-pattern**: Do NOT spawn Code-Explorer to read/analyze a file whose path you already know. That wastes an entire LLM call on subagent setup when a direct `read_file` gives the same result instantly.
 
@@ -74,19 +85,12 @@ When **multiple subagents** return results (parallel execution), do NOT summariz
 
 ## Choosing a spawn_subagent strategy
 
-Every `spawn_subagent` call now takes an optional `strategy` field. Default is
-`direct`, which runs one subagent through the existing SubAgentManager — pick
-this for a single, focused delegation to a specialized agent type.
+Every `spawn_subagent` call takes a `strategy` field. Pick per the task shape — **do not default to `direct` out of habit**. The dispatch strategies (`divide`, `parallel`) exist because they are usually the right call for real work.
 
-Use `divide` when the work is a multi-step problem whose subtasks depend on
-each other. The prompt is decomposed into a small DAG and executed as one
-unit. Set `subagent_type` as a hint about which module/skill to bias
-decomposition toward.
+**Prefer `divide`** when the task has multiple steps or subtasks that depend on one another. The prompt is decomposed into a small DAG and executed as one unit with a live blackboard visible on the Dispatch page. Set `subagent_type` as a hint about which module/skill to bias decomposition toward. This is the default choice for anything that is not a single self-contained delegation.
 
-Use `parallel` when the task is a single well-scoped problem and racing a few
-candidate approaches is worth the overhead. N solvers work in isolated
-worktrees; the judge picks and applies a winner. Keep the prompt tight — the
-solvers will diverge if the instructions are loose.
+**Prefer `parallel`** when the task is one well-scoped problem and racing a few candidate approaches is worth the overhead — refactors, bug fixes, tricky edits where a judge picking the best diff produces higher-quality output. N solvers work in isolated worktrees; the judge picks and applies the winner. Keep the prompt tight — loose instructions cause solvers to diverge.
 
-If `divide` or `parallel` returns an error mentioning the orchestrator is not
-configured (Redis or Docker unavailable), fall back to `direct`.
+**Use `direct`** only for a single focused delegation to a specialized agent type where decomposition and racing add no value: ask-user, code-explorer on a known scope, one-shot planner, project-init, pr-reviewer, security-reviewer, web-clone, web-generator.
+
+If `divide` or `parallel` returns an error mentioning the orchestrator is not configured (Redis or Docker unavailable), fall back to `direct` for that call and note it — do not treat the fallback as the norm.

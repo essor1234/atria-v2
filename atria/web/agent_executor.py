@@ -375,7 +375,6 @@ class AgentExecutor:
             config=config,
             task_id=session_id or "",
             owner_id=getattr(session, "owner_id", "") or "",
-            session_factory=getattr(self.state.session_manager, "_sm", None),
         )
         if bb_handle is not None:
             agent._blackboard_handle = bb_handle

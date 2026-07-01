@@ -172,6 +172,33 @@ class TodoHandler(CrudMixin, QueryMixin):
             "todo_ids": created_ids,
         }
 
+    def to_payload(self) -> List[dict]:
+        """Return the current todos as a structured, UI-ready list.
+
+        Sorted by status (doing -> todo -> done) then by numeric id, mirroring
+        the textual list rendering. Used to broadcast structured todo state to
+        clients (e.g. the web UI todo card).
+        """
+        status_order = {"doing": 0, "todo": 1, "done": 2}
+
+        def _id_num(todo_id: str) -> int:
+            digits = "".join(ch for ch in str(todo_id) if ch.isdigit())
+            return int(digits) if digits else 0
+
+        ordered = sorted(
+            self._todos.values(),
+            key=lambda t: (status_order.get(t.status, 3), _id_num(t.id)),
+        )
+        return [
+            {
+                "id": t.id,
+                "title": t.title,
+                "status": t.status,
+                "active_form": t.active_form,
+            }
+            for t in ordered
+        ]
+
     def clear_todos(self) -> dict:
         """Clear all todos, removing the entire todo list."""
         count = len(self._todos)

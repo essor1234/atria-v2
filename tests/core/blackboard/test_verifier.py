@@ -8,19 +8,19 @@ def test_normalizes_type_and_drops_invalid():
 
 
 def test_drops_empty_and_caps_length():
-    long = "x" * 250
+    long = "x" * 500
     clean, _ = verify_notes([{"type": "FACT", "content": long}, {"type": "FACT", "content": "  "}])
     assert len(clean) == 1
-    assert len(clean[0]["content"]) == 100  # MAX_CONTENT_CHARS
+    assert len(clean[0]["content"]) == 300  # MAX_NOTE_CHARS (single budget)
 
 
-def test_patch_summary_keeps_300_and_rejects_placeholder_evidence():
-    good = "files=a.py | idea=fix | evidence=ran test_x and it PASSED | risk=none"
+def test_placeholder_evidence_now_passes_hygiene():
+    # S1: the deterministic placeholder blocklist is removed — semantic grounding is
+    # now the LLM admission verifier's job (see test_blackboard_admission.py).
     bad = "files=a.py | idea=fix | evidence=TBD | risk=none"
-    clean, status = verify_notes([{"type": "PATCH_SUMMARY", "content": good},
-                                  {"type": "PATCH_SUMMARY", "content": bad}])
-    assert clean == [{"type": "PATCH_SUMMARY", "content": good}]
-    assert "ps_invalid_ev=1" in status
+    clean, status = verify_notes([{"type": "PATCH_SUMMARY", "content": bad}])
+    assert clean == [{"type": "PATCH_SUMMARY", "content": bad}]
+    assert status == "ok:1/1"
 
 
 def test_collapses_exact_duplicates():

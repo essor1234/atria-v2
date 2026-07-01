@@ -9,9 +9,10 @@ from __future__ import annotations
 import asyncio
 import threading
 import uuid
+from datetime import datetime
 from typing import Any, Dict
 
-from atria.models.message import ToolCall
+from atria.models.message import ChatMessage, Role, ToolCall
 from atria.ui_textual.callback_interface import BaseUICallback
 from atria.web.logging_config import logger
 from atria.web.protocol import WSMessageType
@@ -144,6 +145,63 @@ class WebUICallback(BaseUICallback):
     # ------------------------------------------------------------------
     # Subagent lifecycle (used by SubAgentManager)
     # ------------------------------------------------------------------
+
+    def on_todos_updated(self, todos: list) -> None:
+        """Broadcast the current structured todo list to the client."""
+        self._broadcast(
+            {
+                "type": WSMessageType.TODOS_UPDATED,
+                "data": {
+                    "todos": todos,
+                    "session_id": self.session_id,
+                },
+            }
+        )
+        # Also persist the snapshot so the todo card survives session reload.
+        self._persist_todos(todos)
+
+    def _persist_todos(self, todos: list) -> None:
+        """Persist the todo snapshot into the session for replay on reload.
+
+        Timeline semantics — mirrored by the frontend reducer (lib/todos.ts):
+        update the trailing ``todos`` message in place if present, else append a
+        new one; an empty list drops a trailing card. ``todos`` is a UI-only
+        role, excluded from LLM context by the message→API converter.
+        """
+        session_id = self.session_id
+        state = self.state
+        loop = self.loop
+        if not session_id or state is None or loop is None:
+            return
+        if getattr(state, "session_manager", None) is None:
+            return
+
+        async def _save() -> None:
+            try:
+                sess = await state.session_manager.get_session_by_id(session_id)
+                if sess is None:
+                    return
+                msgs = sess.messages
+                trailing = msgs[-1] if msgs and msgs[-1].role == Role.TODOS else None
+                if not todos:
+                    if trailing is None:
+                        return
+                    msgs.pop()
+                elif trailing is not None:
+                    trailing.metadata = {"todos": todos}
+                    trailing.timestamp = datetime.now()
+                else:
+                    sess.add_message(
+                        ChatMessage(role=Role.TODOS, content="", metadata={"todos": todos})
+                    )
+                await state.session_manager.save_session(sess)
+            except Exception as exc:  # never break the agent turn over UI persistence
+                logger.warning("Failed to persist todos message: %s", exc)
+
+        try:
+            asyncio.run_coroutine_threadsafe(_save(), loop)
+        except RuntimeError as exc:
+            logger.warning("Could not schedule todos persist: %s", exc)
 
     def on_single_agent_start(self, agent_type: str, description: str, tool_call_id: str) -> None:
         """Broadcast when a single subagent begins executing."""

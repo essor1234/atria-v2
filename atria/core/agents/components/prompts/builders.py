@@ -222,6 +222,13 @@ class BasePromptBuilder:
 
         # Append Shared Lessons from blackboard to the DYNAMIC part — lesson
         # content accumulates during a run and must not be prompt-cached.
+        #
+        # KV-cache placement (DeLM §A.4): the shared context wants to be a stable
+        # prefix. It cannot live in the byte-stable `stable` block because it grows
+        # as notes are admitted, so it goes LAST in `dynamic` — the most-volatile
+        # position — keeping the longer, less-volatile prefix (core + stable + skill
+        # block) cacheable, and it still precedes all conversation/task messages.
+        # Do not move it earlier than the skill block, which changes less often.
         shared_lessons = render_shared_lessons_section(self._blackboard)
         if shared_lessons:
             dynamic_sections = (

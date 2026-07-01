@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
+import { useMediaQuery } from "usehooks-ts";
 import { useChatStore } from "../../stores/chat";
 import { useModulesStore } from "../../stores/modules";
 import { useProjectsStore } from "../../stores/projects";
@@ -37,6 +38,11 @@ export function ProjectSidebar() {
   const isCollapsed = useChatStore((s) => s.sidebarCollapsed);
   const toggleSidebar = useChatStore((s) => s.toggleSidebar);
   const runningSessions = useChatStore((s) => s.runningSessions);
+
+  // Below md the sidebar becomes an off-canvas drawer instead of a static column.
+  const isMobile = useMediaQuery("(max-width: 767px)");
+  const mobileSidebarOpen = useChatStore((s) => s.mobileSidebarOpen);
+  const closeMobileSidebar = useChatStore((s) => s.closeMobileSidebar);
 
   const modulesWithDashboards = useModulesStore((s) => s.modulesWithDashboards);
   const activeModuleDashboard = useModulesStore((s) => s.activeModuleDashboard);
@@ -68,6 +74,7 @@ export function ProjectSidebar() {
     try {
       await createWorkspaceConversation("New Chat");
       closeModuleDashboard();
+      closeMobileSidebar();
     } finally {
       setCreatingChat(false);
     }
@@ -83,7 +90,7 @@ export function ProjectSidebar() {
     setConfirmDelete(null);
   };
 
-  if (isCollapsed) {
+  if (isCollapsed && !isMobile) {
     return (
       <aside
         data-surface="dark"
@@ -149,19 +156,12 @@ export function ProjectSidebar() {
     );
   }
 
-  return (
+  const sidebarBody = (
     <>
-      <motion.aside
-        initial={reduce ? false : { opacity: 0, x: -12 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        data-surface="dark"
-        className="w-64 flex flex-col bg-bg-100 border-r border-border-300/15 overflow-hidden"
-      >
         {/* Header: collapse + New Chat + New Project + Settings */}
         <div className="flex items-center justify-between px-3 py-2.5 border-b border-border-300/10">
           <button
-            onClick={toggleSidebar}
+            onClick={() => (isMobile ? closeMobileSidebar() : toggleSidebar())}
             className="text-xs font-mono font-semibold text-text-300 hover:text-text-100 transition-colors flex items-center gap-1"
           >
             <ChevronRight className="w-3 h-3 rotate-180" />
@@ -235,13 +235,14 @@ export function ProjectSidebar() {
                 return (
                   <button
                     key={m.name}
-                    onClick={() =>
+                    onClick={() => {
                       isActive
                         ? closeModuleDashboard()
-                        : openModuleDashboard(m.name)
-                    }
+                        : openModuleDashboard(m.name);
+                      closeMobileSidebar();
+                    }}
                     title={m.tooltip}
-                    className={`group flex items-center gap-2 px-3 py-1.5 w-full transition-colors text-left ${
+                    className={`group flex items-center gap-2 px-3 py-2.5 md:py-1.5 w-full transition-colors text-left ${
                       isActive
                         ? "bg-accent-main-100/10 border-r-2 border-accent-main-100"
                         : "hover:bg-bg-200/40"
@@ -302,7 +303,7 @@ export function ProjectSidebar() {
                     {convs.length}
                   </span>
                   <div
-                    className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5"
+                    className="opacity-100 md:opacity-0 md:group-hover:opacity-100 flex items-center gap-0.5"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button
@@ -344,8 +345,9 @@ export function ProjectSidebar() {
                           onClick={() => {
                             closeModuleDashboard();
                             loadSession(conv.id);
+                            closeMobileSidebar();
                           }}
-                          className={`group flex items-center gap-1.5 px-3 py-1.5 cursor-pointer transition-colors ${
+                          className={`group flex items-center gap-1.5 px-3 py-2.5 md:py-1.5 cursor-pointer transition-colors ${
                             isActive
                               ? "bg-accent-main-100/10 border-r-2 border-accent-main-100"
                               : "hover:bg-bg-200/40"
@@ -377,7 +379,7 @@ export function ProjectSidebar() {
                                 projectId: project.id,
                               });
                             }}
-                            className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-bg-300 text-text-400 hover:text-semantic-danger transition-colors"
+                            className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1 md:p-0.5 rounded hover:bg-bg-300 text-text-400 hover:text-semantic-danger transition-colors"
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
@@ -390,7 +392,40 @@ export function ProjectSidebar() {
             );
           })}
         </div>
-      </motion.aside>
+    </>
+  );
+
+  return (
+    <>
+      {isMobile ? (
+        <>
+          {mobileSidebarOpen && (
+            <div
+              className="fixed inset-0 z-40 bg-black/50 md:hidden"
+              onClick={closeMobileSidebar}
+              aria-hidden
+            />
+          )}
+          <aside
+            data-surface="dark"
+            className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] flex flex-col bg-bg-100 border-r border-border-300/15 overflow-hidden md:hidden transition-transform duration-200 ease-out ${
+              mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+          >
+            {sidebarBody}
+          </aside>
+        </>
+      ) : (
+        <motion.aside
+          initial={reduce ? false : { opacity: 0, x: -12 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          data-surface="dark"
+          className="w-64 flex flex-col bg-bg-100 border-r border-border-300/15 overflow-hidden"
+        >
+          {sidebarBody}
+        </motion.aside>
+      )}
 
       <CreateProjectModal
         isOpen={createProjectOpen}

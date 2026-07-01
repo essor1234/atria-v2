@@ -45,7 +45,6 @@ TOOL_GROUPS: dict[str, set[str]] = {
         "browser",
         "open_browser",
     },
-    "group:git": {"git"},
     "group:session": {
         "list_sessions",
         "get_session_history",
@@ -77,13 +76,12 @@ TOOL_GROUPS: dict[str, set[str]] = {
 # Named profiles — compose groups into permission sets
 PROFILES: dict[str, list[str]] = {
     "minimal": ["group:read", "group:meta"],
-    "review": ["group:read", "group:meta", "group:web", "group:git", "group:session"],
+    "review": ["group:read", "group:meta", "group:web", "group:session"],
     "coding": [
         "group:read",
         "group:write",
         "group:process",
         "group:web",
-        "group:git",
         "group:meta",
         "group:session",
         "group:memory",

@@ -427,7 +427,6 @@ class ReactExecutor(ThinkingMixin, ToolProcessingMixin, SessionPersistenceMixin,
             config=self.config,
             task_id=getattr(sess, "id", "") or "",
             owner_id=getattr(sess, "owner_id", "") or "",
-            session_factory=getattr(self.session_manager, "_sm", None),
         )
 
         try:

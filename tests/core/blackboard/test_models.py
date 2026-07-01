@@ -1,15 +1,14 @@
 from atria.core.blackboard.models import (
-    MAX_CONTENT_CHARS,
-    MAX_PATCH_SUMMARY_CHARS,
+    MAX_NOTE_CHARS,
     VALID_TYPES,
     Note,
 )
 
 
-def test_valid_types_and_caps():
+def test_valid_types_and_cap():
+    # S1: per-type caps collapsed to a single budget (DeLM Fig 4b: length-insensitive).
     assert VALID_TYPES == ("FACT", "TRIED", "OBSERVED", "FAIL", "CLAIM", "PATCH_SUMMARY")
-    assert MAX_CONTENT_CHARS == 100
-    assert MAX_PATCH_SUMMARY_CHARS == 300
+    assert MAX_NOTE_CHARS == 300
 
 
 def test_note_roundtrips_dict():

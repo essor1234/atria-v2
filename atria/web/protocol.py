@@ -29,6 +29,7 @@ class WSMessageType(str, Enum):
     TASK_COMPLETED = "task_completed"
     SUBAGENT_START = "subagent_start"
     SUBAGENT_COMPLETE = "subagent_complete"
+    TODOS_UPDATED = "todos_updated"
     PARALLEL_AGENTS_START = "parallel_agents_start"
     PARALLEL_AGENTS_DONE = "parallel_agents_done"
     # Unified solver lifecycle events (divide + parallel merged behind a

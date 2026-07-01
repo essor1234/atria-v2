@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { AppNavBar } from '../components/Layout/AppNavBar';
 import { useSolverJobsStore } from '../stores/solverJobs';
 import type {
   SolverJob,
@@ -439,10 +438,8 @@ export function DispatchPage() {
   const clear = useSolverJobsStore((s) => s.clear);
 
   return (
-    <div className="min-h-screen bg-canvas flex flex-col">
-      <AppNavBar />
-
-      <main className="flex-1 pt-14">
+    <div className="flex-1 min-h-0 overflow-y-auto bg-canvas">
+      <main>
         <div className="max-w-content mx-auto px-6 py-8">
           <div className="flex items-start justify-between mb-8">
             <div>

@@ -200,6 +200,79 @@
     .err { min-height: 16px; font-size: 12px; color: hsl(var(--st-redo)); }
     .skeleton { opacity: 0.55; }
 
+    /* ── Tabs ────────────────────────────────────────────────────────── */
+    .tabs { display: flex; gap: 0; border-bottom: 1px solid hsl(var(--hairline-soft)); }
+    .tab {
+      appearance: none; background: none; color: hsl(var(--muted-ink));
+      border: 0; border-bottom: 2px solid transparent; border-radius: 0;
+      padding: 9px 2px; margin-right: 22px; font-size: 13.5px; font-weight: 500;
+      line-height: 1; cursor: pointer;
+      transition: color var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out);
+    }
+    .tab:hover:not(:disabled) { color: hsl(var(--ink)); opacity: 1; }
+    .tab[aria-selected="true"] { color: hsl(var(--ink)); border-bottom-color: hsl(var(--ink)); }
+    .tab:focus-visible { outline: none; box-shadow: 0 2px 0 0 hsl(var(--ink)); }
+    .view { display: flex; flex-direction: column; gap: 22px; }
+    [hidden] { display: none !important; }
+
+    /* ── Stats controls ──────────────────────────────────────────────── */
+    .controls {
+      display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center;
+      padding: 13px 16px; border: 1px solid hsl(var(--hairline)); border-radius: 12px;
+    }
+    .field { display: inline-flex; align-items: center; gap: 7px; }
+    .field > label {
+      font-family: 'JetBrains Mono', monospace; text-transform: uppercase;
+      letter-spacing: 0.06em; font-size: 10px; color: hsl(var(--muted-ink));
+    }
+    .ctl {
+      font: inherit; font-size: 13px; padding: 7px 11px; border-radius: 8px;
+      color: hsl(var(--ink)); background: hsl(var(--canvas));
+      border: 1px solid hsl(var(--hairline-soft));
+      transition: border-color var(--motion-fast) var(--ease-out), box-shadow var(--motion-fast) var(--ease-out);
+    }
+    .ctl:hover { border-color: hsl(var(--hairline)); }
+    .ctl:focus-visible { outline: none; border-color: hsl(var(--ink)); box-shadow: 0 0 0 3px hsl(var(--ink) / 0.1); }
+    input.ctl[type="search"] { min-width: 190px; }
+    .count-badge {
+      margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+      color: hsl(var(--muted-ink)); white-space: nowrap;
+    }
+    .count-badge strong { color: hsl(var(--ink)); font-weight: 560; }
+
+    /* ── Stats tables ────────────────────────────────────────────────── */
+    .tbl-wrap { overflow-x: auto; }
+    table.tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    table.tbl th {
+      text-align: left; font-weight: 500; font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.05em; color: hsl(var(--muted-ink)); padding: 9px 12px;
+      border-bottom: 1px solid hsl(var(--hairline)); white-space: nowrap; position: sticky; top: 0;
+      background: hsl(var(--canvas));
+    }
+    table.tbl td { padding: 9px 12px; border-bottom: 1px solid hsl(var(--hairline-soft)); white-space: nowrap; }
+    table.tbl tbody tr:last-child td { border-bottom: 0; }
+    table.tbl tbody tr { transition: background var(--motion-fast) var(--ease-out); }
+    table.tbl tbody tr:hover { background: hsl(var(--surface-soft) / 0.7); }
+    table.tbl .num { text-align: right; font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+    table.tbl .oid { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; }
+    table.tbl .muted { color: hsl(var(--muted-ink)); }
+    table.tbl .owed { color: hsl(var(--st-redo)); font-weight: 560; }
+    table.tbl tfoot td {
+      padding: 9px 12px; border-top: 1px solid hsl(var(--hairline)); font-weight: 560;
+      font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums;
+    }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 11px;
+      padding: 2px 9px; border-radius: 999px; border: 1px solid hsl(var(--hairline-soft));
+    }
+    .pill .pdot { width: 6px; height: 6px; border-radius: 50%; flex: 0 0 auto; }
+    .pill.active { border-color: hsl(var(--st-busy) / 0.4); }
+    .pill.active .pdot { background: hsl(var(--st-busy)); }
+    .pill.done { border-color: hsl(var(--st-free) / 0.4); }
+    .pill.done .pdot { background: hsl(var(--st-free)); }
+    .pill.cancelled .pdot { background: hsl(var(--muted-ink)); }
+    .pill.cancelled { color: hsl(var(--muted-ink)); }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
     }
@@ -224,8 +297,14 @@
       </div>
     </header>
 
+    <nav class="tabs" role="tablist" aria-label="Chế độ xem">
+      <button type="button" class="tab" id="tab-live" role="tab" aria-selected="true" aria-controls="view-live">Hiện trạng</button>
+      <button type="button" class="tab" id="tab-stats" role="tab" aria-selected="false" aria-controls="view-stats">Thống kê</button>
+    </nav>
+
     <div class="err" id="err" role="alert"></div>
 
+    <div class="view" id="view-live" role="tabpanel" aria-labelledby="tab-live">
     <section class="kpis" id="kpis" aria-label="Chỉ số tổng quan">
       <div class="kpi">
         <span class="eyebrow">Đơn đang xử lý</span>
@@ -280,6 +359,97 @@
       <header><h2>Đơn đang xử lý</h2><span class="hint">phần · bước hiện tại · vị trí</span></header>
       <div class="body"><div id="orders"></div></div>
     </section>
+    </div><!-- /view-live -->
+
+    <div class="view" id="view-stats" role="tabpanel" aria-labelledby="tab-stats" hidden>
+      <div class="controls">
+        <div class="field">
+          <label for="f-date">Ngày</label>
+          <input type="date" id="f-date" class="ctl" aria-label="Chọn ngày thống kê" />
+        </div>
+        <div class="field">
+          <label for="f-status">Trạng thái</label>
+          <select id="f-status" class="ctl" aria-label="Lọc theo trạng thái">
+            <option value="all">Tất cả</option>
+            <option value="active">Đang xử lý</option>
+            <option value="done">Hoàn tất</option>
+            <option value="cancelled">Đã huỷ</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-search">Tìm</label>
+          <input type="search" id="f-search" class="ctl" placeholder="SĐT, tên, mã đơn…" aria-label="Tìm đơn hàng" />
+        </div>
+        <span class="count-badge" id="stat-count" aria-live="polite">—</span>
+      </div>
+
+      <section class="kpis" id="stat-kpis" aria-label="Tổng quan trong ngày">
+        <div class="kpi">
+          <span class="eyebrow">Đơn trong ngày</span>
+          <div class="value mono" id="st-orders">—</div>
+          <div class="sub" id="st-orders-sub">tổng đơn đã tạo</div>
+        </div>
+        <div class="kpi">
+          <span class="eyebrow">Hoàn tất</span>
+          <div class="value mono" id="st-done">—</div>
+          <div class="sub" id="st-done-sub">đơn đã giao</div>
+        </div>
+        <div class="kpi">
+          <span class="eyebrow">Phần xử lý</span>
+          <div class="value mono" id="st-parts">—</div>
+          <div class="sub" id="st-parts-sub">lot được tách</div>
+        </div>
+        <div class="kpi">
+          <span class="eyebrow">Đã đếm / khai</span>
+          <div class="value mono" id="st-items">—</div>
+          <div class="sub" id="st-items-sub">số lượng món</div>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Thống kê theo loại món">
+        <header><h2>Theo loại món</h2><span class="hint">khai báo vs đã đếm · không tính đơn huỷ</span></header>
+        <div class="body">
+          <div class="tbl-wrap">
+            <table class="tbl" id="byitem-table">
+              <thead>
+                <tr>
+                  <th>Loại món</th>
+                  <th class="num">Khai báo</th>
+                  <th class="num">Đã đếm</th>
+                  <th class="num">Còn nợ</th>
+                  <th class="num">Dư</th>
+                </tr>
+              </thead>
+              <tbody id="byitem-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Danh sách đơn">
+        <header><h2>Đơn hàng</h2><span class="hint">lọc & đếm theo điều kiện</span></header>
+        <div class="body">
+          <div class="tbl-wrap">
+            <table class="tbl" id="orders-table">
+              <thead>
+                <tr>
+                  <th>Mã đơn</th>
+                  <th>SĐT</th>
+                  <th>Khách</th>
+                  <th>Trạng thái</th>
+                  <th class="num">Phần</th>
+                  <th class="num">Khai</th>
+                  <th class="num">Đếm</th>
+                  <th class="num">Giờ tạo</th>
+                </tr>
+              </thead>
+              <tbody id="stat-orders-body"></tbody>
+              <tfoot id="stat-orders-foot"></tfoot>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div><!-- /view-stats -->
   </div>
 
   <script src="__bridge.js"></script>
@@ -296,6 +466,7 @@
         gap: "40 90% 50%", kiem_dem: "26 88% 52%", giao_hang: "8 78% 54%", done: "150 46% 42%"
       };
       var KIND_LABELS = { bin: "Bins", washer: "Máy giặt", dryer: "Máy sấy", fold: "Khu gấp", count: "Khu đếm" };
+      var STATUS_LABELS = { active: "Đang xử lý", done: "Hoàn tất", cancelled: "Đã huỷ" };
 
       var el = {
         orders: document.getElementById("orders"),
@@ -312,7 +483,28 @@
         kUtilSub: document.getElementById("kpi-util-sub"),
         kRedo: document.getElementById("kpi-redo"),
         kRedoCard: document.getElementById("kpi-redo-card"),
+        // tabs + stats view
+        tabLive: document.getElementById("tab-live"),
+        tabStats: document.getElementById("tab-stats"),
+        viewLive: document.getElementById("view-live"),
+        viewStats: document.getElementById("view-stats"),
+        fDate: document.getElementById("f-date"),
+        fStatus: document.getElementById("f-status"),
+        fSearch: document.getElementById("f-search"),
+        statCount: document.getElementById("stat-count"),
+        stOrders: document.getElementById("st-orders"),
+        stOrdersSub: document.getElementById("st-orders-sub"),
+        stDone: document.getElementById("st-done"),
+        stParts: document.getElementById("st-parts"),
+        stPartsSub: document.getElementById("st-parts-sub"),
+        stItems: document.getElementById("st-items"),
+        byItemBody: document.getElementById("byitem-body"),
+        statOrdersBody: document.getElementById("stat-orders-body"),
+        statOrdersFoot: document.getElementById("stat-orders-foot"),
       };
+
+      var currentTab = "live";
+      var statsState = { date: "", orders: [], loaded: false };
 
       function setErr(m) { el.err.textContent = m || ""; }
       function reportSize() {
@@ -543,6 +735,160 @@
         });
       }
 
+      // ── Stats tab ──────────────────────────────────────────────────
+      function fmtTime(iso) {
+        if (!iso) return "—";
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return iso;
+        return d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+      }
+
+      function renderStatsSummary(s) {
+        s = s || {};
+        var orders = s.orders || 0;
+        el.stOrders.textContent = String(orders);
+        var active = s.active || 0, cancelled = s.cancelled || 0;
+        el.stOrdersSub.textContent = active + " đang xử lý · " + cancelled + " huỷ";
+        el.stDone.textContent = (s.done || 0) + "/" + orders;
+        el.stParts.textContent = String(s.parts || 0);
+        el.stPartsSub.textContent = (s.redo_parts || 0) + " phần làm lại";
+        el.stItems.textContent = (s.counted_items || 0) + "/" + (s.declared_items || 0);
+      }
+
+      function renderByItem(items) {
+        el.byItemBody.innerHTML = "";
+        if (!items.length) {
+          var tr = document.createElement("tr");
+          var td = document.createElement("td");
+          td.colSpan = 5; td.className = "muted"; td.textContent = "Chưa có dòng hàng nào.";
+          tr.appendChild(td); el.byItemBody.appendChild(tr);
+          return;
+        }
+        items.forEach(function (it) {
+          var tr = document.createElement("tr");
+          tr.appendChild(cell(it.item_type));
+          tr.appendChild(cell(it.declared, "num"));
+          tr.appendChild(cell(it.counted, "num"));
+          tr.appendChild(cell(it.owed || "—", "num" + (it.owed ? " owed" : " muted")));
+          tr.appendChild(cell(it.extra || "—", "num" + (it.extra ? "" : " muted")));
+          el.byItemBody.appendChild(tr);
+        });
+      }
+
+      function cell(text, cls) {
+        var td = document.createElement("td");
+        if (cls) td.className = cls;
+        td.textContent = String(text);
+        return td;
+      }
+
+      function statusPill(status) {
+        var span = document.createElement("span");
+        span.className = "pill " + status;
+        var dot = document.createElement("span");
+        dot.className = "pdot";
+        span.appendChild(dot);
+        span.appendChild(document.createTextNode(STATUS_LABELS[status] || status));
+        return span;
+      }
+
+      function renderStatsTable(rows) {
+        el.statOrdersBody.innerHTML = "";
+        el.statOrdersFoot.innerHTML = "";
+        if (!rows.length) {
+          var tr = document.createElement("tr");
+          var td = document.createElement("td");
+          td.colSpan = 8; td.className = "muted"; td.style.textAlign = "center";
+          td.style.padding = "22px 12px"; td.textContent = "Không có đơn nào khớp bộ lọc.";
+          tr.appendChild(td); el.statOrdersBody.appendChild(tr);
+          return;
+        }
+        var parts = 0, declared = 0, counted = 0;
+        rows.forEach(function (o) {
+          parts += o.parts || 0; declared += o.declared_items || 0; counted += o.counted_items || 0;
+          var tr = document.createElement("tr");
+          var oid = cell(o.order_id); oid.className = "oid"; tr.appendChild(oid);
+          tr.appendChild(cell(o.customer_phone || "—"));
+          var nm = cell(o.customer_name || "—"); if (!o.customer_name) nm.className = "muted"; tr.appendChild(nm);
+          var st = document.createElement("td"); st.appendChild(statusPill(o.status)); tr.appendChild(st);
+          tr.appendChild(cell(o.parts || 0, "num"));
+          tr.appendChild(cell(o.declared_items || 0, "num"));
+          var c = cell(o.counted_items || 0, "num" + (o.counted_items < o.declared_items ? " owed" : ""));
+          tr.appendChild(c);
+          var tm = cell(fmtTime(o.created_at), "num muted"); tr.appendChild(tm);
+          el.statOrdersBody.appendChild(tr);
+        });
+        var foot = document.createElement("tr");
+        var lbl = document.createElement("td"); lbl.colSpan = 4; lbl.textContent = rows.length + " đơn";
+        foot.appendChild(lbl);
+        foot.appendChild(cell(parts, "num"));
+        foot.appendChild(cell(declared, "num"));
+        foot.appendChild(cell(counted, "num"));
+        foot.appendChild(cell("", "num"));
+        el.statOrdersFoot.appendChild(foot);
+      }
+
+      function applyStatsFilter() {
+        var status = el.fStatus.value;
+        var q = (el.fSearch.value || "").trim().toLowerCase();
+        var rows = statsState.orders.filter(function (o) {
+          if (status !== "all" && o.status !== status) return false;
+          if (q) {
+            var hay = (o.order_id + " " + (o.customer_phone || "") + " " +
+              (o.customer_name || "")).toLowerCase();
+            if (hay.indexOf(q) === -1) return false;
+          }
+          return true;
+        });
+        renderStatsTable(rows);
+        var parts = 0, declared = 0, counted = 0;
+        rows.forEach(function (o) {
+          parts += o.parts || 0; declared += o.declared_items || 0; counted += o.counted_items || 0;
+        });
+        el.statCount.innerHTML = "<strong>" + rows.length + "</strong> đơn · <strong>" + parts +
+          "</strong> phần · đếm <strong>" + counted + "</strong>/" + declared;
+        reportSize();
+      }
+
+      function loadStats(date) {
+        setBusy(true);
+        var argv = date ? ["stats", "--json", "--date", date] : ["stats", "--json"];
+        AtriaDash.json("flow.py", argv)
+          .then(function (data) {
+            data = data || {};
+            setErr("");
+            statsState.loaded = true;
+            statsState.date = data.date || date || "";
+            statsState.orders = data.orders || [];
+            if (!el.fDate.value && statsState.date) el.fDate.value = statsState.date;
+            renderStatsSummary(data.summary);
+            renderByItem(data.by_item || []);
+            applyStatsFilter();
+            reportSize();
+          })
+          .catch(function (e) {
+            setErr("Lỗi tải thống kê: " + (e && e.message ? e.message : e));
+          })
+          .then(function () { setBusy(false); reportSize(); });
+      }
+
+      function refreshActive() {
+        if (currentTab === "stats") loadStats(el.fDate.value || undefined);
+        else load();
+      }
+
+      function switchTab(name) {
+        if (name === currentTab) return;
+        currentTab = name;
+        var stats = name === "stats";
+        el.tabLive.setAttribute("aria-selected", String(!stats));
+        el.tabStats.setAttribute("aria-selected", String(stats));
+        el.viewLive.hidden = stats;
+        el.viewStats.hidden = !stats;
+        if (stats && !statsState.loaded) loadStats();
+        reportSize();
+      }
+
       function load() {
         setBusy(true);
         AtriaDash.json("flow.py", ["dashboard", "--json"])
@@ -562,9 +908,14 @@
           .then(function () { setBusy(false); reportSize(); });
       }
 
-      el.refresh.addEventListener("click", load);
-      AtriaDash.onChange(function () { load(); });
-      AtriaDash.onVisibility(function (v) { if (v) load(); });
+      el.refresh.addEventListener("click", refreshActive);
+      el.tabLive.addEventListener("click", function () { switchTab("live"); });
+      el.tabStats.addEventListener("click", function () { switchTab("stats"); });
+      el.fDate.addEventListener("change", function () { loadStats(el.fDate.value || undefined); });
+      el.fStatus.addEventListener("change", applyStatsFilter);
+      el.fSearch.addEventListener("input", applyStatsFilter);
+      AtriaDash.onChange(function () { refreshActive(); });
+      AtriaDash.onVisibility(function (v) { if (v) refreshActive(); });
       if (typeof ResizeObserver !== "undefined") new ResizeObserver(reportSize).observe(document.body);
       window.addEventListener("load", reportSize);
 
