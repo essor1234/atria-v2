@@ -6,10 +6,12 @@ never opens or closes connections — mirrors atria/core/tasks/meta.py.
 from __future__ import annotations
 
 import json
+import logging
 
 from atria.core.blackboard.models import Note
 
 _PREFIX = "atria:bb:"
+_log = logging.getLogger(__name__)
 
 
 class BlackboardStore:
@@ -21,12 +23,31 @@ class BlackboardStore:
         self._ttl = ttl
 
     async def append(self, notes: list[Note]) -> None:
-        """RPUSH each note as JSON and refresh the TTL. No-op for an empty list."""
+        """RPUSH each note as JSON, refresh the TTL, and publish each note.
+
+        Publish failures are swallowed (logged) so an append never fails when the
+        pub/sub pipeline is unavailable — the digest still commits.
+        """
         if not notes:
             return
         payloads = [json.dumps(n.to_dict()) for n in notes]
         await self._redis.rpush(self._key, *payloads)  # type: ignore[attr-defined]
         await self._redis.expire(self._key, self._ttl)  # type: ignore[attr-defined]
+
+        task_id = self._key.removeprefix(_PREFIX)
+        channel = f"{self._key}:notes"
+        for note in notes:
+            event = {
+                "task_id": task_id,
+                "thread_id": note.thread_id,
+                "type": note.type,
+                "content": note.content,
+                "ts": note.ts,
+            }
+            try:
+                await self._redis.publish(channel, json.dumps(event))  # type: ignore[attr-defined]
+            except Exception as exc:  # noqa: BLE001 — best-effort; never break append
+                _log.warning("blackboard publish failed on %s: %s", channel, exc)
 
     async def read_all(self) -> list[Note]:
         """Return all notes in insertion order."""
