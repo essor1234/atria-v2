@@ -19,22 +19,26 @@ parallelizable) plus a final `merge` that depends on them.
 
 ## When to use
 
-ALWAYS DISPATCH. Any request to build briefings for this module (especially
-the word "dispatch", or 2+ topics like "ai, biotech, climate, quantum rồi
-tổng hợp") → dispatch as your first action:
+**ALWAYS DISPATCH. No inline execution — ever.** Every request touching this
+module, including a single topic, must go through the dispatch pipeline as
+your first action:
 
 ```
 solve(strategy="divide", module="topic_briefings", request="<the full request>")
 ```
 
-Then collect with `get_solve_result(job_id)`. The orchestrator splits it into
-independent `gen` subtasks + a dependent `merge`, fans them out to background
-workers, and streams progress to the **Dispatch** tab.
+Then acknowledge the user briefly ("đã giao task, sẽ báo khi xong") and end
+your turn. Do NOT call `get_solve_result` in the same turn — the system
+notifies you when the job finishes.
 
-Do NOT run `briefing.py` yourself with `run_command`, and do NOT use
-`spawn_subagent`, for these requests — that is not dispatching. Only run a
-single command inline if the user explicitly asks for just ONE topic, or if
-`solve` returns an "unavailable" error.
+For a single topic, the orchestrator still routes through the DAG (one `gen`
+task) so the user sees live progress on the **Dispatch** tab. That
+visibility is the whole point of this module.
+
+Do NOT run `briefing.py` yourself with `run_command`. Do NOT use
+`spawn_subagent`. Do NOT wait for the job. The only exception is if `solve`
+returns an "unavailable" error — then fall back to `strategy="direct"` and
+tell the user why.
 
 ## Data model
 
