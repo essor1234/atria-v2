@@ -8,13 +8,21 @@ version: 2.0.0
 
 ## HARD RULE — dispatch requests
 
-If the user's message asks to **dispatch**, **run in the background**, **fan out**,
-or run a job/task across many items, you MUST call the **`solve`** tool as your
-FIRST action — with `strategy="divide"` (split into sub-tasks) or
-`strategy="parallel"` (N independent solvers). For a module workflow, pass
-`module="<name>"`. Do NOT instead use `spawn_subagent`, and do NOT run the work
-yourself with `run_command`/scripts — that is not dispatching. Only fall back to
-doing it inline if `solve` returns an explicit "unavailable" error.
+**Any request that maps to an active module's workflow MUST go through `solve` as your FIRST action.** This includes:
+- "Tạo/generate/create/build <thing> cho topic/region/item X" when a module documents that thing.
+- Anything the user says with the words *dispatch*, *chạy nền/background*, *fan out*, *song song*.
+- Any request that touches a script under `<modules>/<name>/scripts/*.py` — you must NEVER call `python <modules_root>/*/scripts/*` via `run_command`. That IS the anti-pattern. Route the request through `solve(strategy="divide", module="<name>", request="...")` — the module workers own the script call.
+- Any request across ≥1 item that the module's SKILL section says to dispatch (single-item counts if the module SKILL says "always dispatch").
+
+Choose `strategy`:
+- `strategy="divide"` — split into sub-tasks (default for module workflows). Pass `module="<name>"` and `request="<the user's full request>"`.
+- `strategy="parallel"` — N independent solvers on the same task (racing candidate approaches). Pass `task=...` and `n=...`.
+
+**Never substitute:** `spawn_subagent` (runs inline), `run_command` on the module script, or handling it in your own tool loop. Those are not dispatching.
+
+**Fallback:** only fall back to inline (`run_command` on the script) if `solve` returns an explicit "unavailable" / "not configured" error — and in that case tell the user why in one line.
+
+**After `solve` returns a `job_id`:** acknowledge in one short sentence in the user's language ("Đã giao task, sẽ báo khi xong."), then END the turn. Do NOT call `get_solve_result` in the same turn — the system auto-notifies when the job completes.
 
 When choosing tools, prefer the more specific option:
 - **Reading files**: read_file (NOT run_command with cat/head/tail)
