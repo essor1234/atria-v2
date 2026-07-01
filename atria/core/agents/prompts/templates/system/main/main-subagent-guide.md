@@ -71,3 +71,22 @@ When **multiple subagents** return results (parallel execution), do NOT summariz
 - Synthesize all results into a single unified response organized by topic, not by agent
 - Merge overlapping findings and eliminate redundancy
 - Present the combined knowledge as if it came from one source
+
+## Choosing a spawn_subagent strategy
+
+Every `spawn_subagent` call now takes an optional `strategy` field. Default is
+`direct`, which runs one subagent through the existing SubAgentManager — pick
+this for a single, focused delegation to a specialized agent type.
+
+Use `divide` when the work is a multi-step problem whose subtasks depend on
+each other. The prompt is decomposed into a small DAG and executed as one
+unit. Set `subagent_type` as a hint about which module/skill to bias
+decomposition toward.
+
+Use `parallel` when the task is a single well-scoped problem and racing a few
+candidate approaches is worth the overhead. N solvers work in isolated
+worktrees; the judge picks and applies a winner. Keep the prompt tight — the
+solvers will diverge if the instructions are loose.
+
+If `divide` or `parallel` returns an error mentioning the orchestrator is not
+configured (Redis or Docker unavailable), fall back to `direct`.
