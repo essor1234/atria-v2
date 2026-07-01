@@ -27,20 +27,47 @@ describe('activityView', () => {
   });
 
   it('returns error kind when tool_success is false', () => {
-    const result = activityView(msg({ tool_success: false }), true);
+    const result = activityView(
+      msg({ tool_success: false, tool_name: 'spawn_subagent', tool_error: 'boom' }),
+      true,
+    );
     expect(result.kind).toBe('error');
-    expect(result.text).toContain('Couldn’t finish that');
+    expect(result.text).toContain('spawn_subagent');
+    expect(result.text).toContain('boom');
+    expect(result.detail).toBe('boom');
+    expect(result.debug?.tool).toBe('spawn_subagent');
   });
 
-  it('returns error kind when tool_error is set', () => {
-    const result = activityView(msg({ tool_error: 'boom' }), false);
+  it('returns error kind when tool_error is set (surfaces error inline)', () => {
+    const result = activityView(msg({ tool_name: 'read_file', tool_error: 'ENOENT: foo' }), false);
     expect(result.kind).toBe('error');
-    expect(result.text).toContain('Couldn’t finish that');
+    expect(result.text).toContain('read_file');
+    expect(result.text).toContain('ENOENT: foo');
+    expect(result.debug?.error).toBe('ENOENT: foo');
   });
 
-  it('returns error kind when tool_result.success is false', () => {
-    const result = activityView(msg({ tool_result: { success: false } }), true);
+  it('returns error kind when tool_result.success is false and pulls error from content', () => {
+    const result = activityView(
+      msg({
+        tool_name: 'spawn_subagent',
+        tool_result: { success: false, content: "'NoneType' object is not subscriptable" },
+      }),
+      true,
+    );
     expect(result.kind).toBe('error');
+    expect(result.text).toContain('NoneType');
+    expect(result.detail).toContain('NoneType');
+  });
+
+  it('only shows first line of multiline error in headline; full text goes to detail', () => {
+    const result = activityView(
+      msg({ tool_name: 'divide', tool_error: 'boom\ntraceback line 1\ntraceback line 2' }),
+      true,
+    );
+    expect(result.text).toContain('boom');
+    expect(result.text).not.toContain('traceback line 1');
+    expect(result.detail).toContain('traceback line 1');
+    expect(result.detail).toContain('traceback line 2');
   });
 
   it('falls back to generic running label with no activity', () => {
