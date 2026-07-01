@@ -1,6 +1,7 @@
 """Divide-work coordinator: decompose → schedule → gather. Worker I/O is injected."""
 from __future__ import annotations
 
+import asyncio
 import logging
 import uuid
 from pathlib import Path
