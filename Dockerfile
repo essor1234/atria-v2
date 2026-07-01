@@ -41,9 +41,14 @@ EXPOSE 8080
 
 ENTRYPOINT ["/bin/sh", "-c", "\
   mkdir -p /root/.atria && \
-  printf '{\"model\":\"%s\",\"api_base_url\":\"%s\"}\\n' \
-    \"${ATRIA_MODEL:-gpt-4o}\" \
-    \"${ATRIA_API_BASE_URL:-https://api.openai.com/v1/chat/completions}\" \
-    > /root/.atria/settings.json && \
+  SETTINGS=/root/.atria/settings.json && \
+  MODEL=\"${ATRIA_MODEL:-gpt-4o}\" && \
+  BASE_URL=\"${ATRIA_API_BASE_URL:-https://api.openai.com/v1/chat/completions}\" && \
+  TMP=\"$SETTINGS.tmp\" && \
+  printf '{\"model\":\"%s\",\"api_base_url\":\"%s\"}\\n' \"$MODEL\" \"$BASE_URL\" > \"$TMP\" && \
+  if [ -s \"$TMP\" ]; then mv \"$TMP\" \"$SETTINGS\"; else rm -f \"$TMP\"; fi && \
+  if [ ! -s \"$SETTINGS\" ]; then \
+    printf '{\"model\":\"gpt-4o\",\"api_base_url\":\"https://api.openai.com/v1/chat/completions\"}\\n' > \"$SETTINGS\"; \
+  fi && \
   exec atria --host 0.0.0.0 --port 8080\
 "]

@@ -45,19 +45,21 @@ class ConfigManager:
         global_config = paths.global_settings
         if global_config.exists():
             with open(global_config) as f:
-                raw = f.read()
-                global_data = json.loads(self._strip_json_comments(raw))
-                global_data.pop("api_key", None)
-                config_data.update(global_data)
+                raw = f.read().strip()
+                if raw:
+                    global_data = json.loads(self._strip_json_comments(raw))
+                    global_data.pop("api_key", None)
+                    config_data.update(global_data)
 
         # Load local project config
         local_config = paths.project_settings
         if local_config.exists():
             with open(local_config) as f:
-                raw = f.read()
-                local_data = json.loads(self._strip_json_comments(raw))
-                local_data.pop("api_key", None)
-                config_data.update(local_data)
+                raw = f.read().strip()
+                if raw:
+                    local_data = json.loads(self._strip_json_comments(raw))
+                    local_data.pop("api_key", None)
+                    config_data.update(local_data)
 
         # Apply env vars from settings into os.environ (project overrides global)
         for env_source in (global_data, local_data):
