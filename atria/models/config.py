@@ -276,16 +276,34 @@ class AppConfig(BaseModel):
     command_dir: str = f"{APP_DIR_NAME}/commands"
 
     def get_api_key(self) -> str:
-        """Get API key from config or environment."""
+        """Get API key from config or environment.
+
+        Resolution order: an explicit ``api_key`` value, then a
+        provider-appropriate environment variable. When the configured
+        endpoint is OpenRouter, ``OPENROUTER_API_KEY`` is preferred; otherwise
+        ``OPENAI_API_KEY``. Both are accepted as fallbacks so either key works
+        against any OpenAI-compatible endpoint.
+        """
         import os
 
         if self.api_key:
             return self.api_key
 
-        key = os.getenv("OPENAI_API_KEY")
-        if not key:
-            raise ValueError("No API key found. Set OPENAI_API_KEY environment variable")
-        return key
+        base_url = (self.api_base_url or "").lower()
+        if "openrouter.ai" in base_url:
+            env_order = ("OPENROUTER_API_KEY", "OPENAI_API_KEY")
+        else:
+            env_order = ("OPENAI_API_KEY", "OPENROUTER_API_KEY")
+
+        for var in env_order:
+            key = os.getenv(var)
+            if key:
+                return key
+
+        raise ValueError(
+            "No API key found. Set OPENAI_API_KEY or OPENROUTER_API_KEY "
+            "environment variable."
+        )
 
     def get_model_info(self):
         """Get model information from the registry.
