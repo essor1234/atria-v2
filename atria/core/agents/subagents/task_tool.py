@@ -32,7 +32,18 @@ TASK_TOOL_DESCRIPTION = """Spawn an ephemeral subagent to handle complex, multi-
 4. **Parallel execution**: To run subagents concurrently, make multiple spawn_subagent calls in the SAME response. The system detects this and executes them in parallel automatically. Always prefer parallel spawning for independent tasks — it maximizes performance and is what users expect when they ask for multiple agents.
 5. Use `run_in_background` for long-running tasks you want to check on later
 6. Use `model` to select a specific model (haiku for quick tasks, opus for complex ones)
-7. Use `resume` with an agent_id to continue a previous subagent session"""
+7. Use `resume` with an agent_id to continue a previous subagent session
+
+## Strategy
+
+- `direct` (default): single subagent, current behavior. Best for quick, focused
+  delegation of a self-contained task to one of the specialized agent types.
+- `divide`: decompose the prompt into a small DAG and run the pieces via the
+  divide orchestrator. Pick this when the work has multiple dependent steps
+  that would benefit from being planned out and executed as a unit.
+- `parallel`: fan out N worktree-isolated solvers on the same prompt and let
+  the judge pick and apply the winning diff. Pick this for one well-scoped
+  task where racing a few candidate approaches is worth the overhead."""
 
 
 def create_task_tool_schema(manager: "SubAgentManager") -> dict[str, Any]:
@@ -106,6 +117,20 @@ def create_task_tool_schema(manager: "SubAgentManager") -> dict[str, Any]:
                         "description": (
                             "Optional agent ID to resume from. If provided, the subagent "
                             "will continue from the previous execution with full context preserved."
+                        ),
+                    },
+                    "strategy": {
+                        "type": "string",
+                        "enum": ["direct", "divide", "parallel"],
+                        "default": "direct",
+                        "description": (
+                            "How to dispatch this delegation. 'direct' (default) runs "
+                            "one subagent via SubAgentManager (current behavior). "
+                            "'divide' decomposes the prompt into a DAG and runs the "
+                            "subtasks via DivideOrchestrator. 'parallel' races N "
+                            "worktree-isolated solvers via ParallelOrchestrator and "
+                            "applies the judge-chosen winner. For 'divide' and "
+                            "'parallel', subagent_type is treated as an optional hint."
                         ),
                     },
                 },
