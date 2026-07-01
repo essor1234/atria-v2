@@ -4,8 +4,6 @@ from __future__ import annotations
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-import pytest
-
 from atria.core.context_engineering.tools.registry_mixins.subagent_ops import (
     SubagentOpsMixin,
 )
@@ -105,3 +103,14 @@ def test_dispatch_strategy_without_orchestrator_returns_fallback_hint() -> None:
 
     assert result["success"] is False
     assert 'strategy="direct"' in result["error"]
+
+
+def test_empty_task_rejected_for_all_strategies() -> None:
+    holder = _Holder(subagent_manager=MagicMock())
+    for strat in ("direct", "divide", "parallel"):
+        result = holder._execute_spawn_subagent(
+            {"description": "d", "prompt": "", "subagent_type": "solver", "strategy": strat},
+            context=_ctx(divide_orchestrator=MagicMock(), parallel_orchestrator=MagicMock()),
+        )
+        assert result["success"] is False
+        assert "prompt" in (result.get("error") or "").lower()

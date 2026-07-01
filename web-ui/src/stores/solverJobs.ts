@@ -232,13 +232,20 @@ export function initSolverJobsStore() {
       };
     }
 
-    const bbTaskId = (data as Record<string, unknown>).blackboard_task_id as string | undefined;
+    // Derive blackboard task id from convention when backend omits it:
+    //   divide  → "dw_" + job_id
+    //   parallel → "bb_" + job_id
+    // An explicit payload value takes precedence if provided.
+    const explicitBbId = (data as Record<string, unknown>).blackboard_task_id as
+      | string
+      | undefined;
+    const derivedBbId =
+      explicitBbId ??
+      (data.strategy === 'divide' ? `dw_${data.job_id}` : `bb_${data.job_id}`);
     useSolverJobsStore.setState((state) => ({
       jobs: { ...state.jobs, [data.job_id]: job },
       order: upsertOrder(state.order, data.job_id),
-      bbToJob: bbTaskId
-        ? { ...state.bbToJob, [bbTaskId]: data.job_id }
-        : state.bbToJob,
+      bbToJob: { ...state.bbToJob, [derivedBbId]: data.job_id },
     }));
   });
 

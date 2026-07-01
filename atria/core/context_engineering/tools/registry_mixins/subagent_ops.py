@@ -37,9 +37,19 @@ class SubagentOpsMixin:
             }
 
         description = arguments.get("description", "")
-        # Use 'prompt' as task content, fallback to 'description' for backward compatibility
-        task = arguments.get("prompt") or description
+        # Use 'prompt' as task content, fallback to 'description' for backward compatibility.
+        # If 'prompt' key is present (even as empty string), it is the authoritative source —
+        # an explicit empty prompt is rejected rather than silently falling back to description.
+        prompt_raw = arguments.get("prompt")
+        task = prompt_raw if prompt_raw is not None else description
         subagent_type = arguments.get("subagent_type", "general-purpose")
+
+        if not task:
+            return {
+                "success": False,
+                "error": "Task prompt is required for spawn_subagent",
+                "output": None,
+            }
 
         strategy = (arguments.get("strategy") or "direct").lower()
         if strategy not in ("direct", "divide", "parallel"):
@@ -51,13 +61,6 @@ class SubagentOpsMixin:
 
         if strategy != "direct":
             return self._dispatch_via_orchestrator(strategy, task, subagent_type, context)
-
-        if not task:
-            return {
-                "success": False,
-                "error": "Task prompt is required for spawn_subagent",
-                "output": None,
-            }
 
         # Create deps from context
         from atria.core.agents.subagents.manager import SubAgentDeps
