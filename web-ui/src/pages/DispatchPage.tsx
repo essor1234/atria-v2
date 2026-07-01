@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import { AppNavBar } from '../components/Layout/AppNavBar';
 import { useSolverJobsStore } from '../stores/solverJobs';
 import type {
@@ -6,7 +7,83 @@ import type {
   DivideTaskView,
   ParallelJobView,
   ThreadState,
+  BBNote,
 } from '../stores/solverJobs';
+
+// ─── Notes stream ─────────────────────────────────────────────────────────────
+
+const NOTE_COLOR: Record<string, string> = {
+  fact: 'text-slate-300',
+  question: 'text-amber-400',
+  decision: 'text-emerald-400',
+  blocker: 'text-semantic-danger',
+};
+
+function NoteLine({ note, pulse }: { note: BBNote; pulse: boolean }) {
+  const color = NOTE_COLOR[note.type] ?? 'text-text-400';
+  return (
+    <div
+      className={`text-[11px] font-mono truncate ${color} ${pulse ? 'animate-note-pulse motion-reduce:animate-none' : ''}`}
+      title={`${note.type}: ${note.content}`}
+    >
+      <span className="opacity-60 mr-1">[{note.type}]</span>
+      {note.content}
+    </div>
+  );
+}
+
+function NotesStream({
+  notes,
+  hiddenWhenPending,
+  status,
+}: {
+  notes: BBNote[];
+  hiddenWhenPending?: boolean;
+  status?: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const prev = useRef(notes.length);
+  const isNew = notes.length > prev.current;
+  useEffect(() => {
+    prev.current = notes.length;
+  }, [notes.length]);
+
+  if (notes.length === 0 && (hiddenWhenPending || status === 'pending')) return null;
+  if (notes.length === 0) return null;
+
+  const visible = expanded ? notes : notes.slice(-3);
+  const hidden = notes.length - visible.length;
+  return (
+    <div className="ml-16 mr-4 pb-2 space-y-0.5">
+      {visible.map((n, i) => (
+        <NoteLine
+          key={`${n.ts}-${i}`}
+          note={n}
+          pulse={isNew && i === visible.length - 1}
+        />
+      ))}
+      {hidden > 0 && (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="text-[10px] font-mono text-text-500 hover:text-text-300 transition-colors"
+          aria-label={`Show ${hidden} more notes`}
+        >
+          … {hidden} more
+        </button>
+      )}
+      {expanded && notes.length > 3 && (
+        <button
+          type="button"
+          onClick={() => setExpanded(false)}
+          className="text-[10px] font-mono text-text-500 hover:text-text-300 transition-colors"
+        >
+          collapse
+        </button>
+      )}
+    </div>
+  );
+}
 
 // ─── SVG icons ────────────────────────────────────────────────────────────────
 
@@ -121,27 +198,30 @@ function StrategyTag({ strategy }: { strategy: SolverJob['strategy'] }) {
 function TaskRow({ task }: { task: DivideTaskView }) {
   const isSkipped = task.status === 'skipped';
   return (
-    <div className="flex items-start gap-3 px-4 py-2 border-t border-border-300/10 transition-colors duration-150 hover:bg-bg-100/30">
-      <span className={`font-mono text-[11px] text-text-400 mt-0.5 w-16 flex-shrink-0 ${isSkipped ? 'line-through opacity-50' : ''}`}>
-        {task.id}
-      </span>
-      <Badge cfg={TASK_STATUS_CONFIG[task.status]} pulse={task.status === 'running'} />
-      <div className="flex-1 min-w-0 space-y-0.5">
-        <span className={`block text-xs text-text-300 truncate ${isSkipped ? 'line-through opacity-50' : ''}`} title={task.description}>
-          {task.description}
+    <>
+      <div className="flex items-start gap-3 px-4 py-2 border-t border-border-300/10 transition-colors duration-150 hover:bg-bg-100/30">
+        <span className={`font-mono text-[11px] text-text-400 mt-0.5 w-16 flex-shrink-0 ${isSkipped ? 'line-through opacity-50' : ''}`}>
+          {task.id}
         </span>
-        {task.depends_on.length > 0 && (
-          <span className="text-[11px] font-mono text-text-500 truncate block">
-            &larr; {task.depends_on.join(', ')}
+        <Badge cfg={TASK_STATUS_CONFIG[task.status]} pulse={task.status === 'running'} />
+        <div className="flex-1 min-w-0 space-y-0.5">
+          <span className={`block text-xs text-text-300 truncate ${isSkipped ? 'line-through opacity-50' : ''}`} title={task.description}>
+            {task.description}
           </span>
-        )}
-        {task.status === 'done' && task.result && (
-          <span className="block text-[11px] text-text-400 truncate" title={task.result}>
-            {task.result}
-          </span>
-        )}
+          {task.depends_on.length > 0 && (
+            <span className="text-[11px] font-mono text-text-500 truncate block">
+              &larr; {task.depends_on.join(', ')}
+            </span>
+          )}
+          {task.status === 'done' && task.result && (
+            <span className="block text-[11px] text-text-400 truncate" title={task.result}>
+              {task.result}
+            </span>
+          )}
+        </div>
       </div>
-    </div>
+      <NotesStream notes={task.notes ?? []} status={task.status} />
+    </>
   );
 }
 
@@ -214,23 +294,26 @@ function DivideCard({ job }: { job: DivideJobView }) {
 
 function ThreadRow({ thread }: { thread: ThreadState }) {
   return (
-    <div className="flex items-start gap-3 px-4 py-2 border-t border-border-300/10 transition-colors hover:bg-bg-100/30">
-      <span className="font-mono text-[11px] text-text-400 mt-0.5 w-16 flex-shrink-0">
-        Thread {thread.thread}
-      </span>
-      <Badge cfg={THREAD_STATUS_CONFIG[thread.status]} pulse={thread.status === 'running'} />
-      {thread.summary && (
-        <span className="flex-1 text-xs text-text-300 truncate min-w-0" title={thread.summary}>
-          {thread.summary}
+    <>
+      <div className="flex items-start gap-3 px-4 py-2 border-t border-border-300/10 transition-colors hover:bg-bg-100/30">
+        <span className="font-mono text-[11px] text-text-400 mt-0.5 w-16 flex-shrink-0">
+          Thread {thread.thread}
         </span>
-      )}
-      {thread.winner && (
-        <span className="flex items-center gap-1 text-amber-400 text-[11px] font-mono font-[500] flex-shrink-0 ml-auto">
-          <IconStar />
-          winner
-        </span>
-      )}
-    </div>
+        <Badge cfg={THREAD_STATUS_CONFIG[thread.status]} pulse={thread.status === 'running'} />
+        {thread.summary && (
+          <span className="flex-1 text-xs text-text-300 truncate min-w-0" title={thread.summary}>
+            {thread.summary}
+          </span>
+        )}
+        {thread.winner && (
+          <span className="flex items-center gap-1 text-amber-400 text-[11px] font-mono font-[500] flex-shrink-0 ml-auto">
+            <IconStar />
+            winner
+          </span>
+        )}
+      </div>
+      <NotesStream notes={thread.notes ?? []} />
+    </>
   );
 }
 

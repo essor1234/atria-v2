@@ -326,6 +326,12 @@
 .animate-scale-in   { animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important; animation-duration: 260ms !important; }
 .animate-content-fade { animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important; }
 
+@keyframes note-pulse {
+  0% { background-color: rgba(255, 191, 0, 0.20); }
+  100% { background-color: transparent; }
+}
+.animate-note-pulse { animation: note-pulse 200ms ease-out; }
+
 @media (prefers-reduced-motion: reduce) {
   .animate-slide-up,
   .animate-fade-in,
@@ -336,6 +342,7 @@
   .animate-shimmer,
   .animate-border-breathe,
   .animate-pulse-dot,
+  .animate-note-pulse,
   .animate-pulse {
     animation: none !important;
   }
