@@ -378,6 +378,8 @@ class ToolRegistry(SubagentOpsMixin, OrchestrationOpsMixin, InlineToolsMixin):
         is_subagent: bool = False,
         tool_call_id: Union[str, None] = None,
         blackboard: Union[Any, None] = None,
+        divide_orchestrator: Union[Any, None] = None,
+        parallel_orchestrator: Union[Any, None] = None,
     ) -> dict[str, Any]:
         """Execute a tool by delegating to registered handlers."""
         if tool_name.startswith("mcp__"):
@@ -432,6 +434,8 @@ class ToolRegistry(SubagentOpsMixin, OrchestrationOpsMixin, InlineToolsMixin):
             is_subagent=is_subagent,
             file_time_tracker=self._file_time_tracker,
             blackboard=blackboard,
+            divide_orchestrator=divide_orchestrator,
+            parallel_orchestrator=parallel_orchestrator,
         )
 
         handler = self._handlers[tool_name]

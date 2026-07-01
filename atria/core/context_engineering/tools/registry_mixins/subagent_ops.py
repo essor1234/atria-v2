@@ -41,6 +41,17 @@ class SubagentOpsMixin:
         task = arguments.get("prompt") or description
         subagent_type = arguments.get("subagent_type", "general-purpose")
 
+        strategy = (arguments.get("strategy") or "direct").lower()
+        if strategy not in ("direct", "divide", "parallel"):
+            return {
+                "success": False,
+                "error": f"unknown strategy {strategy!r}; expected direct|divide|parallel",
+                "output": None,
+            }
+
+        if strategy != "direct":
+            return self._dispatch_via_orchestrator(strategy, task, subagent_type, context)
+
         if not task:
             return {
                 "success": False,
@@ -154,6 +165,89 @@ class SubagentOpsMixin:
                 "output": None,
                 "interrupted": result.get("interrupted", False),  # Propagate interrupt flag
             }
+
+    def _dispatch_via_orchestrator(
+        self,
+        strategy: str,
+        task: str,
+        subagent_type_hint: str,
+        context: Any,
+    ) -> dict[str, Any]:
+        """Route the delegation through the divide or parallel orchestrator.
+
+        Args:
+            strategy: Either ``"divide"`` or ``"parallel"``.
+            task: Natural-language task description for the orchestrator.
+            subagent_type_hint: Subagent type label forwarded to the orchestrator.
+            context: Tool execution context; may carry ``divide_orchestrator``
+                and ``parallel_orchestrator`` attributes (both ``None`` when
+                redis/docker is not configured).
+
+        Returns:
+            Success dict with ``job_id`` and ``strategy`` on success, or a
+            failure dict with a hint to retry with ``strategy="direct"``.
+        """
+        if strategy == "divide":
+            orch = getattr(context, "divide_orchestrator", None)
+            if orch is None:
+                return {
+                    "success": False,
+                    "error": (
+                        "divide orchestrator not configured (redis unavailable). "
+                        'Retry with strategy="direct".'
+                    ),
+                    "output": None,
+                }
+            try:
+                job_id = orch.start(task, subagent_type_hint, subagent_type_hint)
+                rec = orch.collect(job_id)
+                summary = rec.get("summary") or rec.get("status") or ""
+            except Exception as exc:  # noqa: BLE001 — surface to LLM as tool error
+                return {
+                    "success": False,
+                    "error": f"divide dispatch failed: {exc}",
+                    "output": None,
+                }
+            return {
+                "success": True,
+                "output": f"[divide {job_id}] {summary}",
+                "job_id": job_id,
+                "strategy": "divide",
+            }
+
+        # strategy == "parallel"
+        orch = getattr(context, "parallel_orchestrator", None)
+        if orch is None:
+            return {
+                "success": False,
+                "error": (
+                    "parallel orchestrator not configured (redis/docker "
+                    'unavailable). Retry with strategy="direct".'
+                ),
+                "output": None,
+            }
+        try:
+            repo_dir = self._get_repo_dir()
+            _sess = getattr(context, "session_manager", None)
+            _cur = getattr(_sess, "current_session", None) if _sess else None
+            owner_id = (getattr(_cur, "owner_id", "") or "") if _cur else ""
+            session_id = str(getattr(_cur, "session_id", "") or "") if _cur else ""
+            job_id = orch.start(task, 0, repo_dir, owner_id, session_id)
+            rec = orch.collect(job_id)
+            reasoning = rec.get("reasoning") or ""
+            applied = rec.get("applied")
+        except Exception as exc:  # noqa: BLE001
+            return {
+                "success": False,
+                "error": f"parallel dispatch failed: {exc}",
+                "output": None,
+            }
+        return {
+            "success": True,
+            "output": f"[parallel {job_id}] applied={applied} — {reasoning}",
+            "job_id": job_id,
+            "strategy": "parallel",
+        }
 
     @staticmethod
     def _count_subagent_tool_calls(result: dict[str, Any]) -> int:

@@ -20,3 +20,5 @@ class ToolExecutionContext:
     file_time_tracker: Optional[Any] = None  # FileTimeTracker for stale-read detection
     formatter_manager: Optional[Any] = None  # FormatterManager for auto-format on save
     blackboard: Optional[Any] = None  # BlackboardHandle for shared verified notes (Phase 2a)
+    divide_orchestrator: Optional[Any] = None  # DivideOrchestrator; None when redis unavailable
+    parallel_orchestrator: Optional[Any] = None  # ParallelOrchestrator; None when docker unavailable
