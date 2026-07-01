@@ -171,7 +171,21 @@ class TestMainAgentTaskComplete:
                     ),
                 ),
             ),
-            # Second call - no tool calls (implicit completion)
+            # Second call - no tool calls (implicit completion). Because a tool was
+            # used, the loop injects one completion nudge and continues.
+            MagicMock(
+                success=True,
+                response=MagicMock(
+                    status_code=200,
+                    json=MagicMock(
+                        return_value={
+                            "choices": [{"message": {"content": "Done!", "tool_calls": None}}],
+                            "usage": {"total_tokens": 50},
+                        }
+                    ),
+                ),
+            ),
+            # Third call - post-nudge confirmation, accepted as final answer.
             MagicMock(
                 success=True,
                 response=MagicMock(
@@ -199,8 +213,9 @@ class TestMainAgentTaskComplete:
 
             result = agent.run_sync("Do something", deps)
 
-        # Should accept implicit completion after successful tool
-        assert mock_client.post_json.call_count == 2
+        # Implicit completion triggers one completion nudge, then the loop accepts
+        # the post-nudge answer (3 LLM calls total).
+        assert mock_client.post_json.call_count == 3
         assert result["success"] is True
         assert result["content"] == "Done!"
 
@@ -298,7 +313,20 @@ class TestMainAgentTaskComplete:
                     ),
                 ),
             ),
-            # Fourth call - implicit completion
+            # Fourth call - implicit completion (triggers one completion nudge).
+            MagicMock(
+                success=True,
+                response=MagicMock(
+                    status_code=200,
+                    json=MagicMock(
+                        return_value={
+                            "choices": [{"message": {"content": "All done!", "tool_calls": None}}],
+                            "usage": {"total_tokens": 50},
+                        }
+                    ),
+                ),
+            ),
+            # Fifth call - post-nudge confirmation, accepted as final answer.
             MagicMock(
                 success=True,
                 response=MagicMock(
@@ -326,8 +354,9 @@ class TestMainAgentTaskComplete:
 
             result = agent.run_sync("Do something", deps)
 
-        # Should have nudged after failure, then completed
-        assert mock_client.post_json.call_count == 4
+        # Failure nudge (call 2), fix + re-run (call 3), implicit completion (call 4),
+        # completion nudge, then accepted post-nudge answer (call 5).
+        assert mock_client.post_json.call_count == 5
         assert result["success"] is True
         assert result["content"] == "All done!"
 

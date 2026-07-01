@@ -89,6 +89,9 @@ class IterationContext:
     plan_approved_signal_injected: bool = False
     all_todos_complete_nudged: bool = False
     completion_nudge_sent: bool = False
+    # Pre-nudge answer withheld from the UI while the completion nudge runs; used as
+    # a fallback if the post-nudge turn produces no content (avoids showing nothing).
+    deferred_completion_content: str = ""
     skip_next_thinking: bool = False
     continue_after_subagent: bool = False  # If True, don't inject stop signal after subagent
     has_explored: bool = False  # True after Code-Explorer has been spawned

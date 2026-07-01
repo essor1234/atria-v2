@@ -540,18 +540,30 @@ class IterationMixin:
         if not ctx.completion_nudge_sent and tools_were_used:
             ctx.completion_nudge_sent = True
             if content:
+                # Keep this pre-nudge answer in context and persist it, but do NOT
+                # stream it to the UI: the completion nudge makes the agent restate
+                # the same answer on the next turn, which would surface as two
+                # near-identical responses to one request. Only the final,
+                # post-nudge answer is displayed (see the accept-completion path).
                 ctx.messages.append({"role": "assistant", "content": raw_content or content})
-                self._display_message(content, ctx.ui_callback)
                 self._add_assistant_message(content, raw_content)
+                ctx.deferred_completion_content = content
             append_nudge(
                 ctx.messages,
                 get_reminder("implicit_completion_nudge", original_task=ctx.query),
             )
             return LoopAction.CONTINUE
 
-        # Accept completion (with or without content)
+        # Accept completion (with or without content). If the post-nudge turn
+        # produced nothing, fall back to the pre-nudge answer we withheld from the
+        # UI so the user still sees the real response (already persisted, so only
+        # display it here — don't persist again).
+        if not content and ctx.deferred_completion_content:
+            self._display_message(ctx.deferred_completion_content, ctx.ui_callback, dim=True)
+            return LoopAction.BREAK
+
         if not content:
-            content = "Chào mừng, cái này tôi đang test"
+            content = "Đã hoàn thành."
 
         self._display_message(content, ctx.ui_callback, dim=True)
         self._add_assistant_message(content, raw_content)
