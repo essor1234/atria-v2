@@ -164,6 +164,33 @@ async def lifespan(app: FastAPI):
             state.task_client = None
             app.state.task_client = None
 
+    # Start the blackboard subscriber (Redis pub/sub → WebSocket bridge).
+    from redis.asyncio import Redis as AsyncRedis
+    from atria.web.blackboard_subscriber import BlackboardSubscriber
+    from atria.web.websocket import ws_manager as _ws_manager
+
+    bb_redis_url = (
+        tasks_cfg.redis_url
+        if tasks_cfg and hasattr(tasks_cfg, "redis_url")
+        else "redis://localhost:6379/0"
+    )
+    try:
+        bb_redis = AsyncRedis.from_url(bb_redis_url)
+        bb_subscriber = BlackboardSubscriber(bb_redis, _ws_manager)
+        bb_task = asyncio.create_task(bb_subscriber.run())
+        app.state.bb_redis = bb_redis
+        app.state.bb_subscriber = bb_subscriber
+        app.state.bb_subscriber_task = bb_task
+    except Exception as exc:  # noqa: BLE001
+        import logging as _logging
+
+        _logging.getLogger(__name__).warning(
+            "Blackboard subscriber startup failed (%s); blackboard WS events disabled.", exc
+        )
+        app.state.bb_redis = None
+        app.state.bb_subscriber = None
+        app.state.bb_subscriber_task = None
+
     # Signal that the server is ready (event loop + ws_manager are set)
     ready_event = getattr(app.state, "_ready_event", None)
     if ready_event is not None:
@@ -186,6 +213,19 @@ async def lifespan(app: FastAPI):
             except Exception:  # noqa: BLE001
                 pass
         set_bus(None)
+        _bb_subscriber = getattr(app.state, "bb_subscriber", None)
+        if _bb_subscriber is not None:
+            try:
+                _bb_subscriber.stop()
+                await asyncio.wait_for(app.state.bb_subscriber_task, timeout=2.0)
+            except Exception:  # noqa: BLE001
+                pass
+        _bb_redis = getattr(app.state, "bb_redis", None)
+        if _bb_redis is not None:
+            try:
+                await _bb_redis.aclose()
+            except Exception:  # noqa: BLE001
+                pass
 
 
 def create_app() -> FastAPI:
