@@ -87,6 +87,12 @@ async def init_schema() -> None:
     engine = await get_engine()
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Widen messages.role so block roles (e.g. custom_block) are not
+        # truncated. Idempotent: ALTER to a wider VARCHAR is a no-op if already wide.
+        try:
+            await conn.execute(text("ALTER TABLE messages ALTER COLUMN role TYPE VARCHAR(32)"))
+        except Exception as _alter_err:  # noqa: BLE001
+            logger.warning("Failed to widen messages.role: %s", _alter_err)
         # Legacy DB-backed modules system removed; drop its tables if present.
         for _legacy in ("module_tasks", "module_tools", "modules"):
             try:

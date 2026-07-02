@@ -50,3 +50,29 @@ async def test_list_orders_by_id_ascending(sm):
     await msgs.insert(cid, ChatMessage(role=Role.ASSISTANT, content="second"))
     loaded = await msgs.list_by_conversation(cid)
     assert [m.content for m in loaded] == ["first", "second"]
+
+
+async def test_custom_block_role_roundtrip_preserved(sm):
+    users = UserRepository(sm)
+    convs = ConversationRepository(sm)
+    msgs = MessageRepository(sm)
+    uid = await users.upsert_by_email("orm-msg-cb@atria.local")
+    cid = await convs.create(None, uid, "cb", "normal")
+    original = ChatMessage(
+        role=Role.CUSTOM_BLOCK,
+        content="",
+        metadata={"block_id": "abc123", "module": "warehouse", "block": "item_form"},
+    )
+    await msgs.insert(cid, original)
+    loaded = await msgs.list_by_conversation(cid)
+    assert len(loaded) == 1
+    assert loaded[0].role == Role.CUSTOM_BLOCK
+    assert loaded[0].metadata["block_id"] == "abc123"
+    assert loaded[0].metadata["module"] == "warehouse"
+    from sqlalchemy import text
+
+    async with sm() as s:
+        row = (
+            await s.execute(text("SELECT role FROM messages WHERE conversation_id=:c"), {"c": cid})
+        ).first()
+    assert row[0] == "custom_block"  # previously truncated to "custom_blo"

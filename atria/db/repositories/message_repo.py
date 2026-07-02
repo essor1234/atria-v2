@@ -105,7 +105,7 @@ class MessageRepository(BaseRepository):
                 .values(
                     is_deleted=False,
                     conversation_id=conversation_id,
-                    role=message.role.value[:10],
+                    role=message.role.value[:32],
                     mode=mode[:10],
                     blocks=blocks,
                 )

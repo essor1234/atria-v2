@@ -108,7 +108,7 @@ class Message(Base):
     conversation_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("conversations.id"), nullable=False
     )
-    role: Mapped[str] = mapped_column(String(10), nullable=False)
+    role: Mapped[str] = mapped_column(String(32), nullable=False)
     mode: Mapped[str] = mapped_column(String(10), nullable=False)
     blocks: Mapped[dict] = mapped_column(JSON, nullable=False)
 
