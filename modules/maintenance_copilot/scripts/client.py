@@ -11,11 +11,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 
 try:  # Import lazily so unit tests can inject a fake factory without openai.
     from openai import OpenAI as _OpenAI
-except Exception:  # pragma: no cover - openai installed in real env
+except ImportError:  # pragma: no cover - openai installed in real env
     _OpenAI = None  # type: ignore[assignment]
 
 from config import RoleConfig  # type: ignore[import-not-found]
@@ -39,7 +39,7 @@ class RoleClient:
     ) -> None:
         self._config = config
         self._factory = client_factory or _default_factory
-        self._clients: Dict[tuple[str, str], object] = {}
+        self._clients: Dict[Tuple[str, str], object] = {}
 
     def _role(self, role: str) -> RoleConfig:
         if role not in self._config:
@@ -53,12 +53,32 @@ class RoleClient:
         return self._clients[key]
 
     def embed(self, role: str, texts: List[str]) -> List[List[float]]:
+        """Return embedding vectors for *texts* using the endpoint for *role*.
+
+        Args:
+            role: Feature role key (e.g. ``"chunk_embed"``, ``"index_embed"``).
+            texts: One or more strings to embed.
+
+        Returns:
+            A list of float vectors, one per input text, in the same order.
+        """
         rc = self._role(role)
         client = self._client_for(rc)
         resp = client.embeddings.create(model=rc.model, input=texts)  # type: ignore[attr-defined]
         return [item.embedding for item in resp.data]
 
     def chat(self, role: str, messages: List[dict], **kw) -> str:
+        """Send a chat-completion request using the endpoint configured for *role*.
+
+        Args:
+            role: Feature role key (e.g. ``"synthesis"``, ``"kg_extract"``).
+            messages: OpenAI-format message list (``[{"role": ..., "content": ...}, ...]``).
+            **kw: Extra keyword arguments forwarded to ``completions.create``
+                (e.g. ``temperature``, ``max_tokens``).
+
+        Returns:
+            The text content of the first choice's message.
+        """
         rc = self._role(role)
         client = self._client_for(rc)
         resp = client.chat.completions.create(  # type: ignore[attr-defined]

@@ -21,8 +21,12 @@ def _load(name: str):
 
 
 class _FakeEmbeddings:
+    def __init__(self):
+        self.last_model: str = ""
+
     def create(self, model, input):
         # Echo one vector per input so we can assert dispatch + shape.
+        self.last_model = model
         return type("R", (), {"data": [type("E", (), {"embedding": [0.1, 0.2]})()
                                         for _ in input]})()
 
@@ -43,15 +47,45 @@ class _FakeOpenAI:
         self.chat = _FakeChat()
 
 
+def _make_counting_factory():
+    """Return (factory, counter_list) where counter grows by 1 per call."""
+    calls: list = []
+
+    def factory(base_url: str, api_key: str) -> object:
+        calls.append((base_url, api_key))
+        return _FakeOpenAI(base_url, api_key)
+
+    return factory, calls
+
+
 def test_embed_returns_one_vector_per_text():
     config = _load("config")
     client_mod = _load("client")
     rc = client_mod.RoleClient(
-        config.load_config(env={}),
+        config.load_config(env={"MC_INDEX_EMBED_MODEL": "embed-model-y"}),
         client_factory=lambda base_url, api_key: _FakeOpenAI(base_url, api_key),
     )
     vecs = rc.embed("index_embed", ["a", "b", "c"])
     assert len(vecs) == 3 and vecs[0] == [0.1, 0.2]
+    # Verify the role's model was forwarded to the embeddings API.
+    fake_client = rc._clients[(rc._config["index_embed"].base_url, rc._config["index_embed"].api_key)]
+    assert fake_client.embeddings.last_model == "embed-model-y"
+
+
+def test_shared_endpoint_client_reused():
+    """chunk_embed and index_embed share (base_url, api_key) by default.
+
+    The factory must be called exactly once for that endpoint even when both
+    roles are exercised.
+    """
+    config = _load("config")
+    client_mod = _load("client")
+    factory, calls = _make_counting_factory()
+    rc = client_mod.RoleClient(config.load_config(env={}), client_factory=factory)
+    rc.embed("index_embed", ["x"])
+    rc.embed("chunk_embed", ["y"])
+    # Both roles resolve to the same (base_url, api_key) → factory called once.
+    assert len(calls) == 1
 
 
 def test_chat_uses_the_roles_model():
