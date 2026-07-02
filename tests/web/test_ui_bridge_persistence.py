@@ -28,7 +28,7 @@ class _FakeSession:
         self.messages.append(msg)
 
 
-def test_persist_failure_raises(monkeypatch):
+def test_persist_failure_raises():
     mgr = _FakeSessionMgr(fail=True)
     with pytest.raises(ui_bridge.BlockPersistError):
         ui_bridge._persist_block_message_sync(

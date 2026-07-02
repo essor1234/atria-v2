@@ -214,6 +214,8 @@ def _persist_block(
     metadata: Dict[str, Any],
     cb: Optional["WebUICallback"] = None,
 ) -> None:
+    """Resolve the active session manager and persist ``metadata`` as a
+    custom_block message."""
     if not session_id:
         raise BlockPersistError("cannot persist block without a session_id")
     sm = getattr(cb, "state", None)
