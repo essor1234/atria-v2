@@ -30,12 +30,12 @@ export function ArtifactThumbnail({
 
   return (
     <div
-      className={`artifact-thumbnail relative group border border-gray-200 rounded-lg overflow-hidden bg-white transition-all hover:shadow-hover hover:border-gray-300 ${className}`}
+      className={`artifact-thumbnail relative group border border-hairline-soft rounded-lg overflow-hidden bg-canvas transition-all hover:shadow-hover hover:border-hairline ${className}`}
       onMouseLeave={() => setShowDeleteConfirm(false)}
     >
       {/* Preview Area */}
       <div
-        className="w-full aspect-square bg-gray-100 overflow-hidden cursor-pointer"
+        className="w-full aspect-square bg-surface-soft overflow-hidden cursor-pointer"
         onClick={() => onPreview?.(artifact)}
       >
         {isImage && artifact.preview && !imageError ? (
@@ -47,19 +47,19 @@ export function ArtifactThumbnail({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-            <FileText className="w-8 h-8 text-gray-400" />
+            <FileText className="w-8 h-8 text-text-muted" />
           </div>
         )}
       </div>
 
       {/* Info Section */}
-      <div className="p-3 border-t border-gray-200">
+      <div className="p-3 border-t border-hairline-soft">
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium text-gray-900 truncate">
+            <h3 className="text-sm font-medium text-ink truncate">
               {artifact.title || 'Untitled'}
             </h3>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-text-muted mt-0.5">
               {artifact.size ? formatFileSize(artifact.size) : 'Unknown size'}
             </p>
           </div>
@@ -71,7 +71,7 @@ export function ArtifactThumbnail({
         </div>
 
         {/* Type Badge */}
-        <div className="inline-block ml-2 text-xs font-medium px-2 py-1 bg-gray-100 text-gray-700 rounded">
+        <div className="inline-block ml-2 text-xs font-medium px-2 py-1 bg-surface-soft text-text-secondary rounded">
           {artifact.type}
         </div>
       </div>
@@ -87,8 +87,8 @@ export function ArtifactThumbnail({
             <Trash2 className="w-4 h-4" />
           </button>
         ) : (
-          <div className="absolute top-0 right-0 bg-white border border-semantic-danger rounded-lg shadow-modal p-2 whitespace-nowrap">
-            <p className="text-xs text-gray-700 mb-2">Delete?</p>
+          <div className="absolute top-0 right-0 bg-surface-soft border border-semantic-danger rounded-lg shadow-modal p-2 whitespace-nowrap">
+            <p className="text-xs text-text-secondary mb-2">Delete?</p>
             <div className="flex gap-1">
               <button
                 onClick={handleDelete}
@@ -98,7 +98,7 @@ export function ArtifactThumbnail({
               </button>
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="px-2 py-1 text-xs border border-gray-300 text-gray-700 rounded hover:bg-gray-50"
+                className="px-2 py-1 text-xs border border-hairline-soft text-text-secondary rounded hover:bg-surface-soft"
               >
                 No
               </button>
@@ -109,7 +109,7 @@ export function ArtifactThumbnail({
 
       {/* Created Date Tooltip */}
       <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <div className="text-xs text-gray-600 bg-white bg-opacity-90 px-2 py-1 rounded">
+        <div className="text-xs text-text-secondary bg-surface-soft px-2 py-1 rounded">
           {new Date(artifact.created_at).toLocaleDateString()}
         </div>
       </div>

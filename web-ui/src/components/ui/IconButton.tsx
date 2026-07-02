@@ -3,12 +3,13 @@ import { cn } from '../../lib/cn';
 
 interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'sm' | 'md';
-  variant?: 'subtle' | 'ghost' | 'inverse';
+  variant?: 'subtle' | 'ghost' | 'inverse' | 'accent';
 }
 
 /**
- * Circular icon button — Figma `button-icon-circular`.
- * Always rounded-full. `subtle` on light surfaces, `inverse` on dark.
+ * Circular icon button — Celesnity `button-icon-circular`.
+ * Always round. `subtle` on quiet surfaces, `accent` for the nebula-gradient
+ * highlight control, `inverse` on dark hero washes.
  */
 export function IconButton({
   className,
@@ -23,15 +24,16 @@ export function IconButton({
   }[size];
 
   const variants = {
-    subtle:  'text-ink bg-surface-soft hover:bg-hairline-soft',
-    ghost:   'text-ink bg-transparent hover:bg-surface-soft',
-    inverse: 'text-inverse-ink bg-white/15 hover:bg-white/25',
+    subtle:  'text-ink bg-surface-soft hover:bg-hairline-soft border border-hairline-soft',
+    ghost:   'text-text-secondary bg-transparent hover:bg-surface-soft hover:text-ink',
+    inverse: 'text-white bg-white/10 hover:bg-white/20 backdrop-blur-sm',
+    accent:  'text-white bg-gradient-brand shadow-glow-nebula hover:brightness-110',
   }[variant];
 
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center rounded-full transition-colors duration-fast',
+        'inline-flex items-center justify-center rounded-full transition-all duration-fast ease-out active:scale-[0.95]',
         sizes,
         variants,
         className,

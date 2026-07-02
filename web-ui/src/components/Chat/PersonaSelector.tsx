@@ -52,7 +52,7 @@ export function PersonaSelector() {
 
   const pillBase =
     'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition-colors select-none hover:scale-105 active:scale-[0.98] whitespace-nowrap';
-  const pillStyle = 'bg-bg-400/40 text-text-200 border-gray-300 hover:bg-bg-400/60';
+  const pillStyle = 'bg-bg-400/40 text-text-200 border-hairline-soft hover:bg-bg-400/60';
 
   return (
     <div ref={containerRef} className="relative flex items-center gap-2">
@@ -82,7 +82,7 @@ export function PersonaSelector() {
       </button>
 
       {open && (
-        <div className="absolute bottom-full mb-2 left-0 z-50 min-w-[180px] max-h-64 overflow-y-auto rounded-lg border border-gray-300 bg-bg-300 shadow-soft py-1">
+        <div className="absolute bottom-full mb-2 left-0 z-50 min-w-[180px] max-h-64 overflow-y-auto rounded-lg border border-hairline-soft bg-bg-300 shadow-soft py-1">
           {fetchError ? (
             <p className="px-3 py-2 text-xs text-semantic-danger">Could not load personas</p>
           ) : personas.length === 0 ? (

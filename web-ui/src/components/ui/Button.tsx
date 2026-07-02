@@ -1,33 +1,40 @@
 import React from 'react';
 
-type ButtonVariant = 'primary' | 'secondary' | 'magenta' | 'ghost' | 'link' |
-  // legacy aliases — mapped onto the Figma-system variants
+type ButtonVariant = 'primary' | 'secondary' | 'accent' | 'magenta' | 'ghost' | 'link' |
+  // legacy aliases — mapped onto the Celesnity variants
   'default' | 'destructive' | 'outline';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'lg';
 }
 
+/**
+ * Celesnity Button — the brand's primary action.
+ * `primary` fills with the nebula gradient and carries a soft glow; `secondary`
+ * is a calm glass surface; `ghost` is text-only. Pill radius, confident scale.
+ */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', ...props }, ref) => {
     const base =
-      'inline-flex items-center justify-center whitespace-nowrap font-sans transition-transform duration-fast disabled:pointer-events-none disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98]';
+      'inline-flex items-center justify-center gap-2 whitespace-nowrap font-sans font-[600] tracking-[-0.01em] rounded-pill transition-all duration-fast ease-out disabled:pointer-events-none disabled:opacity-45 hover:brightness-110 active:scale-[0.97]';
 
     const sizes = {
-      sm: 'text-[14px] leading-[1.4] tracking-[-0.06px] px-4 py-[6px] rounded-pill',
-      md: 'text-btn px-6 py-[10px] rounded-pill',
+      sm: 'text-[14px] leading-none px-4 py-[9px] min-h-[38px]',
+      md: 'text-[16px] leading-none px-6 py-[13px] min-h-[48px]',
+      lg: 'text-[17px] leading-none px-8 py-[17px] min-h-[56px]',
     }[size];
 
     const v: Record<ButtonVariant, string> = {
-      primary:   'bg-ink text-inverse-ink',
-      secondary: 'bg-canvas text-ink border border-hairline-soft hover:border-ink',
-      magenta:   'bg-accent-magenta text-inverse-ink',
-      ghost:     'bg-transparent text-ink hover:bg-surface-soft',
-      link:      'bg-transparent text-ink underline underline-offset-4 hover:decoration-2 rounded-none px-0',
-      default:     'bg-ink text-inverse-ink',
-      destructive: 'bg-block-coral text-ink',
-      outline:     'bg-canvas text-ink border border-hairline-soft hover:border-ink',
+      primary:   'bg-gradient-brand text-white border-none shadow-glow-nebula',
+      secondary: 'glass-card text-ink hover:bg-surface-soft',
+      accent:    'bg-accent-cobalt text-white border-none shadow-glow-accent',
+      magenta:   'bg-accent-magenta text-white border-none shadow-glow-magenta',
+      ghost:     'bg-transparent text-text-secondary hover:bg-surface-soft hover:text-ink',
+      link:      'bg-transparent text-ink underline underline-offset-4 hover:decoration-2 rounded-none px-0 min-h-0',
+      default:     'bg-gradient-brand text-white border-none shadow-glow-nebula',
+      destructive: 'bg-block-coral text-white border-none',
+      outline:     'glass-card text-ink hover:bg-surface-soft',
     };
 
     return (

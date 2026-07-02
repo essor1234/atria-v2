@@ -1,4 +1,6 @@
-/* Figma-inspired design system. See web-ui/DESIGN.md. */
+/* Celesnity Design System — "Two skies, one identity."
+   Cosmos (dark, default) + Daybreak (light). See .references/Celesnity Design System.
+   All color tokens are HSL triples consumed via hsl(var(--x) / <alpha>). */
 
 @import url('https://rsms.me/inter/inter.css');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
@@ -7,49 +9,122 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Theme-invariant tokens ──────────────────────────────────────── */
 :root {
-  /* Mono core */
-  --ink: 0 0% 0%;
-  --canvas: 0 0% 100%;
-  --inverse-canvas: 0 0% 0%;
-  --inverse-ink: 0 0% 100%;
+  --overlay-scrim: 234 50% 3%;
 
-  /* Surface */
-  --surface-soft: 40 22% 96%;
-  --hairline: 0 0% 12%;
-  --hairline-soft: 0 0% 88%;
+  /* Signature gradients + hero wash — flip with theme where noted below. */
+  --hero-wash: radial-gradient(120% 140% at 18% 12%, #241660 0%, #12093B 45%, #05060F 100%);
 
-  /* Color-block palette (approximations of Figma's marketing pastels) */
-  --block-lime:  72 70% 78%;
-  --block-lilac: 261 60% 88%;
-  --block-cream: 38 60% 92%;
-  --block-mint:  150 50% 86%;
-  --block-pink:  340 80% 90%;
-  --block-coral:   8 80% 78%;
-  --block-navy:  238 60% 22%;
-
-  /* Accent + semantic */
-  --accent-magenta: 330 90% 55%;
-  --semantic-success: 142 68% 28%;
-  --semantic-danger: 0 70% 45%;
-  --overlay-scrim: 0 0% 0%;
-
-  /* Focus ring — ink on light; flipped to canvas on dark surfaces. */
-  --focus-ring: var(--ink);
-
-  /* Motion tokens — keep CSS in sync with DESIGN.md Motion section. */
+  /* Motion tokens. */
   --motion-instant: 80ms;
-  --motion-fast: 160ms;
-  --motion-base: 240ms;
-  --motion-slow: 480ms;
-  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --motion-fast: 140ms;
+  --motion-base: 220ms;
+  --motion-slow: 420ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Dark surfaces (navy block, inverse-canvas footer/marquee) flip the focus ring. */
+/* ── Cosmos — dark, the brand default ────────────────────────────── */
+:root,
+.cosmos {
+  /* Core */
+  --ink: 228 60% 98%;          /* cloud-white text */
+  --canvas: 234 50% 4%;        /* cosmic-black */
+  --inverse-canvas: 228 60% 98%;
+  --inverse-ink: 230 39% 18%;  /* ink */
+
+  /* Surface */
+  --surface-soft: 250 42% 12%; /* raised deep-indigo card */
+  --hairline: 230 35% 34%;
+  --hairline-soft: 232 30% 18%;
+
+  /* Secondary / muted text */
+  --text-secondary: 230 40% 85%;   /* starlight */
+  --text-muted: 230 24% 66%;
+
+  /* Accent spine — cobalt → violet → nebula-magenta */
+  --accent: 232 74% 53%;       /* cobalt-blue */
+  --accent-2: 268 73% 45%;     /* violet */
+  --accent-3: 286 58% 56%;     /* nebula-magenta */
+  --accent-magenta: 286 58% 56%;
+
+  /* Signature nebula gradient (dark). */
+  --gradient-brand: linear-gradient(120deg, #2D44E0 0%, #6E1FC6 52%, #B14FD0 100%);
+
+  /* Color-block palette retuned to the cosmic family. */
+  --block-lime:  268 73% 55%;  /* violet */
+  --block-lilac: 286 58% 62%;
+  --block-cream: 230 40% 85%;  /* starlight */
+  --block-mint:  232 74% 60%;  /* cobalt */
+  --block-pink:  286 60% 70%;
+  --block-coral:   8 80% 68%;  /* reserved: danger */
+  --block-navy:  251 69% 18%;  /* deep-indigo */
+
+  /* Code surface — stays dark in both themes. */
+  --code-bg: 240 46% 8%;
+  --code-ink: 228 55% 92%;
+
+  /* Semantic */
+  --semantic-success: 152 55% 55%;
+  --semantic-danger: 8 80% 62%;
+
+  --focus-ring: 232 74% 62%;
+
+  /* Elevation — Cosmos surfaces cast a moderate dark shadow. */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.28);
+  --shadow-hover: 0 6px 18px rgba(0, 0, 0, 0.34);
+  --shadow-elevated: 0 12px 32px rgba(0, 0, 0, 0.40);
+}
+
+/* ── Daybreak — light ────────────────────────────────────────────── */
+.daybreak {
+  --ink: 230 39% 18%;          /* ink */
+  --canvas: 228 60% 98%;       /* cloud-white */
+  --inverse-canvas: 230 39% 18%;
+  --inverse-ink: 228 60% 98%;
+
+  --surface-soft: 250 47% 95%; /* lavender-mist */
+  --hairline: 250 20% 72%;
+  --hairline-soft: 250 30% 90%;
+
+  --text-secondary: 230 25% 40%;
+  --text-muted: 230 18% 52%;
+
+  --accent: 232 74% 53%;       /* cobalt-blue */
+  --accent-2: 268 73% 55%;     /* violet-day */
+  --accent-3: 286 57% 62%;     /* magenta-day */
+  --accent-magenta: 286 57% 62%;
+
+  /* Signature daybreak gradient (light). */
+  --gradient-brand: linear-gradient(120deg, #2D44E0 0%, #8739E0 52%, #BC67D5 100%);
+
+  --block-lime:  268 73% 62%;
+  --block-lilac: 286 57% 82%;
+  --block-cream: 250 47% 95%;
+  --block-mint:  232 74% 88%;
+  --block-pink:  286 60% 88%;
+  --block-coral:   8 80% 78%;
+  --block-navy:  251 69% 22%;
+
+  --code-bg: 230 39% 15%;
+  --code-ink: 228 60% 98%;
+
+  --semantic-success: 152 60% 32%;
+  --semantic-danger: 0 70% 45%;
+
+  --focus-ring: 232 74% 53%;
+
+  /* Elevation — Daybreak surfaces cast a soft, cool shadow. */
+  --shadow-card: 0 1px 2px rgba(28, 34, 64, 0.06), 0 2px 8px rgba(28, 34, 64, 0.05);
+  --shadow-hover: 0 4px 12px rgba(28, 34, 64, 0.08), 0 12px 24px rgba(28, 34, 64, 0.06);
+  --shadow-elevated: 0 8px 24px rgba(28, 34, 64, 0.10), 0 20px 40px rgba(28, 34, 64, 0.08);
+}
+
+/* Dark surfaces (navy block, hero wash) keep the bright focus ring. */
 [data-surface="dark"], .surface-dark {
-  --focus-ring: var(--canvas);
+  --focus-ring: 232 74% 62%;
 }
 
 @layer base {
@@ -365,7 +440,7 @@ code {
   background: transparent !important;
   border: 0 !important;
   padding: 0 !important;
-  color: hsl(var(--inverse-ink));
+  color: hsl(var(--code-ink));
 }
 
 /* Code block — inverse-canvas inset per DESIGN.md "code blocks become black
@@ -373,15 +448,15 @@ code {
    whitespace (ThinkingBlock, tool output) keeps its parent surface. */
 .prose pre,
 .prose-xs pre {
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 16px 18px;
   overflow-x: auto;
-  background: hsl(var(--inverse-canvas));
-  color: hsl(var(--inverse-ink));
+  background: hsl(var(--code-bg));
+  color: hsl(var(--code-ink));
   font-family: 'JetBrains Mono', SF Mono, Menlo, monospace;
   font-size: 14px;
   line-height: 1.55;
-  border: 1px solid hsl(var(--ink));
+  border: 1px solid hsl(var(--hairline-soft));
 }
 
 /* Prose */
@@ -501,3 +576,40 @@ code {
   transform: translateY(-1px);
   box-shadow: 0 2px 12px hsl(var(--ink) / 0.18);
 }
+
+/* ── Celesnity signature helpers ─────────────────────────────────── */
+
+/* Nebula gradient fill (buttons, one hero card, one highlight badge). */
+.bg-gradient-brand { background-image: var(--gradient-brand); }
+
+/* Cosmos radial wash — hero surfaces glow in both themes. */
+.bg-hero-wash { background-image: var(--hero-wash); }
+
+/* Nebula gradient text — reserved for the wordmark / one headline. */
+.text-gradient-brand {
+  background-image: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Glass surface card — translucent raise; glows on Cosmos, soft shadow on Daybreak. */
+.glass-card {
+  background-color: hsl(var(--ink) / 0.04);
+  border: 1px solid hsl(var(--hairline-soft));
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.daybreak .glass-card {
+  background-color: hsl(var(--canvas));
+  box-shadow: 0 4px 12px hsl(var(--ink) / 0.06), 0 12px 32px hsl(var(--ink) / 0.06);
+}
+
+/* Signature glows — sparingly, on primary CTAs and hero cards. */
+.glow-accent  { box-shadow: 0 10px 40px rgba(45, 68, 224, 0.35); }
+.glow-nebula  { box-shadow: 0 14px 48px rgba(110, 31, 198, 0.38); }
+.glow-magenta { box-shadow: 0 12px 44px rgba(177, 79, 208, 0.30); }
+.daybreak .glow-accent,
+.daybreak .glow-nebula,
+.daybreak .glow-magenta { box-shadow: 0 8px 24px hsl(var(--ink) / 0.10), 0 24px 48px hsl(var(--ink) / 0.10); }

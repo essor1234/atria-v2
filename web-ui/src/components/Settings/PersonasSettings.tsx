@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Pencil, Eye } from 'lucide-react';
 import { PersonaForm } from '../Personas/PersonaForm';
 import { apiClient } from '../../api/client';
 import type { Persona } from '../../types';
@@ -137,8 +138,12 @@ export function PersonasSettings() {
         {(selectedPersona || isEditing) && (
           <div className="lg:col-span-2 border border-hairline rounded-lg bg-canvas flex flex-col">
             <div className="bg-surface-soft px-4 py-3 border-b border-hairline flex items-center justify-between rounded-t-lg">
-              <h3 className="font-medium text-ink text-sm">
-                {isEditing ? '✏️ Edit Persona' : '👁️ View Persona'}
+              <h3 className="font-medium text-ink text-sm inline-flex items-center gap-1.5">
+                {isEditing ? (
+                  <><Pencil className="w-3.5 h-3.5" strokeWidth={1.5} /> Edit Persona</>
+                ) : (
+                  <><Eye className="w-3.5 h-3.5" strokeWidth={1.5} /> View Persona</>
+                )}
               </h3>
               {!isEditing && selectedPersona && (
                 <button

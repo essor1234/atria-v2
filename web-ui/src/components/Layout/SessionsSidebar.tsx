@@ -284,7 +284,7 @@ export function SessionsSidebar() {
       initial={reduceMotion ? false : { opacity: 0, x: -12 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="h-full flex flex-col relative overflow-hidden flex-shrink-0 bg-gray-50 border-r border-gray-200"
+      className="h-full flex flex-col relative overflow-hidden flex-shrink-0 bg-surface-soft border-r border-hairline-soft"
       style={{
         width: isCollapsed ? 64 : 320,
         transition: 'width 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
@@ -315,10 +315,10 @@ export function SessionsSidebar() {
                     className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                       hasActiveSession
                         ? 'bg-amber-100 border-2 border-amber-400 shadow-sm'
-                        : 'bg-white hover:bg-gray-100 border border-gray-200 hover:shadow-md'
+                        : 'bg-surface-soft hover:bg-surface-soft border border-hairline-soft hover:shadow-md'
                     }`}
                   >
-                    <Folder className={`w-5 h-5 ${hasActiveSession ? 'text-amber-600' : 'text-gray-500'}`} />
+                    <Folder className={`w-5 h-5 ${hasActiveSession ? 'text-amber-600' : 'text-text-muted'}`} />
                   </button>
                   {hasRunningSession && (
                     <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-[1.5px] border-amber-200 border-t-amber-500 animate-spin" />
@@ -346,7 +346,7 @@ export function SessionsSidebar() {
               className={`w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-md transition-all ${
                 currentSessionIsEmpty
                   ? 'bg-gray-300 cursor-not-allowed opacity-50'
-                  : 'bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg'
+                  : 'bg-gradient-to-br from-accent-cobalt to-accent-violet hover:from-accent-cobalt hover:to-accent-violet hover:shadow-lg'
               }`}
               title={currentSessionIsEmpty ? 'Send a message before starting a new session' : 'Start Conversation'}
             >
@@ -355,10 +355,10 @@ export function SessionsSidebar() {
           </div>
 
           {/* Collapsed Footer */}
-          <div className="p-2 border-t border-gray-200 bg-gray-50">
+          <div className="p-2 border-t border-hairline-soft bg-surface-soft">
             <button
               onClick={() => setIsSettingsOpen(true)}
-              className="w-full p-2 text-gray-700 hover:text-gray-900 bg-white hover:bg-amber-50/30 border border-gray-200 hover:border-amber-300 rounded-xl flex items-center justify-center"
+              className="w-full p-2 text-text-secondary hover:text-ink bg-canvas hover:bg-amber-50/30 border border-hairline-soft hover:border-amber-300 rounded-xl flex items-center justify-center"
               title="Settings"
             >
               <Settings className="w-5 h-5" />
@@ -368,15 +368,15 @@ export function SessionsSidebar() {
       ) : (
         <div className="min-w-[320px] flex flex-col h-full animate-content-fade">
           {/* Compact New Chat Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-hairline-soft">
             <button
               onClick={currentSessionIsEmpty ? undefined : handleNewWorkspace}
               disabled={currentSessionIsEmpty}
               title={currentSessionIsEmpty ? 'Send a message before starting a new session' : undefined}
               className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all ${
                 currentSessionIsEmpty
-                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-sm hover:shadow-md'
+                  ? 'bg-gray-200 text-text-muted cursor-not-allowed'
+                  : 'bg-gradient-to-r from-accent-cobalt to-accent-violet hover:from-accent-cobalt hover:to-accent-violet text-white shadow-sm hover:shadow-md'
               }`}
             >
               <Plus className="w-4 h-4" />
@@ -385,8 +385,8 @@ export function SessionsSidebar() {
           </div>
 
           {/* Workspaces Header */}
-          <div className="px-5 py-4 border-b border-gray-100">
-            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Workspaces</h2>
+          <div className="px-5 py-4 border-b border-hairline-soft">
+            <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider">Workspaces</h2>
           </div>
 
           {/* Workspaces List */}
@@ -399,11 +399,11 @@ export function SessionsSidebar() {
               </div>
             ) : workspaces.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                  <Folder className="w-8 h-8 text-gray-400" />
+                <div className="w-16 h-16 rounded-full bg-surface-soft flex items-center justify-center mb-4">
+                  <Folder className="w-8 h-8 text-text-muted" />
                 </div>
-                <h3 className="text-sm font-medium text-gray-900 mb-1">No workspaces yet</h3>
-                <p className="text-xs text-gray-500 max-w-[200px]">
+                <h3 className="text-sm font-medium text-ink mb-1">No workspaces yet</h3>
+                <p className="text-xs text-text-muted max-w-[200px]">
                   Start a conversation to create your first workspace
                 </p>
               </div>
@@ -417,7 +417,7 @@ export function SessionsSidebar() {
                   return (
                     <div
                       key={workspace.path}
-                      className="relative w-full rounded-xl bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm"
+                      className="relative w-full rounded-xl bg-canvas border border-hairline-soft hover:border-hairline hover:shadow-sm"
                     >
                       {/* Workspace Header */}
                       <button
@@ -425,32 +425,32 @@ export function SessionsSidebar() {
                           e.stopPropagation();
                           toggleWorkspace(workspace.path, e);
                         }}
-                        className="w-full px-4 py-3.5 text-left group cursor-pointer hover:bg-gray-100/50 rounded-t-xl"
+                        className="w-full px-4 py-3.5 text-left group cursor-pointer hover:bg-surface-soft rounded-t-xl"
                       >
                         <div className="flex items-start gap-2 pr-10">
                           <ChevronDown
-                            className={`mt-0.5 w-4 h-4 flex-shrink-0 text-gray-500 ${
+                            className={`mt-0.5 w-4 h-4 flex-shrink-0 text-text-muted ${
                               isExpanded ? 'rotate-0' : '-rotate-90'
                             }`}
                             style={{ transition: 'transform 200ms ease' }}
                           />
 
-                          <div className="mt-0.5 w-4 h-4 rounded flex-shrink-0 flex items-center justify-center bg-gray-100 group-hover:bg-gray-200">
-                            <Folder className="w-2.5 h-2.5 text-gray-500" />
+                          <div className="mt-0.5 w-4 h-4 rounded flex-shrink-0 flex items-center justify-center bg-surface-soft group-hover:bg-gray-200">
+                            <Folder className="w-2.5 h-2.5 text-text-muted" />
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-sm font-semibold text-gray-900 truncate" title={workspace.path}>
+                            <h3 className="text-sm font-semibold text-ink truncate" title={workspace.path}>
                               {projectName}
                             </h3>
                             <div className="flex items-center justify-between text-xs mt-1">
-                              <span className="text-gray-400 truncate" title={workspace.path}>
+                              <span className="text-text-muted truncate" title={workspace.path}>
                                 {formatDate(workspace.mostRecent.updated_at)}
                               </span>
                               <span className={`ml-2 px-1.5 py-0.5 rounded-full text-xs flex-shrink-0 ${
                                 hasActiveSession
                                   ? 'bg-amber-100 text-amber-700 font-medium'
-                                  : 'bg-gray-200 text-gray-600'
+                                  : 'bg-gray-200 text-text-secondary'
                               }`}>
                                 {workspace.sessions.length}
                               </span>
@@ -465,7 +465,7 @@ export function SessionsSidebar() {
                           e.stopPropagation();
                           handleDeleteWorkspace(workspace, e);
                         }}
-                        className="absolute top-3.5 right-3 w-7 h-7 rounded-md flex items-center justify-center hover:bg-red-100 text-gray-400 hover:text-red-600 bg-white shadow-sm z-10 delete-glow"
+                        className="absolute top-3.5 right-3 w-7 h-7 rounded-md flex items-center justify-center hover:bg-red-100 text-text-muted hover:text-red-600 bg-surface-soft shadow-sm z-10 delete-glow"
                         title="Delete workspace"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -479,7 +479,7 @@ export function SessionsSidebar() {
                           opacity: isExpanded ? 1 : 0,
                         }}
                       >
-                        <div className="px-4 pb-3 space-y-1.5 border-t border-gray-100 pt-2">
+                        <div className="px-4 pb-3 space-y-1.5 border-t border-hairline-soft pt-2">
                           {/* Add New Session Button */}
                           <button
                             onClick={currentSessionIsEmpty ? undefined : (e) => handleNewSessionInWorkspace(workspace.path, e)}
@@ -487,7 +487,7 @@ export function SessionsSidebar() {
                             title={currentSessionIsEmpty ? 'Send a message before starting a new session' : undefined}
                             className={`w-full px-4 py-3 rounded-lg text-left border-2 border-dashed flex items-center gap-2 ${
                               currentSessionIsEmpty
-                                ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed'
+                                ? 'bg-surface-soft border-hairline-soft text-text-muted cursor-not-allowed'
                                 : 'cursor-pointer bg-amber-50/50 hover:bg-amber-50 border-amber-300 hover:border-amber-400 text-amber-700'
                             }`}
                           >
@@ -510,7 +510,7 @@ export function SessionsSidebar() {
                                   className={`w-full px-4 py-3 pr-10 rounded-lg text-left cursor-pointer ${
                                     isActiveSession
                                       ? 'bg-amber-50 border-l-4 animate-border-breathe'
-                                      : 'bg-white border border-gray-200 hover:border-amber-300 hover:bg-amber-50/30 hover:scale-[1.01] hover:shadow-sm transition-all duration-200'
+                                      : 'bg-canvas border border-hairline-soft hover:border-amber-300 hover:bg-amber-50/30 hover:scale-[1.01] hover:shadow-sm transition-all duration-200'
                                   }`}
                                 >
                                   <div className="flex items-center gap-1.5">
@@ -521,7 +521,7 @@ export function SessionsSidebar() {
                                       <div className="w-4 h-4 rounded-full bg-orange-500 text-white text-[9px] font-bold flex items-center justify-center flex-shrink-0">!</div>
                                     )}
                                     <div className={`text-xs font-medium truncate ${
-                                      isActiveSession ? 'text-amber-900' : 'text-gray-800'
+                                      isActiveSession ? 'text-amber-900' : 'text-ink'
                                     }`} title={session.title || session.id}>
                                       {sessionLabel}
                                     </div>
@@ -534,12 +534,12 @@ export function SessionsSidebar() {
                                   </div>
                                   <div className="flex items-center justify-between text-xs mt-1">
                                     <span className={`${
-                                      isActiveSession ? 'text-amber-600' : 'text-gray-400'
+                                      isActiveSession ? 'text-amber-600' : 'text-text-muted'
                                     }`}>
                                       {formatDate(session.updated_at)}
                                     </span>
                                     <span className={`${
-                                      isActiveSession ? 'text-amber-600' : 'text-gray-400'
+                                      isActiveSession ? 'text-amber-600' : 'text-text-muted'
                                     }`}>
                                       {session.message_count} msgs
                                     </span>
@@ -555,7 +555,7 @@ export function SessionsSidebar() {
                                       setSessionModelSessionId(session.id);
                                       setSessionModelLabel(getSessionLabel(session));
                                     }}
-                                    className="w-6 h-6 rounded flex items-center justify-center hover:bg-amber-100 text-gray-400 hover:text-amber-600"
+                                    className="w-6 h-6 rounded flex items-center justify-center hover:bg-amber-100 text-text-muted hover:text-amber-600"
                                     title="Session models"
                                   >
                                     <Settings className="w-3.5 h-3.5" />
@@ -563,7 +563,7 @@ export function SessionsSidebar() {
                                   {/* Delete Session Button */}
                                   <button
                                     onClick={(e) => handleDeleteSession(session.id, e)}
-                                    className="w-6 h-6 rounded flex items-center justify-center hover:bg-red-100 text-gray-400 hover:text-red-600 delete-glow"
+                                    className="w-6 h-6 rounded flex items-center justify-center hover:bg-red-100 text-text-muted hover:text-red-600 delete-glow"
                                     title="Delete session"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -582,10 +582,10 @@ export function SessionsSidebar() {
           </div>
 
           {/* Footer - Expanded */}
-          <div className="p-4 border-t border-gray-200 bg-gray-50">
+          <div className="p-4 border-t border-hairline-soft bg-surface-soft">
             <button
               onClick={() => setIsSettingsOpen(true)}
-              className="w-full px-4 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 bg-white hover:bg-amber-50/30 border border-gray-200 hover:border-amber-300 rounded-xl flex items-center justify-center gap-2"
+              className="w-full px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-ink bg-canvas hover:bg-amber-50/30 border border-hairline-soft hover:border-amber-300 rounded-xl flex items-center justify-center gap-2"
             >
               <Settings className="w-4 h-4" />
               <span>Settings</span>
@@ -627,21 +627,21 @@ export function SessionsSidebar() {
           onClick={() => setDeleteSessionId(null)}
         >
           <div
-            className="bg-white p-6 rounded-xl min-w-[400px] shadow-modal animate-scale-in"
+            className="bg-canvas p-6 rounded-xl min-w-[400px] shadow-modal animate-scale-in"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+            <h3 className="text-lg font-semibold text-ink mb-3">
               Delete Session
             </h3>
-            <p className="text-sm text-gray-500 mb-5">
-              Are you sure you want to delete session <strong className="text-gray-700">{deleteSessionId.substring(0, 8)}</strong>?
+            <p className="text-sm text-text-muted mb-5">
+              Are you sure you want to delete session <strong className="text-text-secondary">{deleteSessionId.substring(0, 8)}</strong>?
               <br />
               This action cannot be undone.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setDeleteSessionId(null)}
-                className="px-4 py-2 border border-gray-300 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 border border-hairline-soft bg-canvas rounded-lg text-sm font-medium text-text-secondary hover:bg-surface-soft transition-colors"
               >
                 Cancel
               </button>

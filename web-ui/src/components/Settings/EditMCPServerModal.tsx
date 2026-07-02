@@ -125,7 +125,7 @@ export function EditMCPServerModal({ isOpen, server, onClose, onSubmit }: EditMC
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-modal w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
+      <div className="bg-canvas rounded-2xl shadow-modal w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
         <ModalHeader
           title="Edit MCP Server"
           subtitle={server.name}

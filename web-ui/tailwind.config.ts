@@ -1,7 +1,7 @@
 import type { Config } from 'tailwindcss'
 
-// Figma-inspired design system. See web-ui/DESIGN.md.
-// Monochrome chrome + oversized pastel color-block sections.
+// Celesnity Design System — Cosmos (dark) + Daybreak (light).
+// Semantic tokens flip by theme scope (.cosmos / .daybreak); see src/index.css.
 export default {
   content: [
     "./index.html",
@@ -30,8 +30,14 @@ export default {
         'block-coral':  'hsl(var(--block-coral) / <alpha-value>)',
         'block-navy':   'hsl(var(--block-navy) / <alpha-value>)',
 
-        // Accent (single-shot promo)
+        // Celesnity accent spine — cobalt → violet → nebula-magenta
+        'accent-cobalt':  'hsl(var(--accent) / <alpha-value>)',
+        'accent-violet':  'hsl(var(--accent-2) / <alpha-value>)',
         'accent-magenta': 'hsl(var(--accent-magenta) / <alpha-value>)',
+
+        // Secondary / muted text (starlight → dim)
+        'text-secondary': 'hsl(var(--text-secondary) / <alpha-value>)',
+        'text-muted':     'hsl(var(--text-muted) / <alpha-value>)',
 
         // Semantic
         'semantic-success': 'hsl(var(--semantic-success) / <alpha-value>)',
@@ -82,26 +88,35 @@ export default {
         warning: {
           '100': 'hsl(var(--block-coral) / <alpha-value>)',
         },
+        // Legacy gray scale — remapped so low values stay visible surfaces and
+        // high values keep the muted→ink text hierarchy under both theme scopes.
         gray: {
-          50:  'hsl(var(--canvas))',
-          100: 'hsl(var(--surface-soft))',
-          200: 'hsl(var(--hairline-soft))',
-          300: 'hsl(var(--hairline-soft))',
-          400: 'hsl(var(--ink))',
-          500: 'hsl(var(--ink))',
-          600: 'hsl(var(--ink))',
-          700: 'hsl(var(--ink))',
-          800: 'hsl(var(--ink))',
-          900: 'hsl(var(--ink))',
+          50:  'hsl(var(--surface-soft) / <alpha-value>)',
+          100: 'hsl(var(--surface-soft) / <alpha-value>)',
+          200: 'hsl(var(--hairline-soft) / <alpha-value>)',
+          300: 'hsl(var(--hairline) / <alpha-value>)',
+          400: 'hsl(var(--text-muted) / <alpha-value>)',
+          500: 'hsl(var(--text-muted) / <alpha-value>)',
+          600: 'hsl(var(--text-secondary) / <alpha-value>)',
+          700: 'hsl(var(--text-secondary) / <alpha-value>)',
+          800: 'hsl(var(--ink) / <alpha-value>)',
+          900: 'hsl(var(--ink) / <alpha-value>)',
         },
       },
       borderRadius: {
-        xs: '2px',
-        sm: '6px',
-        md: '8px',
-        lg: '24px',
-        xl: '32px',
-        pill: '50px',
+        // Celesnity radii — roomy, unhurried. 6px inputs → fully-round pills.
+        xs: '6px',
+        sm: '10px',
+        md: '16px',
+        lg: '20px',
+        xl: '28px',
+        '2xl': '36px',
+        pill: '999px',
+      },
+      backgroundImage: {
+        // Signature nebula gradient + cosmos hero wash (flip by theme scope).
+        'gradient-brand': 'var(--gradient-brand)',
+        'hero-wash': 'var(--hero-wash)',
       },
       borderWidth: {
         '0.5': '0.5px',
@@ -137,11 +152,15 @@ export default {
         'content': '1280px',
       },
       boxShadow: {
-        // Per DESIGN.md Shadow Tokens — keep in sync.
-        'soft':       '0 4px 16px rgba(0,0,0,0.06)',
-        'hover':      '0 8px 24px rgba(0,0,0,0.08)',
-        'modal':      '0 24px 64px rgba(0,0,0,0.18)',
-        'focus-ring': '0 0 0 2px hsl(var(--canvas)), 0 0 0 4px hsl(var(--focus-ring))',
+        // Celesnity elevation (theme-aware via CSS vars) + signature glows.
+        'soft':       'var(--shadow-card)',
+        'hover':      'var(--shadow-hover)',
+        'modal':      'var(--shadow-elevated)',
+        'cosmos':     'var(--shadow-elevated)',
+        'glow-accent':  '0 10px 40px rgba(45, 68, 224, 0.35)',
+        'glow-nebula':  '0 14px 48px rgba(110, 31, 198, 0.38)',
+        'glow-magenta': '0 12px 44px rgba(177, 79, 208, 0.30)',
+        'focus-ring': '0 0 0 3px hsl(var(--focus-ring) / 0.55)',
       },
       transitionDuration: {
         // Per DESIGN.md Motion tokens.

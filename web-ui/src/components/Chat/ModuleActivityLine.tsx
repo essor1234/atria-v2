@@ -1,3 +1,4 @@
+import { AlertTriangle } from 'lucide-react';
 import type { Message } from '../../types';
 
 interface Props {
@@ -91,7 +92,7 @@ export function ModuleActivityLine({ message, hasResult }: Props) {
     return (
       <div className="px-3 py-2 text-[13px] text-block-coral space-y-1">
         <div className="flex items-start gap-2">
-          <span aria-hidden className="mt-0.5">⚠️</span>
+          <AlertTriangle aria-hidden className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" strokeWidth={1.5} />
           <span className="flex-1 break-words">{view.text}</span>
           <button
             type="button"

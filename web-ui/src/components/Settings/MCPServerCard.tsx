@@ -54,20 +54,20 @@ export function MCPServerCard({
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+    <div className="bg-canvas rounded-lg border border-hairline-soft hover:border-hairline transition-colors">
       {/* Header */}
       <div className="px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3 flex-1">
           <StatusIndicator status={server.status} isProcessing={isProcessing} />
 
           <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-medium text-gray-900 truncate">{server.name}</h4>
+            <h4 className="text-sm font-medium text-ink truncate">{server.name}</h4>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-text-muted">
                 {server.status === 'connected' ? `${server.tools_count} tools` : 'Not connected'}
               </span>
-              <span className="text-xs text-gray-400">•</span>
-              <span className="text-xs text-gray-500 capitalize">{server.config_location}</span>
+              <span className="text-xs text-text-muted">•</span>
+              <span className="text-xs text-text-muted capitalize">{server.config_location}</span>
             </div>
           </div>
         </div>
@@ -81,7 +81,7 @@ export function MCPServerCard({
 
           <button
             onClick={() => setExpanded(!expanded)}
-            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded transition-colors"
+            className="p-1.5 text-text-muted hover:text-text-secondary hover:bg-surface-soft rounded transition-colors"
           >
             <ChevronDown className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
           </button>
@@ -90,7 +90,7 @@ export function MCPServerCard({
 
       {/* Expanded Details */}
       {expanded && (
-        <div className="px-4 pb-3 border-t border-gray-100">
+        <div className="px-4 pb-3 border-t border-hairline-soft">
           <ServerDetails server={server} />
 
           <ActionButtons
@@ -120,7 +120,7 @@ function StatusIndicator({ status, isProcessing }: StatusIndicatorProps) {
   if (isProcessing) {
     return (
       <div className="flex items-center justify-center w-8 h-8">
-        <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
+        <div className="w-4 h-4 border-2 border-hairline-soft border-t-gray-900 rounded-full animate-spin" />
       </div>
     );
   }
@@ -159,8 +159,8 @@ function ConnectionButton({ status, isProcessing, onClick }: ConnectionButtonPro
       disabled={isProcessing}
       className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
         isConnected
-          ? 'text-gray-700 bg-gray-100 hover:bg-gray-200'
-          : 'text-white bg-gray-900 hover:bg-gray-800'
+          ? 'text-text-secondary bg-surface-soft hover:bg-surface-soft'
+          : 'text-white bg-gradient-brand hover:brightness-110'
       } disabled:opacity-50 disabled:cursor-not-allowed`}
     >
       {isProcessing ? 'Processing...' : isConnected ? 'Disconnect' : 'Connect'}
@@ -185,12 +185,12 @@ function ServerDetails({ server }: ServerDetailsProps) {
 
       {Object.keys(config.env).length > 0 && (
         <div>
-          <span className="text-gray-500 font-medium">Environment:</span>
+          <span className="text-text-muted font-medium">Environment:</span>
           <div className="mt-1 space-y-1">
             {Object.entries(config.env).map(([key, value]) => (
-              <div key={key} className="flex gap-2 text-gray-700">
+              <div key={key} className="flex gap-2 text-text-secondary">
                 <span className="font-mono font-medium">{key}=</span>
-                <span className="font-mono text-gray-600">{value}</span>
+                <span className="font-mono text-text-secondary">{value}</span>
               </div>
             ))}
           </div>
@@ -201,12 +201,12 @@ function ServerDetails({ server }: ServerDetailsProps) {
         <DetailRow
           label="Auto-start"
           value={config.auto_start ? 'Enabled' : 'Disabled'}
-          valueColor={config.auto_start ? 'text-green-600' : 'text-gray-500'}
+          valueColor={config.auto_start ? 'text-green-600' : 'text-text-muted'}
         />
         <DetailRow
           label="Enabled"
           value={config.enabled ? 'Yes' : 'No'}
-          valueColor={config.enabled ? 'text-green-600' : 'text-gray-500'}
+          valueColor={config.enabled ? 'text-green-600' : 'text-text-muted'}
         />
       </div>
     </div>
@@ -220,10 +220,10 @@ interface DetailRowProps {
   valueColor?: string;
 }
 
-function DetailRow({ label, value, mono = false, valueColor = 'text-gray-700' }: DetailRowProps) {
+function DetailRow({ label, value, mono = false, valueColor = 'text-text-secondary' }: DetailRowProps) {
   return (
     <div className="flex gap-2">
-      <span className="text-gray-500 font-medium">{label}:</span>
+      <span className="text-text-muted font-medium">{label}:</span>
       <span className={`${valueColor} ${mono ? 'font-mono' : ''} break-all`}>{value}</span>
     </div>
   );
@@ -247,7 +247,7 @@ function ActionButtons({
   onDelete,
 }: ActionButtonsProps) {
   return (
-    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-hairline-soft">
       {server.status === 'connected' && (
         <ActionButton
           onClick={() => onViewTools(server.name)}
@@ -296,8 +296,8 @@ interface ActionButtonProps {
 
 function ActionButton({ onClick, disabled, variant, children }: ActionButtonProps) {
   const variants = {
-    primary: 'text-white bg-gray-900 hover:bg-gray-800',
-    secondary: 'text-gray-700 bg-gray-100 hover:bg-gray-200',
+    primary: 'text-white bg-gradient-brand hover:brightness-110',
+    secondary: 'text-text-secondary bg-surface-soft hover:bg-surface-soft',
     danger: 'text-semantic-danger bg-red-50 hover:bg-red-100',
   };
 

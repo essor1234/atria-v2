@@ -16,7 +16,7 @@ const DEPTH_OPTIONS = [
 type Depth = 'shallow' | 'standard' | 'deep';
 
 const STATUS_COLORS = {
-  reviewing: 'text-purple-400',
+  reviewing: 'text-accent-magenta',
   queued:    'text-text-400',
   running:   'text-amber-400',
   done:      'text-emerald-400',

@@ -1,4 +1,5 @@
-import { Command, Settings, LogOut, Menu, User as UserIcon } from "lucide-react";
+import { Command, Settings, LogOut, Menu, Moon, Sun, User as UserIcon } from "lucide-react";
+import { useThemeStore } from "../../stores/theme";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { apiClient } from "../../api/client";
@@ -46,6 +47,8 @@ export function TopBar() {
   const openMobileSidebar = useChatStore((state) => state.openMobileSidebar);
   const openCommandPalette = useChatStore((state) => state.openCommandPalette);
   const openSettingsModal = useChatStore((state) => state.openSettingsModal);
+  const theme = useThemeStore((state) => state.theme);
+  const toggleTheme = useThemeStore((state) => state.toggleTheme);
 
   const [me, setMe] = useState<MeInfo | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -167,7 +170,7 @@ export function TopBar() {
       {/* ── Left: Brand + primary view switcher ── */}
       <div className="flex items-center gap-4 flex-shrink-0">
         <div className="flex items-baseline gap-2">
-          <span className="text-[15px] font-[540] tracking-[-0.2px] text-ink">
+          <span className="text-[16px] font-[600] tracking-[-0.3px] text-gradient-brand">
             Atria
           </span>
           <span className="eyebrow-mono text-ink/40 hidden lg:inline">
@@ -262,6 +265,19 @@ export function TopBar() {
       {/* ── Persistent controls: tenant, settings, account (every surface) ── */}
       <div className="flex items-center gap-1 flex-shrink-0">
         <TenantSwitcher />
+
+        <button
+          onClick={toggleTheme}
+          className={iconBtn}
+          title={theme === "cosmos" ? "Switch to Daybreak (light)" : "Switch to Cosmos (dark)"}
+          aria-label="Toggle theme"
+        >
+          {theme === "cosmos" ? (
+            <Sun className="w-[18px] h-[18px]" strokeWidth={1.5} />
+          ) : (
+            <Moon className="w-[18px] h-[18px]" strokeWidth={1.5} />
+          )}
+        </button>
 
         <button
           onClick={openSettingsModal}

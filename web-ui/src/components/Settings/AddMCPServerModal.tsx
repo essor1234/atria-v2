@@ -198,20 +198,20 @@ export function AddMCPServerModal({ isOpen, onClose, onSubmit }: AddMCPServerMod
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-modal w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
+      <div className="bg-canvas rounded-2xl shadow-modal w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
         {/* Header */}
         <ModalHeader title="Add MCP Server" onClose={handleClose} disabled={isSubmitting} />
 
         {/* Mode Tabs */}
-        <div className="flex border-b border-gray-200 px-6">
+        <div className="flex border-b border-hairline-soft px-6">
           <button
             type="button"
             onClick={() => setMode('form')}
             disabled={isSubmitting}
             className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
               mode === 'form'
-                ? 'border-gray-900 text-gray-900'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-gray-900 text-ink'
+                : 'border-transparent text-text-muted hover:text-text-secondary'
             }`}
           >
             Manual Entry
@@ -222,8 +222,8 @@ export function AddMCPServerModal({ isOpen, onClose, onSubmit }: AddMCPServerMod
             disabled={isSubmitting}
             className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
               mode === 'json'
-                ? 'border-gray-900 text-gray-900'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-gray-900 text-ink'
+                : 'border-transparent text-text-muted hover:text-text-secondary'
             }`}
           >
             Import JSON
@@ -237,10 +237,10 @@ export function AddMCPServerModal({ isOpen, onClose, onSubmit }: AddMCPServerMod
           {mode === 'json' ? (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   Paste JSON Configuration
                 </label>
-                <p className="text-xs text-gray-500 mb-3">
+                <p className="text-xs text-text-muted mb-3">
                   Paste your MCP server JSON from Claude Code format or direct server config
                 </p>
                 <textarea
@@ -249,14 +249,14 @@ export function AddMCPServerModal({ isOpen, onClose, onSubmit }: AddMCPServerMod
                   placeholder={`{\n  "mcpServers": {\n    "server-name": {\n      "command": "npx",\n      "args": ["-y", "package-name"]\n    }\n  }\n}`}
                   disabled={isSubmitting}
                   rows={12}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm disabled:bg-gray-50"
+                  className="w-full px-3 py-2 border border-hairline-soft rounded-lg font-mono text-sm disabled:bg-surface-soft"
                 />
               </div>
               <button
                 type="button"
                 onClick={parseJSON}
                 disabled={isSubmitting || !jsonInput.trim()}
-                className="px-4 py-2 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 active:scale-[0.98] whitespace-nowrap rounded-lg transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium text-white bg-gradient-brand hover:brightness-110 active:scale-[0.98] whitespace-nowrap rounded-lg transition-colors disabled:opacity-50"
               >
                 Parse and Fill Form
               </button>

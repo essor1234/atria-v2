@@ -12,9 +12,13 @@ interface SegmentedControlProps<T extends string> {
   className?: string;
 }
 
+/**
+ * Segmented control — a pill track of quiet options with a single active
+ * segment lifted onto the raised surface. Celesnity pill radii throughout.
+ */
 export function SegmentedControl<T extends string>({ options, value, onChange, className }: SegmentedControlProps<T>) {
   return (
-    <div className={cn('inline-flex items-center gap-1 p-1 bg-gray-100 rounded-lg border border-gray-200', className)}>
+    <div className={cn('inline-flex items-center gap-1 p-1 bg-surface-soft rounded-pill border border-hairline-soft', className)}>
       {options.map(opt => {
         const active = opt.value === value;
         return (
@@ -22,8 +26,10 @@ export function SegmentedControl<T extends string>({ options, value, onChange, c
             key={opt.value}
             onClick={() => onChange(opt.value)}
             className={cn(
-              'px-2.5 py-1 text-xs font-medium rounded-md transition-colors duration-fast',
-              active ? 'bg-white text-gray-900 shadow-soft border border-gray-200' : 'text-gray-600 hover:text-gray-900'
+              'px-3 py-1 text-xs font-medium rounded-pill transition-all duration-fast ease-out',
+              active
+                ? 'bg-gradient-brand text-white shadow-glow-nebula'
+                : 'text-text-secondary hover:text-ink'
             )}
           >
             {opt.label}

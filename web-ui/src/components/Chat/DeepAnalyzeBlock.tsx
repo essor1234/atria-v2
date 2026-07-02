@@ -19,8 +19,8 @@ const PHASES: { key: DeepAnalyzePhase; label: string }[] = [
 
 const STATUS_COLORS = {
   running:        'text-amber-400',
-  clarifying:     'text-sky-400',
-  plan_reviewing: 'text-purple-400',
+  clarifying:     'text-accent-cobalt',
+  plan_reviewing: 'text-accent-magenta',
   done:           'text-emerald-400',
   error:          'text-semantic-danger',
   cancelled:      'text-text-400',
@@ -116,9 +116,9 @@ function ClarifyPanel({ message }: { message: Message }) {
   };
 
   return (
-    <div className="p-4 space-y-3 border-t border-border-300/10 bg-sky-500/5">
+    <div className="p-4 space-y-3 border-t border-border-300/10 bg-accent-cobalt/5">
       <div className="flex items-center gap-2">
-        <span className="text-xs font-mono font-semibold text-sky-300">
+        <span className="text-xs font-mono font-semibold text-accent-cobalt">
           Clarifying questions
           {da_clarify_iteration ? ` · round ${da_clarify_iteration}` : ''}
         </span>
@@ -148,7 +148,7 @@ function ClarifyPanel({ message }: { message: Message }) {
                 )}
                 <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded border ${
                   q.kind === 'intent'
-                    ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
+                    ? 'bg-purple-500/10 text-accent-magenta border-purple-500/30'
                     : 'bg-amber-500/10 text-amber-300 border-amber-500/30'
                 }`}>
                   {q.kind}
@@ -173,7 +173,7 @@ function ClarifyPanel({ message }: { message: Message }) {
         <button
           onClick={submit}
           disabled={submitted}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-semibold bg-sky-500/20 text-sky-300 border border-sky-500/40 rounded hover:bg-sky-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-semibold bg-accent-cobalt/20 text-accent-cobalt border border-sky-500/40 rounded hover:bg-accent-cobalt/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {submitted ? (
             <>
@@ -195,9 +195,9 @@ function ClarifyPanel({ message }: { message: Message }) {
 // ─── Plan review panel ────────────────────────────────────────────────────────
 
 const CHART_TYPE_COLOR: Record<string, string> = {
-  bar:     'bg-blue-500/15 text-blue-300 border-blue-500/30',
+  bar:     'bg-accent-cobalt/15 text-blue-300 border-blue-500/30',
   line:    'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-  scatter: 'bg-purple-500/15 text-purple-300 border-purple-500/30',
+  scatter: 'bg-purple-500/15 text-accent-magenta border-purple-500/30',
   hist:    'bg-amber-500/15 text-amber-300 border-amber-500/30',
   pie:     'bg-pink-500/15 text-pink-300 border-pink-500/30',
 };
@@ -481,7 +481,7 @@ export function DeepAnalyzeBlock({ message }: Props) {
         da_status === 'error'          ? 'h-0.5 bg-semantic-danger/60' :
         da_status === 'cancelled'      ? 'h-0.5 bg-text-500/40' :
         da_status === 'plan_reviewing' ? 'h-0.5 bg-purple-500/40' :
-        da_status === 'clarifying'     ? 'h-0.5 bg-sky-500/40' :
+        da_status === 'clarifying'     ? 'h-0.5 bg-accent-cobalt/40' :
         'h-0.5 bg-bg-200'
       }>
         {da_status === 'running' && (

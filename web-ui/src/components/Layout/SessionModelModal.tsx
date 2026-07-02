@@ -26,9 +26,9 @@ function ModelInput({
   return (
     <div>
       <div className="flex items-center gap-2 mb-1">
-        <label className="text-xs font-medium text-gray-700">{label}</label>
+        <label className="text-xs font-medium text-text-secondary">{label}</label>
         {optional && (
-          <span className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded">optional</span>
+          <span className="text-xs px-1.5 py-0.5 bg-surface-soft text-text-muted rounded">optional</span>
         )}
       </div>
       <input
@@ -36,7 +36,7 @@ function ModelInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white font-mono"
+        className="w-full px-3 py-2 text-sm border border-hairline-soft rounded-lg bg-canvas font-mono"
       />
     </div>
   );
@@ -132,20 +132,20 @@ export function SessionModelModal({ sessionId, sessionLabel, onClose }: SessionM
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-modal w-full max-w-lg max-h-[90vh] flex flex-col"
+        className="bg-canvas rounded-2xl shadow-modal w-full max-w-lg max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 flex-shrink-0">
+        <div className="px-6 py-4 border-b border-hairline-soft flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Session Models</h2>
-              <p className="text-xs text-gray-500 mt-0.5">{sessionLabel}</p>
+              <h2 className="text-lg font-bold text-ink">Session Models</h2>
+              <p className="text-xs text-text-muted mt-0.5">{sessionLabel}</p>
             </div>
             <button
               aria-label="Close dialog"
               onClick={onClose}
-              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-surface-soft text-text-muted hover:text-text-secondary"
             >
               <X className="w-5 h-5" />
             </button>
@@ -161,8 +161,8 @@ export function SessionModelModal({ sessionId, sessionLabel, onClose }: SessionM
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="flex items-center gap-2 text-gray-600">
-                <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+              <div className="flex items-center gap-2 text-text-secondary">
+                <div className="w-4 h-4 border-2 border-hairline-soft border-t-gray-600 rounded-full animate-spin" />
                 <span className="text-sm">Loading...</span>
               </div>
             </div>
@@ -179,7 +179,7 @@ export function SessionModelModal({ sessionId, sessionLabel, onClose }: SessionM
 
         {/* Footer */}
         {!loading && (
-          <div className="px-6 py-4 border-t border-gray-200 flex-shrink-0 space-y-3">
+          <div className="px-6 py-4 border-t border-hairline-soft flex-shrink-0 space-y-3">
             <div className="flex gap-3">
               {hasExistingOverlay && (
                 <button

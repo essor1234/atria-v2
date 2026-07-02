@@ -40,7 +40,7 @@ export function ModelSlot({
   const availableModels = currentProvider?.models || [];
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-white to-gray-50">
+    <div className="border border-hairline-soft rounded-lg p-4 bg-gradient-to-br from-white to-gray-50">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-soft flex-shrink-0">
@@ -48,21 +48,21 @@ export function ModelSlot({
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+            <h3 className="text-base font-semibold text-ink">{title}</h3>
             {optional && (
-              <span className="text-xs px-2 py-0.5 bg-gray-200 text-gray-600 rounded-full">
+              <span className="text-xs px-2 py-0.5 bg-surface-soft text-text-secondary rounded-full">
                 Optional
               </span>
             )}
           </div>
-          <p className="text-xs text-gray-600 mt-0.5">{description}</p>
+          <p className="text-xs text-text-secondary mt-0.5">{description}</p>
         </div>
       </div>
 
       {/* Provider Selection */}
       <div className="space-y-3">
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1.5">
+          <label className="block text-xs font-medium text-text-secondary mb-1.5">
             Provider
           </label>
           <select
@@ -76,7 +76,7 @@ export function ModelSlot({
                 onModelChange(provider.models[0].id);
               }
             }}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white"
+            className="w-full px-3 py-2 text-sm border border-hairline-soft rounded-lg bg-canvas"
           >
             {optional && (
               <option value="">{notSetText}</option>
@@ -92,13 +92,13 @@ export function ModelSlot({
         {/* Model Selection */}
         {selectedProvider && (
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1.5">
+            <label className="block text-xs font-medium text-text-secondary mb-1.5">
               Model
             </label>
             <select
               value={selectedModel || ''}
               onChange={(e) => onModelChange(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white"
+              className="w-full px-3 py-2 text-sm border border-hairline-soft rounded-lg bg-canvas"
               disabled={availableModels.length === 0}
             >
               {availableModels.map(model => (
@@ -108,7 +108,7 @@ export function ModelSlot({
               ))}
             </select>
             {availableModels.find(m => m.id === selectedModel) && (
-              <p className="mt-1.5 text-xs text-gray-500">
+              <p className="mt-1.5 text-xs text-text-muted">
                 {availableModels.find(m => m.id === selectedModel)?.description}
               </p>
             )}

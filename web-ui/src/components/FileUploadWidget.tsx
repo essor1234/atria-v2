@@ -140,7 +140,7 @@ export function FileUploadWidget({
           className={`border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer ${
             isDragging
               ? 'border-blue-400 bg-blue-50 shadow-soft'
-              : 'border-gray-300 hover:border-gray-400'
+              : 'border-hairline-soft hover:border-hairline'
           }`}
           onClick={handleClick}
           onDragOver={handleDragOver}
@@ -156,22 +156,22 @@ export function FileUploadWidget({
             disabled={uploading}
             className="hidden"
           />
-          <CloudUpload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-          <p className="text-sm font-medium text-gray-700">Click to select files</p>
-          <p className="text-xs text-gray-500 mt-1">or drag and drop</p>
-          <p className="text-xs text-gray-400 mt-2">Max {maxFileSizeMB}MB per file</p>
+          <CloudUpload className="w-8 h-8 mx-auto mb-2 text-text-muted" />
+          <p className="text-sm font-medium text-text-secondary">Click to select files</p>
+          <p className="text-xs text-text-muted mt-1">or drag and drop</p>
+          <p className="text-xs text-text-muted mt-2">Max {maxFileSizeMB}MB per file</p>
         </div>
 
         {/* Selected Files List */}
         {selectedFiles.length > 0 && (
           <div className="space-y-2">
-            <h3 className="text-sm font-medium text-gray-700">Selected Files ({selectedFiles.length})</h3>
+            <h3 className="text-sm font-medium text-text-secondary">Selected Files ({selectedFiles.length})</h3>
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {selectedFiles.map((file, index) => (
-                <div key={`${file.name}-${index}`} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                <div key={`${file.name}-${index}`} className="flex items-center justify-between bg-surface-soft p-2 rounded">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-700 truncate">{file.name}</p>
-                    <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+                    <p className="text-sm font-medium text-text-secondary truncate">{file.name}</p>
+                    <p className="text-xs text-text-muted">{formatFileSize(file.size)}</p>
                   </div>
                   {progress[file.name] !== undefined && (
                     <div className="flex-shrink-0 ml-2 w-16 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -185,7 +185,7 @@ export function FileUploadWidget({
                     <button
                       onClick={() => handleRemoveFile(index)}
                       disabled={uploading}
-                      className="flex-shrink-0 ml-2 p-1 text-gray-400 hover:text-semantic-danger disabled:opacity-50"
+                      className="flex-shrink-0 ml-2 p-1 text-text-muted hover:text-semantic-danger disabled:opacity-50"
                     >
                       ✕
                     </button>
@@ -194,7 +194,7 @@ export function FileUploadWidget({
               ))}
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">Total: {formatFileSize(totalSize)}</span>
+              <span className="text-text-secondary">Total: {formatFileSize(totalSize)}</span>
             </div>
           </div>
         )}
@@ -227,7 +227,7 @@ export function FileUploadWidget({
             <button
               onClick={() => setSelectedFiles([])}
               disabled={uploading}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              className="flex-1 px-4 py-2 border border-hairline-soft text-text-secondary rounded-lg font-medium hover:bg-surface-soft disabled:opacity-50 transition-colors"
             >
               Clear
             </button>

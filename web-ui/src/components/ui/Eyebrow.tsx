@@ -13,8 +13,8 @@ export function Eyebrow({ as: Tag = 'span', className, children, ...rest }: Eyeb
     <Tag
       {...rest}
       className={[
-        'font-mono uppercase tracking-[0.54px] text-[12px] leading-none',
-        'text-ink/70',
+        'font-sans uppercase tracking-[0.24em] text-[13px] leading-none font-[500]',
+        'text-text-secondary',
         className ?? '',
       ].join(' ')}
     >

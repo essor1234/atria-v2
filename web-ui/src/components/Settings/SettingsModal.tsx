@@ -96,17 +96,17 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             onClick={(e) => e.stopPropagation()}
             className="bg-canvas sm:rounded-lg shadow-modal w-full sm:max-w-content h-full sm:h-[85vh] flex flex-col overflow-hidden sm:border border-hairline-soft">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-200">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-hairline-soft">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Settings</h2>
+            <h2 className="text-xl font-semibold text-ink">Settings</h2>
             {activeTabConfig && (
-              <p className="text-xs text-gray-500 mt-0.5">{activeTabConfig.description}</p>
+              <p className="text-xs text-text-muted mt-0.5">{activeTabConfig.description}</p>
             )}
           </div>
           <button
             aria-label="Close dialog"
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 text-text-muted hover:text-text-secondary hover:bg-surface-soft rounded-lg transition-colors"
           >
             <XMarkIcon className="w-5 h-5" />
           </button>
@@ -115,7 +115,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         {/* Main Content Area with Sidebar (horizontal tab bar on mobile) */}
         <div className="flex-1 flex flex-col sm:flex-row overflow-hidden min-h-0">
           {/* Navigation — vertical sidebar at sm+, horizontal scroll bar on mobile */}
-          <div className="flex-shrink-0 w-full sm:w-56 border-b sm:border-b-0 sm:border-r border-gray-200 bg-gray-50 overflow-x-auto sm:overflow-y-auto">
+          <div className="flex-shrink-0 w-full sm:w-56 border-b sm:border-b-0 sm:border-r border-hairline-soft bg-surface-soft overflow-x-auto sm:overflow-y-auto">
             <nav className="flex sm:flex-col gap-1 p-2 sm:p-3">
               {tabs.map(tab => {
                 const Icon = tab.icon;
@@ -127,11 +127,11 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex-shrink-0 sm:w-full flex items-center gap-2 sm:gap-3 px-3 py-2 sm:py-2.5 rounded-lg text-left whitespace-nowrap cursor-pointer transition-colors ${
                       isActive
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:bg-white/50 hover:text-gray-900'
+                        ? 'bg-surface-soft text-ink shadow-sm'
+                        : 'text-text-secondary hover:bg-surface-soft hover:text-ink'
                     }`}
                   >
-                    <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-gray-900' : 'text-gray-400'}`} />
+                    <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-ink' : 'text-text-muted'}`} />
                     <span className="text-sm font-medium">{tab.label}</span>
                   </button>
                 );
@@ -139,24 +139,24 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             </nav>
 
             {/* Sidebar Footer — hidden on the mobile horizontal bar */}
-            <div className="hidden sm:block p-4 mt-4 border-t border-gray-200">
-              <p className="text-xs text-gray-500">
+            <div className="hidden sm:block p-4 mt-4 border-t border-hairline-soft">
+              <p className="text-xs text-text-muted">
                 Atria v0.1.7
               </p>
             </div>
           </div>
 
           {/* Content Area */}
-          <div className="flex-1 min-w-0 overflow-y-auto bg-white">
+          <div className="flex-1 min-w-0 overflow-y-auto bg-canvas">
             <div className="p-4 sm:p-6">
               {activeTab === 'model' && <ModelSettings />}
               {activeTab === 'mcp' && <MCPSettings />}
               {activeTab === 'personas' && <PersonasSettings />}
               {activeTab === 'general' && (
                 <div className="text-center py-12">
-                  <Cog6ToothIcon className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                  <p className="text-sm text-gray-600 font-medium mb-1">General Settings</p>
-                  <p className="text-xs text-gray-500">
+                  <Cog6ToothIcon className="w-12 h-12 mx-auto text-text-muted mb-3" />
+                  <p className="text-sm text-text-secondary font-medium mb-1">General Settings</p>
+                  <p className="text-xs text-text-muted">
                     General settings coming soon...
                   </p>
                 </div>
@@ -166,10 +166,10 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div className="flex items-center justify-end gap-3 px-4 sm:px-6 py-4 border-t border-hairline-soft bg-surface-soft">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-white rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-ink hover:bg-surface-soft rounded-lg transition-colors"
           >
             Close
           </button>

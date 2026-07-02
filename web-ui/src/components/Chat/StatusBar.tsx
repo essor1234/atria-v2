@@ -2,18 +2,18 @@ import { Settings2, Lock, Brain } from 'lucide-react';
 import { useChatStore } from '../../stores/chat';
 
 const MODE_STYLES = {
-  normal: 'bg-bg-400/40 text-text-200 border-gray-300 hover:bg-bg-400/60',
+  normal: 'bg-bg-400/40 text-text-200 border-hairline-soft hover:bg-bg-400/60',
   plan: 'bg-accent-secondary-900 text-accent-secondary-100 border-accent-secondary-900/50 hover:bg-accent-secondary-900/80',
 } as const;
 
 const AUTONOMY_STYLES = {
-  'Manual': 'bg-bg-400/40 text-text-200 border-gray-300 hover:bg-bg-400/60',
+  'Manual': 'bg-bg-400/40 text-text-200 border-hairline-soft hover:bg-bg-400/60',
   'Semi-Auto': 'bg-accent-secondary-900 text-accent-secondary-100 border-accent-secondary-900/50 hover:bg-accent-secondary-900/80',
   'Auto': 'bg-success-100/10 text-success-100 border-success-100/20 hover:bg-success-100/15',
 } as const;
 
 const THINKING_STYLES: Record<string, string> = {
-  'Off':           'bg-bg-200 text-text-500 border-gray-300 hover:bg-bg-300',
+  'Off':           'bg-bg-200 text-text-500 border-hairline-soft hover:bg-bg-300',
   'Low':           'bg-cyan-500/10 text-cyan-600 border-cyan-500/20 hover:bg-cyan-500/15',
   'Medium':        'bg-success-100/10 text-success-100 border-success-100/20 hover:bg-success-100/15',
   'High':          'bg-yellow-500/10 text-yellow-600 border-yellow-500/20 hover:bg-yellow-500/15',

@@ -66,36 +66,36 @@ export function MCPToolsModal({ isOpen, serverName, tools, onClose }: MCPToolsMo
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-modal w-full max-w-content h-[85vh] flex flex-col overflow-hidden animate-slide-up">
+      <div className="bg-canvas rounded-2xl shadow-modal w-full max-w-content h-[85vh] flex flex-col overflow-hidden animate-slide-up">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-hairline-soft bg-gradient-to-r from-gray-50 to-white">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-ink">
               Tools from {serverName}
             </h2>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="text-sm text-text-muted mt-0.5">
               {filteredTools.length} {filteredTools.length === 1 ? 'tool' : 'tools'} available
             </p>
           </div>
           <button
             aria-label="Close dialog"
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 text-text-muted hover:text-text-secondary hover:bg-surface-soft rounded-lg transition-colors"
           >
             <XMarkIcon className="w-5 h-5" />
           </button>
         </div>
 
         {/* Search Bar */}
-        <div className="px-6 py-3 border-b border-gray-100 bg-gray-50">
+        <div className="px-6 py-3 border-b border-hairline-soft bg-surface-soft">
           <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search tools by name or description..."
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg bg-white"
+              className="w-full pl-10 pr-4 py-2.5 border border-hairline-soft rounded-lg bg-canvas"
             />
           </div>
         </div>
@@ -103,7 +103,7 @@ export function MCPToolsModal({ isOpen, serverName, tools, onClose }: MCPToolsMo
         {/* Master-Detail Layout */}
         <div className="flex-1 flex overflow-hidden">
           {/* Master: Tools List (Left Sidebar) */}
-          <div className="w-80 border-r border-gray-200 bg-gray-50 overflow-y-auto">
+          <div className="w-80 border-r border-hairline-soft bg-surface-soft overflow-y-auto">
             {filteredTools.length === 0 ? (
               <EmptyState searchQuery={searchQuery} />
             ) : (
@@ -121,7 +121,7 @@ export function MCPToolsModal({ isOpen, serverName, tools, onClose }: MCPToolsMo
           </div>
 
           {/* Detail: Tool Details (Right Panel) */}
-          <div className="flex-1 overflow-y-auto bg-white">
+          <div className="flex-1 overflow-y-auto bg-canvas">
             {selectedTool ? (
               <ToolDetails
                 tool={selectedTool}
@@ -130,7 +130,7 @@ export function MCPToolsModal({ isOpen, serverName, tools, onClose }: MCPToolsMo
                 onCopy={handleCopy}
               />
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-400">
+              <div className="flex items-center justify-center h-full text-text-muted">
                 <div className="text-center">
                   <WrenchScrewdriverIcon className="w-16 h-16 mx-auto mb-3 opacity-20" />
                   <p className="text-sm">Select a tool to view details</p>
@@ -155,14 +155,14 @@ interface EmptyStateProps {
 function EmptyState({ searchQuery }: EmptyStateProps) {
   return (
     <div className="text-center py-12 px-4">
-      <div className="text-gray-300 mb-2">
+      <div className="text-text-muted mb-2">
         <Search className="w-12 h-12 mx-auto" />
       </div>
-      <p className="text-sm text-gray-600 font-medium mb-1">
+      <p className="text-sm text-text-secondary font-medium mb-1">
         {searchQuery ? 'No tools found' : 'No tools available'}
       </p>
       {searchQuery && (
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-text-muted">
           Try a different search term
         </p>
       )}
@@ -184,26 +184,26 @@ function ToolListItem({ tool, isSelected, onClick }: ToolListItemProps) {
       onClick={onClick}
       className={`w-full text-left p-3 rounded-lg transition-all ${
         isSelected
-          ? 'bg-white shadow-soft border border-gray-200'
-          : 'hover:bg-white/50 border border-transparent'
+          ? 'bg-surface-soft shadow-soft border border-hairline-soft'
+          : 'hover:bg-surface-soft border border-transparent'
       }`}
     >
       <div className="flex items-start gap-2">
         <WrenchScrewdriverIcon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
-          isSelected ? 'text-gray-900' : 'text-gray-400'
+          isSelected ? 'text-ink' : 'text-text-muted'
         }`} />
         <div className="flex-1 min-w-0">
           <h4 className={`text-sm font-medium truncate ${
-            isSelected ? 'text-gray-900' : 'text-gray-700'
+            isSelected ? 'text-ink' : 'text-text-secondary'
           }`}>
             {tool.name}
           </h4>
-          <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
+          <p className="text-xs text-text-muted mt-0.5 line-clamp-2">
             {tool.description}
           </p>
           {paramCount > 0 && (
             <div className="mt-1.5">
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-surface-soft text-text-secondary">
                 {paramCount} {paramCount === 1 ? 'parameter' : 'parameters'}
               </span>
             </div>
@@ -236,21 +236,21 @@ function ToolDetails({ tool, serverName, copiedText, onCopy }: ToolDetailsProps)
             <WrenchScrewdriverIcon className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1">
-            <h3 className="text-xl font-semibold text-gray-900">{tool.name}</h3>
-            <p className="text-sm text-gray-600 mt-1 leading-relaxed">{tool.description}</p>
+            <h3 className="text-xl font-semibold text-ink">{tool.name}</h3>
+            <p className="text-sm text-text-secondary mt-1 leading-relaxed">{tool.description}</p>
           </div>
         </div>
 
         {/* Full Tool Name */}
         <div className="mt-4">
-          <label className="block text-xs font-medium text-gray-500 mb-1.5">Full Tool Name</label>
+          <label className="block text-xs font-medium text-text-muted mb-1.5">Full Tool Name</label>
           <div className="flex items-center gap-2">
-            <code className="flex-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono text-gray-800">
+            <code className="flex-1 px-3 py-2.5 bg-surface-soft border border-hairline-soft rounded-lg text-sm font-mono text-ink">
               {fullName}
             </code>
             <button
               onClick={() => onCopy(fullName)}
-              className="p-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
+              className="p-2.5 text-text-secondary hover:text-ink hover:bg-surface-soft rounded-lg transition-colors border border-hairline-soft"
               title="Copy to clipboard"
             >
               {copiedText === fullName ? (
@@ -264,12 +264,12 @@ function ToolDetails({ tool, serverName, copiedText, onCopy }: ToolDetailsProps)
       </div>
 
       {/* Parameters Section */}
-      <div className="border-t border-gray-200 pt-6">
-        <h4 className="text-sm font-semibold text-gray-900 mb-4">Parameters</h4>
+      <div className="border-t border-hairline-soft pt-6">
+        <h4 className="text-sm font-semibold text-ink mb-4">Parameters</h4>
 
         {!hasParameters ? (
-          <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-            <p className="text-sm text-gray-500">This tool doesn't require any parameters</p>
+          <div className="text-center py-8 bg-surface-soft rounded-lg border border-hairline-soft">
+            <p className="text-sm text-text-muted">This tool doesn't require any parameters</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -307,31 +307,31 @@ function ParameterCard({ name, schema, isRequired }: ParameterCardProps) {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
+    <div className="bg-canvas border border-hairline-soft rounded-lg p-4 hover:border-hairline transition-colors">
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
-          <code className="text-sm font-semibold text-gray-900">{name}</code>
+          <code className="text-sm font-semibold text-ink">{name}</code>
           {isRequired && (
             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-semantic-danger">
               Required
             </span>
           )}
         </div>
-        <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
+        <span className="text-xs font-mono text-text-muted bg-surface-soft px-2 py-1 rounded">
           {getTypeDisplay(schema)}
         </span>
       </div>
 
       {schema.description && (
-        <p className="text-sm text-gray-600 leading-relaxed">{schema.description}</p>
+        <p className="text-sm text-text-secondary leading-relaxed">{schema.description}</p>
       )}
 
       {schema.enum && (
-        <div className="mt-2 pt-2 border-t border-gray-100">
-          <p className="text-xs text-gray-500 mb-1">Allowed values:</p>
+        <div className="mt-2 pt-2 border-t border-hairline-soft">
+          <p className="text-xs text-text-muted mb-1">Allowed values:</p>
           <div className="flex flex-wrap gap-1">
             {schema.enum.map((value: string) => (
-              <code key={value} className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+              <code key={value} className="text-xs bg-surface-soft text-text-secondary px-2 py-0.5 rounded">
                 {value}
               </code>
             ))}

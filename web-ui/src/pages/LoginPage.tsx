@@ -45,16 +45,26 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen w-full bg-canvas grid grid-cols-1 md:grid-cols-2">
-      {/* Left: lilac hero block */}
-      <aside className="bg-block-lilac text-ink flex flex-col justify-between p-10 md:p-16 lg:p-20 md:min-h-screen overflow-hidden">
+      {/* Left: cosmic hero wash — the nebula always glows here, both themes. */}
+      <aside className="relative isolate bg-hero-wash text-white flex flex-col justify-between p-10 md:p-16 lg:p-20 md:min-h-screen overflow-hidden">
+        {/* Signature nebula glow — a soft off-canvas bloom. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-24 -left-24 w-[28rem] h-[28rem] rounded-full bg-gradient-brand opacity-40 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute bottom-[-10rem] right-[-6rem] w-[24rem] h-[24rem] rounded-full bg-gradient-brand opacity-25 blur-3xl"
+        />
+
         <MotionRise>
-          <Eyebrow className="text-ink/80">Atria · Build mode</Eyebrow>
+          <Eyebrow className="!text-white/70">Atria · Build mode</Eyebrow>
         </MotionRise>
 
-        <div className="max-w-xl">
+        <div className="relative max-w-xl">
           <AnimatedHeadline
             text={'Where the work\ntakes shape.'}
-            className="text-[40px] md:text-display-lg lg:text-display-xl font-sans font-[340] leading-[1.02] tracking-[-0.96px] lg:tracking-[-1.72px]"
+            className="text-[40px] md:text-display-lg lg:text-display-xl font-sans font-[600] leading-[1.02] tracking-[-0.03em] text-white"
             step={18}
             startDelay={120}
           />
@@ -62,14 +72,14 @@ export function LoginPage() {
             initial={reduce ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ ...transitions.editorial, delay: 0.65 }}
-            className="mt-8 text-body-lg max-w-md"
+            className="mt-8 text-body-lg max-w-md text-white/70"
           >
             A canvas, a console, and a collaborator — one editorial workspace for building software with Atria.
           </motion.p>
         </div>
 
         <MotionRise delay={0.9}>
-          <Eyebrow className="text-ink/60">v1 · 2026</Eyebrow>
+          <Eyebrow className="!text-white/45">v1 · 2026</Eyebrow>
         </MotionRise>
       </aside>
 
@@ -81,22 +91,22 @@ export function LoginPage() {
           transition={{ ...transitions.editorial, delay: 0.25 }}
           className="w-full max-w-sm"
         >
-          <Eyebrow className="text-ink/70">Sign in</Eyebrow>
+          <Eyebrow className="text-text-secondary">Sign in</Eyebrow>
 
           {mode === 'loading' && (
-            <p className="mt-6 text-body-sm text-ink/60">Loading…</p>
+            <p className="mt-6 text-body-sm text-text-muted">Loading…</p>
           )}
 
           {mode === 'keycloak' && (
             <>
-              <h2 className="mt-4 text-headline tracking-[-0.26px] font-[540]">
+              <h2 className="mt-4 text-headline tracking-[-0.26px] font-[600] text-ink">
                 Continue with SSO
               </h2>
-              <p className="mt-3 text-body-sm text-ink/70">
+              <p className="mt-3 text-body-sm text-text-secondary">
                 Authenticate through your organization&rsquo;s identity provider.
               </p>
 
-              <Eyebrow className="mt-10 block text-ink/60">
+              <Eyebrow className="mt-10 block text-text-muted">
                 Identity provider · Keycloak
               </Eyebrow>
 
@@ -112,7 +122,7 @@ export function LoginPage() {
                 whileTap={reduce || loading ? undefined : { scale: 0.98 }}
                 transition={transitions.tactile}
                 style={{ minWidth: '240px' }}
-                className="mt-4 inline-flex items-center justify-center gap-2 rounded-pill bg-ink text-inverse-ink text-btn px-6 py-3 whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed"
+                className="mt-4 inline-flex items-center justify-center gap-2 rounded-pill bg-gradient-brand text-white shadow-glow-nebula text-btn px-6 py-3 whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
@@ -140,7 +150,7 @@ export function LoginPage() {
                 )}
               </motion.button>
 
-              <p className="mt-12 text-body-sm text-ink/60">
+              <p className="mt-12 text-body-sm text-text-muted">
                 You will be redirected to the identity provider, then returned here.
               </p>
             </>
@@ -148,16 +158,16 @@ export function LoginPage() {
 
           {mode === 'none' && (
             <>
-              <h2 className="mt-4 text-headline tracking-[-0.26px] font-[540]">
+              <h2 className="mt-4 text-headline tracking-[-0.26px] font-[600] text-ink">
                 Continue with email
               </h2>
-              <p className="mt-3 text-body-sm text-ink/70">
+              <p className="mt-3 text-body-sm text-text-secondary">
                 We&rsquo;ll send a magic link to your inbox.
               </p>
 
               <form onSubmit={handleSubmit} className="mt-10">
                 <label className="block">
-                  <Eyebrow className="mb-3 block text-ink/70">Email address</Eyebrow>
+                  <Eyebrow className="mb-3 block text-text-secondary">Email address</Eyebrow>
                   <input
                     type="email"
                     value={email}
@@ -165,7 +175,7 @@ export function LoginPage() {
                     placeholder="you@example.com"
                     required
                     autoFocus
-                    className="w-full bg-canvas text-ink placeholder:text-ink/30 rounded-md border border-hairline-soft px-4 py-3 text-body-sm outline-none"
+                    className="w-full bg-surface-soft text-ink placeholder:text-text-muted rounded-sm border border-hairline-soft px-4 py-3 text-body-sm outline-none transition-shadow focus:border-accent-cobalt focus:shadow-focus-ring"
                   />
                 </label>
 
@@ -179,13 +189,13 @@ export function LoginPage() {
                   whileHover={reduce || loading || !email ? undefined : { scale: 1.01 }}
                   whileTap={reduce || loading || !email ? undefined : { scale: 0.98 }}
                   transition={transitions.tactile}
-                  className="mt-8 w-full rounded-pill bg-ink text-inverse-ink text-btn px-6 py-3 active:scale-[0.98] whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="mt-8 w-full rounded-pill bg-gradient-brand text-white shadow-glow-nebula text-btn px-6 py-3 active:scale-[0.98] whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Signing in…' : 'Continue'}
                 </motion.button>
               </form>
 
-              <p className="mt-12 text-body-sm text-ink/60">
+              <p className="mt-12 text-body-sm text-text-muted">
                 New here? An account will be created automatically.
               </p>
             </>

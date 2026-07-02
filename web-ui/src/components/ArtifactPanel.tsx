@@ -43,10 +43,10 @@ export function ArtifactPanel({
     artifacts.some((a) => !a.conversation_id);
 
   return (
-    <div className={`artifact-panel flex flex-col h-full bg-white ${className}`}>
+    <div className={`artifact-panel flex flex-col h-full bg-canvas ${className}`}>
       {/* Header */}
-      <div className="flex-shrink-0 border-b border-gray-200 p-4">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Artifacts</h2>
+      <div className="flex-shrink-0 border-b border-hairline-soft p-4">
+        <h2 className="text-lg font-semibold text-ink mb-4">Artifacts</h2>
 
         {/* Search Bar */}
         <div className="mb-4">
@@ -55,7 +55,7 @@ export function ArtifactPanel({
             placeholder="Search artifacts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="w-full px-3 py-2 border border-hairline-soft rounded-lg text-sm"
           />
         </div>
 
@@ -69,7 +69,7 @@ export function ArtifactPanel({
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   scopeFilter === 'all'
                     ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-surface-soft text-text-secondary hover:bg-gray-200'
                 }`}
               >
                 All
@@ -79,7 +79,7 @@ export function ArtifactPanel({
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   scopeFilter === 'conversation'
                     ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-surface-soft text-text-secondary hover:bg-gray-200'
                 }`}
               >
                 Conversation
@@ -89,7 +89,7 @@ export function ArtifactPanel({
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   scopeFilter === 'project'
                     ? 'bg-purple-100 text-purple-700'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-surface-soft text-text-secondary hover:bg-gray-200'
                 }`}
               >
                 Project
@@ -104,7 +104,7 @@ export function ArtifactPanel({
               className={`p-1.5 rounded transition-colors ${
                 viewMode === 'grid'
                   ? 'bg-blue-100 text-blue-600'
-                  : 'text-gray-400 hover:text-gray-600'
+                  : 'text-text-muted hover:text-text-secondary'
               }`}
               title="Grid view"
             >
@@ -115,7 +115,7 @@ export function ArtifactPanel({
               className={`p-1.5 rounded transition-colors ${
                 viewMode === 'list'
                   ? 'bg-blue-100 text-blue-600'
-                  : 'text-gray-400 hover:text-gray-600'
+                  : 'text-text-muted hover:text-text-secondary'
               }`}
               title="List view"
             >
@@ -129,7 +129,7 @@ export function ArtifactPanel({
       <div className="flex-1 overflow-y-auto">
         {isLoading && (
           <div className="flex items-center justify-center h-full">
-            <div className="text-gray-500">
+            <div className="text-text-muted">
               <div className="inline-block animate-spin">⏳</div>
               <p className="mt-2 text-sm">Loading artifacts...</p>
             </div>
@@ -137,8 +137,8 @@ export function ArtifactPanel({
         )}
 
         {!isLoading && filteredArtifacts.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500 p-4">
-            <FileText className="w-12 h-12 mb-3 text-gray-300" />
+          <div className="flex flex-col items-center justify-center h-full text-text-muted p-4">
+            <FileText className="w-12 h-12 mb-3 text-text-muted" />
             <p className="text-center">
               {artifacts.length === 0
                 ? 'No artifacts yet'
@@ -165,12 +165,12 @@ export function ArtifactPanel({
             {filteredArtifacts.map((artifact) => (
               <div
                 key={artifact.id}
-                className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                className="p-4 hover:bg-surface-soft cursor-pointer transition-colors"
                 onClick={() => onPreview?.(artifact)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium text-gray-900 truncate">
+                    <h3 className="text-sm font-medium text-ink truncate">
                       {artifact.title || 'Untitled'}
                     </h3>
                     <div className="flex gap-2 mt-1">
@@ -183,11 +183,11 @@ export function ArtifactPanel({
                       >
                         {artifact.conversation_id ? 'Conversation' : 'Project'}
                       </span>
-                      <span className="inline-block text-xs font-medium px-2 py-1 bg-gray-100 text-gray-700 rounded">
+                      <span className="inline-block text-xs font-medium px-2 py-1 bg-surface-soft text-text-secondary rounded">
                         {artifact.type}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-text-muted mt-1">
                       {new Date(artifact.created_at).toLocaleDateString()}
                     </p>
                   </div>
@@ -196,7 +196,7 @@ export function ArtifactPanel({
                       e.stopPropagation();
                       onDelete?.(artifact.id);
                     }}
-                    className="ml-4 p-1.5 text-gray-400 hover:text-semantic-danger rounded transition-colors"
+                    className="ml-4 p-1.5 text-text-muted hover:text-semantic-danger rounded transition-colors"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
@@ -209,7 +209,7 @@ export function ArtifactPanel({
 
       {/* Footer Stats */}
       {!isLoading && (
-        <div className="flex-shrink-0 border-t border-gray-200 p-3 bg-gray-50 text-xs text-gray-600">
+        <div className="flex-shrink-0 border-t border-hairline-soft p-3 bg-surface-soft text-xs text-text-secondary">
           Showing {filteredArtifacts.length} of {artifacts.length} artifacts
         </div>
       )}

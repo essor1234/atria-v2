@@ -23,10 +23,10 @@ export function ModelSettings() {
             </h3>
             <p className="text-sm text-ink/85 leading-relaxed mb-4">
               Sensitive configuration (API keys, model names, base URLs) must be configured via environment variables
-              in your <code className="font-mono bg-white/30 px-2 py-1 rounded text-xs">.env</code> file, not through this UI.
+              in your <code className="font-mono bg-surface-soft px-2 py-1 rounded text-xs">.env</code> file, not through this UI.
             </p>
 
-            <div className="bg-white/40 rounded p-3 mb-4">
+            <div className="bg-surface-soft rounded p-3 mb-4">
               <p className="text-xs font-mono text-ink/80">
                 <span className="block font-semibold mb-2">Required .env variables:</span>
                 <span className="block">OPENAI_API_KEY=sk-...</span>
@@ -40,7 +40,7 @@ export function ModelSettings() {
 
             <button
               onClick={() => window.open('/.env.example', '_blank')}
-              className="text-xs font-medium px-4 py-2 bg-white text-ink hover:bg-white/90 rounded-full transition-colors active:scale-[0.98] whitespace-nowrap"
+              className="text-xs font-medium px-4 py-2 bg-surface-soft text-ink hover:bg-surface-soft rounded-full transition-colors active:scale-[0.98] whitespace-nowrap"
             >
               View .env.example
             </button>

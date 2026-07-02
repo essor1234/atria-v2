@@ -177,14 +177,14 @@ function WelcomeScreen() {
         </span>
       </div>
       <div className="relative z-10 max-w-xl w-full">
-        <div className="color-block bg-block-cream rounded-lg px-8 py-9 md:px-12 md:py-10 text-center">
-          <span className="font-mono uppercase tracking-[0.54px] text-[12px] text-ink/60 block mb-4">
+        <div className="glass-card rounded-xl px-8 py-9 md:px-12 md:py-10 text-center">
+          <span className="font-sans uppercase tracking-[0.24em] text-[13px] font-[500] text-text-muted block mb-4">
             Welcome
           </span>
-          <h2 className="text-[40px] md:text-display-lg font-sans font-[340] leading-[1.05] tracking-[-0.96px] text-ink">
+          <h2 className="text-[40px] md:text-display-lg font-sans font-[600] leading-[1.02] tracking-[-0.03em] text-gradient-brand">
             Let&rsquo;s get to work.
           </h2>
-          <p className="mt-5 text-body-sm text-ink/80">
+          <p className="mt-5 text-body-sm text-text-secondary">
             Start a conversation with your AI coding assistant.
           </p>
         </div>

@@ -14,17 +14,17 @@ interface ModalHeaderProps {
 
 export function ModalHeader({ title, subtitle, onClose, disabled }: ModalHeaderProps) {
   return (
-    <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+    <div className="flex items-center justify-between px-6 py-4 border-b border-hairline-soft">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
-        {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
+        <h2 className="text-xl font-semibold text-ink">{title}</h2>
+        {subtitle && <p className="text-sm text-text-muted mt-0.5">{subtitle}</p>}
       </div>
       <button
         aria-label="Close dialog"
         type="button"
         onClick={onClose}
         disabled={disabled}
-        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+        className="p-2 text-text-muted hover:text-text-secondary hover:bg-surface-soft rounded-lg transition-colors disabled:opacity-50"
       >
         <XMarkIcon className="w-5 h-5" />
       </button>
@@ -50,12 +50,12 @@ export function ModalFooter({
   showSubmit = true,
 }: ModalFooterProps) {
   return (
-    <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
+    <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-hairline-soft bg-surface-soft">
       <button
         type="button"
         onClick={onClose}
         disabled={isSubmitting}
-        className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+        className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-ink hover:bg-surface-soft rounded-lg transition-colors disabled:opacity-50"
       >
         Cancel
       </button>
@@ -64,7 +64,7 @@ export function ModalFooter({
           type="submit"
           onClick={onSubmit}
           disabled={isSubmitting}
-          className="px-4 py-2 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 active:scale-[0.98] whitespace-nowrap rounded-lg transition-colors disabled:opacity-50"
+          className="px-4 py-2 text-sm font-medium text-white bg-gradient-brand hover:brightness-110 active:scale-[0.98] whitespace-nowrap rounded-lg transition-colors disabled:opacity-50"
         >
           {isSubmitting ? submittingLabel : submitLabel}
         </button>
@@ -93,7 +93,7 @@ interface TextFieldProps {
 export function TextField({ label, value, onChange, placeholder, required, disabled }: TextFieldProps) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+      <label className="block text-sm font-medium text-text-secondary mb-1">
         {label}
         {required && <span className="text-semantic-danger ml-1">*</span>}
       </label>
@@ -104,7 +104,7 @@ export function TextField({ label, value, onChange, placeholder, required, disab
         placeholder={placeholder}
         required={required}
         disabled={disabled}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
+        className="w-full px-3 py-2 border border-hairline-soft rounded-lg disabled:bg-surface-soft disabled:text-text-muted"
       />
     </div>
   );
@@ -125,9 +125,9 @@ export function CheckboxField({ label, checked, onChange, disabled }: CheckboxFi
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
         disabled={disabled}
-        className="w-4 h-4 text-gray-900 border-gray-300 rounded disabled:opacity-50"
+        className="w-4 h-4 text-ink border-hairline-soft rounded disabled:opacity-50"
       />
-      <span className="text-sm text-gray-700">{label}</span>
+      <span className="text-sm text-text-secondary">{label}</span>
     </label>
   );
 }
@@ -151,7 +151,7 @@ export function ArgumentsList({
 }: ArgumentsListProps) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">Arguments</label>
+      <label className="block text-sm font-medium text-text-secondary mb-1">Arguments</label>
       <div className="space-y-2">
         {args.map((arg, index) => (
           <div key={index} className="flex items-center gap-2">
@@ -159,7 +159,7 @@ export function ArgumentsList({
               type="text"
               value={arg}
               readOnly
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-mono text-sm"
+              className="flex-1 px-3 py-2 border border-hairline-soft rounded-lg bg-surface-soft text-text-secondary font-mono text-sm"
             />
             <button
               type="button"
@@ -179,13 +179,13 @@ export function ArgumentsList({
             onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), onAddArg())}
             placeholder="Add argument..."
             disabled={disabled}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg disabled:bg-gray-50"
+            className="flex-1 px-3 py-2 border border-hairline-soft rounded-lg disabled:bg-surface-soft"
           />
           <button
             type="button"
             onClick={onAddArg}
             disabled={disabled || !argInput.trim()}
-            className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+            className="px-3 py-2 text-sm font-medium text-text-secondary bg-surface-soft hover:bg-surface-soft rounded-lg transition-colors disabled:opacity-50"
           >
             Add
           </button>
@@ -218,19 +218,19 @@ export function EnvironmentVariables({
 }: EnvironmentVariablesProps) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">Environment Variables</label>
+      <label className="block text-sm font-medium text-text-secondary mb-1">Environment Variables</label>
       <div className="space-y-2">
         {Object.entries(env).map(([key, value]) => (
           <div key={key} className="flex items-center gap-2">
-            <span className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm font-mono text-gray-700">
+            <span className="px-3 py-2 bg-surface-soft border border-hairline-soft rounded-lg text-sm font-mono text-text-secondary">
               {key}
             </span>
-            <span className="text-gray-400">=</span>
+            <span className="text-text-muted">=</span>
             <input
               type="text"
               value={value}
               readOnly
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-mono text-sm"
+              className="flex-1 px-3 py-2 border border-hairline-soft rounded-lg bg-surface-soft text-text-secondary font-mono text-sm"
             />
             <button
               type="button"
@@ -249,9 +249,9 @@ export function EnvironmentVariables({
             onChange={(e) => onEnvKeyChange(e.target.value)}
             placeholder="KEY"
             disabled={disabled}
-            className="w-32 px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm disabled:bg-gray-50"
+            className="w-32 px-3 py-2 border border-hairline-soft rounded-lg font-mono text-sm disabled:bg-surface-soft"
           />
-          <span className="text-gray-400">=</span>
+          <span className="text-text-muted">=</span>
           <input
             type="text"
             value={envValue}
@@ -259,13 +259,13 @@ export function EnvironmentVariables({
             onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), onAddEnv())}
             placeholder="value"
             disabled={disabled}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm disabled:bg-gray-50"
+            className="flex-1 px-3 py-2 border border-hairline-soft rounded-lg font-mono text-sm disabled:bg-surface-soft"
           />
           <button
             type="button"
             onClick={onAddEnv}
             disabled={disabled || !envKey.trim() || !envValue.trim()}
-            className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+            className="px-3 py-2 text-sm font-medium text-text-secondary bg-surface-soft hover:bg-surface-soft rounded-lg transition-colors disabled:opacity-50"
           >
             Add
           </button>

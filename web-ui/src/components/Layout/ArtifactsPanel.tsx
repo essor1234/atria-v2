@@ -20,7 +20,7 @@ import type { Artifact } from '../../types';
 
 const TYPE_META: Record<string, { Icon: LucideIcon; color: string; label: string }> = {
   report: { Icon: FileText,  color: 'text-blue-400',   label: 'Report' },
-  code:   { Icon: Code2,     color: 'text-purple-400', label: 'Code'   },
+  code:   { Icon: Code2,     color: 'text-accent-magenta', label: 'Code'   },
   image:  { Icon: ImageIcon, color: 'text-pink-400',   label: 'Image'  },
   data:   { Icon: BarChart3, color: 'text-green-400',  label: 'Data'   },
   web:    { Icon: Globe,     color: 'text-orange-400', label: 'Web'    },

@@ -107,16 +107,16 @@ export function NewSessionModal({ isOpen, onClose }: NewSessionModalProps) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-modal max-w-lg w-full max-h-[80vh] flex flex-col mx-4"
+        className="bg-canvas rounded-xl shadow-modal max-w-lg w-full max-h-[80vh] flex flex-col mx-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Select Workspace</h2>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-hairline-soft">
+          <h2 className="text-lg font-semibold text-ink">Select Workspace</h2>
           <button
             aria-label="Close dialog"
             onClick={onClose}
-            className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+            className="p-1 rounded-md hover:bg-surface-soft text-text-muted hover:text-text-secondary"
           >
             <X className="w-[18px] h-[18px]" strokeWidth={1.5} />
           </button>
@@ -133,12 +133,12 @@ export function NewSessionModal({ isOpen, onClose }: NewSessionModalProps) {
                 if (e.key === 'Enter') handleManualGo();
               }}
               placeholder="/path/to/directory"
-              className="flex-1 px-3 py-2 text-sm font-mono border border-gray-300 rounded-lg"
+              className="flex-1 px-3 py-2 text-sm font-mono border border-hairline-soft rounded-lg"
             />
             <button
               onClick={handleManualGo}
               disabled={!manualPath.trim()}
-              className="px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-gray-700 border border-gray-300"
+              className="px-4 py-2 text-sm font-medium bg-surface-soft hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-text-secondary border border-hairline-soft"
             >
               Go
             </button>
@@ -160,7 +160,7 @@ export function NewSessionModal({ isOpen, onClose }: NewSessionModalProps) {
                 onClick={() => fetchDirectory(crumb.path)}
                 className={`text-xs font-medium ${
                   i === breadcrumbs.length - 1
-                    ? 'text-gray-900'
+                    ? 'text-ink'
                     : 'text-amber-600 hover:text-amber-800 hover:underline'
                 }`}
               >
@@ -168,22 +168,22 @@ export function NewSessionModal({ isOpen, onClose }: NewSessionModalProps) {
               </button>
             </span>
           ))}
-          <label className="ml-auto flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer select-none">
+          <label className="ml-auto flex items-center gap-1.5 text-xs text-text-muted cursor-pointer select-none">
             <input
               type="checkbox"
               checked={showHidden}
               onChange={(e) => setShowHidden(e.target.checked)}
-              className="rounded border-gray-300 text-amber-500"
+              className="rounded border-hairline-soft text-amber-500"
             />
             Show hidden
           </label>
         </div>
 
         {/* Directory listing */}
-        <div className="flex-1 overflow-y-auto border-t border-gray-100 min-h-0">
+        <div className="flex-1 overflow-y-auto border-t border-hairline-soft min-h-0">
           {isLoadingDirs ? (
             <div className="flex items-center justify-center py-12">
-              <div className="w-6 h-6 border-2 border-gray-200 border-t-amber-500 rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-hairline-soft border-t-amber-500 rounded-full animate-spin" />
             </div>
           ) : browseError ? (
             <div className="px-5 py-8 text-center">
@@ -201,7 +201,7 @@ export function NewSessionModal({ isOpen, onClose }: NewSessionModalProps) {
                       value={filterText}
                       onChange={(e) => setFilterText(e.target.value)}
                       placeholder="Filter folders..."
-                      className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-md"
+                      className="w-full pl-8 pr-3 py-1.5 text-sm border border-hairline-soft rounded-md"
                     />
                   </div>
                 </div>
@@ -214,7 +214,7 @@ export function NewSessionModal({ isOpen, onClose }: NewSessionModalProps) {
                   className="w-full px-5 py-2.5 flex items-center gap-3 hover:bg-amber-50 text-left"
                 >
                   <ArrowUp className="w-4 h-4 text-ink/40 flex-shrink-0" strokeWidth={1.5} />
-                  <span className="text-sm text-gray-600">..</span>
+                  <span className="text-sm text-text-secondary">..</span>
                 </button>
               )}
 
@@ -226,21 +226,21 @@ export function NewSessionModal({ isOpen, onClose }: NewSessionModalProps) {
                 if (directories.length === 0 && !parentPath) {
                   return (
                     <div className="px-5 py-8 text-center">
-                      <p className="text-sm text-gray-400">No subdirectories</p>
+                      <p className="text-sm text-text-muted">No subdirectories</p>
                     </div>
                   );
                 }
                 if (directories.length === 0 && parentPath) {
                   return (
                     <div className="px-5 py-6 text-center">
-                      <p className="text-sm text-gray-400">No subdirectories</p>
+                      <p className="text-sm text-text-muted">No subdirectories</p>
                     </div>
                   );
                 }
                 if (filteredDirs.length === 0) {
                   return (
                     <div className="px-5 py-6 text-center">
-                      <p className="text-sm text-gray-400">No matching folders</p>
+                      <p className="text-sm text-text-muted">No matching folders</p>
                     </div>
                   );
                 }
@@ -251,7 +251,7 @@ export function NewSessionModal({ isOpen, onClose }: NewSessionModalProps) {
                     className="w-full px-5 py-2.5 flex items-center gap-3 hover:bg-amber-50 text-left"
                   >
                     <Folder className="w-4 h-4 text-amber-500 flex-shrink-0" strokeWidth={1.5} />
-                    <span className="text-sm text-gray-800 truncate">{dir.name}</span>
+                    <span className="text-sm text-ink truncate">{dir.name}</span>
                   </button>
                 ));
               })()}
@@ -260,19 +260,19 @@ export function NewSessionModal({ isOpen, onClose }: NewSessionModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-4 border-t border-gray-200">
+        <div className="px-5 py-4 border-t border-hairline-soft">
           {createError && (
             <p className="text-sm text-semantic-danger mb-3">{createError}</p>
           )}
           <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-mono text-gray-500 truncate" title={currentPath}>
+            <p className="text-xs font-mono text-text-muted truncate" title={currentPath}>
               {currentPath}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium border border-gray-300 bg-white hover:bg-gray-50 rounded-lg text-gray-700"
+            className="px-4 py-2 text-sm font-medium border border-hairline-soft bg-canvas hover:bg-surface-soft rounded-lg text-text-secondary"
           >
             Cancel
           </button>

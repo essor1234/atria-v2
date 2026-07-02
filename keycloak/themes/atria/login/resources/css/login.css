@@ -1,37 +1,44 @@
-/* Atria login theme — single-column editorial, Figma DESIGN.md aligned. */
+/* Atria login theme — Celesnity Design System (Cosmos).
+   "Two skies, one identity." Single-column editorial on a cosmic wash, lit by
+   the cobalt→violet→magenta nebula gradient. */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@320;330;340;400;480;540;700&family=JetBrains+Mono:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* Force light color scheme — Keycloak 26 master admin defaults to dark and
-   PatternFly v5 cascades dark backgrounds through CSS variables. We override
-   the global PF tokens AND set color-scheme so the OS doesn't push dark form
-   controls (Chrome dark-mode autofill, etc). */
+/* Keycloak 26 / PatternFly v5 default to a dark master theme; we lean into a
+   deliberate Cosmos dark rather than fighting it. Tokens overridden below so PF
+   surfaces inherit the brand instead of its own greys. */
 :root {
-  --atria-ink: #0a0a0a;
-  --atria-canvas: #ffffff;
-  --atria-block-lilac: #e6e1f2;
-  --atria-hairline: #e5e5e5;
-  --atria-hairline-soft: #f1f1f1;
-  --atria-ink-soft: rgba(10, 10, 10, 0.65);
-  --atria-ink-muted: rgba(10, 10, 10, 0.45);
-  --atria-danger: #c64a3d;
+  --atria-ink: #f8f9fe;          /* cloud-white text */
+  --atria-canvas: #05060f;       /* cosmic-black */
+  --atria-surface: rgba(255, 255, 255, 0.04);  /* glass card */
+  --atria-surface-hover: rgba(255, 255, 255, 0.08);
+  --atria-hairline: rgba(201, 206, 232, 0.22);
+  --atria-hairline-soft: rgba(201, 206, 232, 0.12);
+  --atria-ink-soft: rgba(201, 206, 232, 0.78);   /* starlight */
+  --atria-ink-muted: rgba(201, 206, 232, 0.55);
+  --atria-accent: #2d44e0;       /* cobalt */
+  --atria-danger: #e0704f;       /* coral */
+
+  --atria-gradient: linear-gradient(120deg, #2d44e0 0%, #6e1fc6 52%, #b14fd0 100%);
+  --atria-wash: radial-gradient(120% 140% at 18% 12%, #241660 0%, #12093b 45%, #05060f 100%);
+  --atria-glow: 0 14px 48px rgba(110, 31, 198, 0.45);
 
   /* PatternFly v5 token overrides */
-  --pf-v5-global--BackgroundColor--100: #ffffff;
-  --pf-v5-global--BackgroundColor--200: #ffffff;
-  --pf-v5-global--BackgroundColor--300: #ffffff;
+  --pf-v5-global--BackgroundColor--100: transparent;
+  --pf-v5-global--BackgroundColor--200: transparent;
+  --pf-v5-global--BackgroundColor--300: transparent;
   --pf-v5-global--Color--100: var(--atria-ink);
   --pf-v5-global--Color--200: var(--atria-ink-soft);
   --pf-v5-global--link--Color: var(--atria-ink);
-  --pf-v5-global--primary-color--100: var(--atria-ink);
-  color-scheme: light;
+  --pf-v5-global--primary-color--100: var(--atria-accent);
+  color-scheme: dark;
 }
 
 html,
 html[data-theme],
 html.pf-v5-theme-dark,
 body.pf-v5-theme-dark {
-  color-scheme: light !important;
+  color-scheme: dark !important;
   background: var(--atria-canvas) !important;
   background-color: var(--atria-canvas) !important;
   color: var(--atria-ink) !important;
@@ -49,12 +56,12 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: var(--atria-canvas) !important;
+  background: var(--atria-wash) !important;
   background-color: var(--atria-canvas) !important;
-  background-image: none !important;
+  background-attachment: fixed !important;
   color: var(--atria-ink) !important;
   font-family: 'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif !important;
-  font-feature-settings: 'kern' 1;
+  font-feature-settings: 'kern' 1, 'cv11' 1;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -63,9 +70,10 @@ body.login-pf,
 body.login-pf-body,
 html body.login-pf,
 html body.login-pf-body {
-  background: var(--atria-canvas) !important;
+  background: var(--atria-wash) !important;
   background-color: var(--atria-canvas) !important;
-  background-image: none !important;
+  background-attachment: fixed !important;
+  background-image: var(--atria-wash) !important;
 }
 
 .login-pf,
@@ -90,7 +98,7 @@ html body.login-pf-body {
   margin: 0 !important;
 }
 
-/* Page layout: lilac strip on top, centered form below */
+/* Page layout: nebula band on top, centered glass form below */
 .login-pf-page,
 .pf-v5-c-login {
   min-height: 100vh;
@@ -103,33 +111,40 @@ html body.login-pf-body {
   padding: 0 !important;
 }
 
-/* Lilac header band */
+/* Nebula header band — the signature gradient, used once. */
 .login-pf-page::before,
 .pf-v5-c-login::before {
   content: 'ATRIA · BUILD MODE';
   display: block;
   width: 100%;
-  background: var(--atria-block-lilac);
-  color: var(--atria-ink);
-  font-family: 'JetBrains Mono', 'SF Mono', menlo, monospace;
-  font-size: 12px;
-  letter-spacing: 0.6px;
+  background: var(--atria-gradient);
+  color: #ffffff;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
   padding: 20px 32px;
   margin-bottom: 0;
 }
 
-/* Form container */
+/* Form container — a glass card floating on the cosmic wash */
 .login-pf-page > div,
 .pf-v5-c-login__container,
 .pf-v5-c-login__main {
   width: 100% !important;
-  max-width: 420px !important;
-  margin: 0 auto !important;
-  padding: 64px 32px 48px !important;
+  max-width: 440px !important;
+  margin: 72px auto 0 !important;
+  padding: 40px 36px 36px !important;
   display: flex !important;
   flex-direction: column !important;
   align-self: center !important;
+  background: var(--atria-surface) !important;
+  border: 1px solid var(--atria-hairline-soft) !important;
+  border-radius: 28px !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55) !important;
 }
 
 /* Kill any default card chrome inside the form area */
@@ -164,9 +179,10 @@ html body.login-pf-body {
 .pf-v5-c-login__main-header::before,
 .login-pf-header::before {
   content: 'SIGN IN';
-  font-family: 'JetBrains Mono', 'SF Mono', menlo, monospace;
-  font-size: 12px;
-  letter-spacing: 0.6px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--atria-ink-soft);
   margin: 0;
@@ -178,10 +194,10 @@ html body.login-pf-body {
 .pf-v5-c-title,
 .pf-v5-c-login__main-header h1 {
   font-family: 'Inter', system-ui, sans-serif !important;
-  font-size: 26px !important;
-  font-weight: 540 !important;
-  line-height: 1.25 !important;
-  letter-spacing: -0.26px !important;
+  font-size: 32px !important;
+  font-weight: 600 !important;
+  line-height: 1.12 !important;
+  letter-spacing: -0.015em !important;
   color: var(--atria-ink) !important;
   margin: 0 !important;
   padding: 0 !important;
@@ -210,10 +226,10 @@ form {
 
 label,
 .pf-v5-c-form__label {
-  font-family: 'JetBrains Mono', 'SF Mono', menlo, monospace !important;
-  font-size: 11px !important;
-  font-weight: 400 !important;
-  letter-spacing: 0.6px !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.24em !important;
   text-transform: uppercase !important;
   color: var(--atria-ink-soft) !important;
   margin: 0 !important;
@@ -245,29 +261,35 @@ label,
 input[type='text'],
 input[type='email'],
 input[type='password'] {
-  background: var(--atria-canvas) !important;
+  background: var(--atria-surface) !important;
   color: var(--atria-ink) !important;
   border: 1px solid var(--atria-hairline) !important;
-  border-radius: 8px !important;
+  border-radius: 10px !important;
   font-family: 'Inter', system-ui, sans-serif !important;
   font-size: 16px !important;
-  font-weight: 320 !important;
+  font-weight: 400 !important;
   line-height: 1.4 !important;
   padding: 12px 14px !important;
-  height: 44px !important;
+  height: 46px !important;
   width: 100% !important;
   box-shadow: none !important;
   outline: none !important;
-  transition: border-color 160ms cubic-bezier(0.2, 0, 0, 1);
+  transition: border-color 140ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 140ms cubic-bezier(0.22, 1, 0.36, 1);
   margin: 0 !important;
+}
+
+.pf-v5-c-form-control input::placeholder,
+input::placeholder {
+  color: var(--atria-ink-muted) !important;
 }
 
 .pf-v5-c-form-control input:focus,
 input[type='text']:focus,
 input[type='email']:focus,
 input[type='password']:focus {
-  border-color: var(--atria-ink) !important;
-  box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.08) !important;
+  border-color: var(--atria-accent) !important;
+  box-shadow: 0 0 0 3px rgba(45, 68, 224, 0.45) !important;
 }
 
 /* Password reveal: overlay on top of the input, no separator line */
@@ -295,7 +317,7 @@ button[aria-label*='hide' i] {
   margin: 0 !important;
   height: 32px !important;
   width: 32px !important;
-  border-radius: 6px !important;
+  border-radius: 8px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -304,7 +326,7 @@ button[aria-label*='hide' i] {
 
 .pf-v5-c-button.pf-m-control:hover {
   color: var(--atria-ink) !important;
-  background: var(--atria-hairline-soft) !important;
+  background: var(--atria-surface-hover) !important;
 }
 
 /* Forgot password link */
@@ -319,10 +341,10 @@ button[aria-label*='hide' i] {
 .pf-v5-c-login__main-footer a {
   font-family: 'Inter', system-ui, sans-serif !important;
   font-size: 14px !important;
-  font-weight: 480 !important;
+  font-weight: 500 !important;
   color: var(--atria-ink) !important;
   text-decoration: none !important;
-  letter-spacing: -0.1px !important;
+  letter-spacing: -0.01em !important;
 }
 
 #kc-form-options a:hover,
@@ -331,7 +353,7 @@ button[aria-label*='hide' i] {
   text-decoration: none !important;
 }
 
-/* ── Primary CTA ─────────────────────────────────────────────────────────── */
+/* ── Primary CTA — nebula gradient pill with a soft glow ──────────────────── */
 
 #kc-form-buttons,
 .pf-v5-c-form__actions {
@@ -344,38 +366,39 @@ button[aria-label*='hide' i] {
 input[type='submit'],
 .pf-v5-c-button.pf-m-primary,
 input[type='submit'].pf-v5-c-button {
-  background: var(--atria-ink) !important;
-  color: var(--atria-canvas) !important;
+  background: var(--atria-gradient) !important;
+  color: #ffffff !important;
   border: none !important;
   border-radius: 9999px !important;
   font-family: 'Inter', system-ui, sans-serif !important;
   font-size: 16px !important;
-  font-weight: 480 !important;
-  letter-spacing: -0.1px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
   padding: 0 28px !important;
   height: 48px !important;
   width: 100% !important;
   margin: 0 !important;
   cursor: pointer !important;
-  transition: opacity 160ms cubic-bezier(0.2, 0, 0, 1);
+  transition: filter 140ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 140ms cubic-bezier(0.22, 1, 0.36, 1);
   white-space: nowrap !important;
-  box-shadow: none !important;
+  box-shadow: var(--atria-glow) !important;
 }
 
 #kc-login:hover,
 input[type='submit']:hover,
 .pf-v5-c-button.pf-m-primary:hover {
-  opacity: 0.92 !important;
+  filter: brightness(1.1) !important;
 }
 
 #kc-login:active,
 .pf-v5-c-button.pf-m-primary:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 #kc-login:focus-visible,
 .pf-v5-c-button.pf-m-primary:focus-visible {
-  outline: 2px solid var(--atria-ink) !important;
+  outline: 2px solid var(--atria-accent) !important;
   outline-offset: 3px !important;
 }
 
@@ -383,21 +406,21 @@ input[type='submit']:hover,
 
 .alert,
 .pf-v5-c-alert {
-  background: var(--atria-canvas) !important;
+  background: var(--atria-surface) !important;
   border: 1px solid var(--atria-danger) !important;
-  border-radius: 8px !important;
+  border-radius: 12px !important;
   color: var(--atria-danger) !important;
   padding: 12px 16px !important;
   font-family: 'Inter', system-ui, sans-serif !important;
   font-size: 14px !important;
-  font-weight: 540 !important;
+  font-weight: 500 !important;
   margin-bottom: 20px !important;
   width: 100% !important;
 }
 
 .alert.alert-success,
 .pf-v5-c-alert.pf-m-success {
-  border-color: var(--atria-ink) !important;
+  border-color: var(--atria-accent) !important;
   color: var(--atria-ink) !important;
 }
 
@@ -411,7 +434,7 @@ input[type='submit']:hover,
   border-top: 1px solid var(--atria-hairline-soft) !important;
   font-family: 'Inter', system-ui, sans-serif !important;
   font-size: 14px !important;
-  font-weight: 330 !important;
+  font-weight: 400 !important;
   color: var(--atria-ink-soft) !important;
   width: 100% !important;
 }
@@ -422,7 +445,7 @@ input[type='submit']:hover,
   font-size: 14px !important;
   text-transform: none !important;
   letter-spacing: 0 !important;
-  font-weight: 330 !important;
+  font-weight: 400 !important;
   color: var(--atria-ink) !important;
 }
 
@@ -432,15 +455,17 @@ input[type='submit']:hover,
   .login-pf-page > div,
   .pf-v5-c-login__container,
   .pf-v5-c-login__main {
-    padding: 40px 24px 32px !important;
+    margin-top: 40px !important;
+    padding: 32px 24px 28px !important;
+    border-radius: 24px !important;
   }
   .login-pf-page::before,
   .pf-v5-c-login::before {
     padding: 16px 24px;
-    font-size: 11px;
+    font-size: 12px;
   }
   #kc-page-title,
   .pf-v5-c-login__main-header-title {
-    font-size: 22px !important;
+    font-size: 26px !important;
   }
 }

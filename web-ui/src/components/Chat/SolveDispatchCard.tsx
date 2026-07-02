@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Rocket } from 'lucide-react';
 import type { Message } from '../../types';
 import { useSolverJobsStore } from '../../stores/solverJobs';
 
@@ -70,7 +71,7 @@ export function SolveDispatchCard({ message }: Props) {
   return (
     <div className="mx-3 my-2 rounded-lg border border-border-300/20 bg-bg-000 overflow-hidden">
       <div className="flex items-start gap-2 px-3 py-2 border-b border-border-300/10">
-        <span aria-hidden className="text-[15px] leading-none mt-0.5">🚀</span>
+        <Rocket aria-hidden className="w-3.5 h-3.5 mt-0.5 text-accent-magenta flex-shrink-0" strokeWidth={1.5} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-[11px] font-mono text-text-300">Đã giao task cho subagent</span>

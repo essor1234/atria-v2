@@ -139,14 +139,14 @@ export function LandingPage() {
             initial={reduce ? false : { opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={transitions.chrome}
-            className="font-mono uppercase tracking-[0.54px] text-[12px] text-ink/60 block"
+            className="font-sans uppercase tracking-[0.24em] text-[13px] font-[500] text-text-secondary block"
           >
             New conversation
           </motion.span>
           <AnimatedHeadline
             as="h2"
             text={"What are we building?"}
-            className="mt-3 text-[40px] md:text-display-lg font-sans font-[340] tracking-[-0.96px] leading-[1.05] text-ink"
+            className="mt-3 text-[40px] md:text-display-lg font-sans font-[600] tracking-[-0.03em] leading-[1.02] text-gradient-brand"
             step={20}
             startDelay={140}
           />
