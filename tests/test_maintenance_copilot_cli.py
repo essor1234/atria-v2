@@ -51,9 +51,15 @@ def test_main_health_exit_code_and_json(monkeypatch, capsys):
     assert all(v == "ok" for v in payload.values())
 
 
+def _raise(_msg: str = "x") -> None:
+    raise RuntimeError(_msg)
+
+
 def test_main_health_fails_when_a_probe_errors(monkeypatch, capsys):
     mod = _load_cli()
-    monkeypatch.setattr(mod, "_build_probes", lambda: {"tei": lambda: None,
-                                                       "qdrant": (lambda: (_ for _ in ()).throw(RuntimeError("x")))})
+    monkeypatch.setattr(mod, "_build_probes", lambda: {
+        "tei": lambda: None,
+        "qdrant": _raise,
+    })
     rc = mod.main(["health"])
     assert rc == 1

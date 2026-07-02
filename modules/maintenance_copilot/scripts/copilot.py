@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Callable, Dict, Optional
@@ -55,13 +56,13 @@ def _build_probes() -> Dict[str, Callable[[], None]]:
     def qdrant_probe() -> None:
         from qdrant_client import QdrantClient  # local import: optional dep
 
-        url = _service_url("MC_QDRANT_URL", "http://localhost:6333")
+        url = _env("MC_QDRANT_URL", "http://localhost:6333")
         QdrantClient(url=url).get_collections()
 
     def neo4j_probe() -> None:
         from neo4j import GraphDatabase  # local import: optional dep
 
-        uri = _service_url("MC_NEO4J_URI", "bolt://localhost:7687")
+        uri = _env("MC_NEO4J_URI", "bolt://localhost:7687")
         user = _env("MC_NEO4J_USER", "neo4j")
         pwd = _env("MC_NEO4J_PASSWORD", "atria-neo4j")
         driver = GraphDatabase.driver(uri, auth=(user, pwd))
@@ -75,13 +76,7 @@ def _build_probes() -> Dict[str, Callable[[], None]]:
 
 
 def _env(key: str, default: str) -> str:
-    import os
-
     return os.environ.get(key, default)
-
-
-def _service_url(key: str, default: str) -> str:
-    return _env(key, default)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -97,7 +92,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: Optional[list] = None) -> int:
+def main(argv: Optional[list[str]] = None) -> int:
     """CLI entry point.
 
     Args:

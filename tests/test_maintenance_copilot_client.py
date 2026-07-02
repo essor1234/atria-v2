@@ -68,7 +68,8 @@ def test_embed_returns_one_vector_per_text():
     vecs = rc.embed("index_embed", ["a", "b", "c"])
     assert len(vecs) == 3 and vecs[0] == [0.1, 0.2]
     # Verify the role's model was forwarded to the embeddings API.
-    fake_client = rc._clients[(rc._config["index_embed"].base_url, rc._config["index_embed"].api_key)]
+    key = (rc._config["index_embed"].base_url, rc._config["index_embed"].api_key)
+    fake_client = rc._clients[key]
     assert fake_client.embeddings.last_model == "embed-model-y"
 
 
@@ -102,7 +103,9 @@ def test_chat_uses_the_roles_model():
 def test_unknown_role_raises():
     config = _load("config")
     client_mod = _load("client")
-    rc = client_mod.RoleClient(config.load_config(env={}),
-                               client_factory=lambda base_url, api_key: _FakeOpenAI(base_url, api_key))
+    rc = client_mod.RoleClient(
+        config.load_config(env={}),
+        client_factory=lambda base_url, api_key: _FakeOpenAI(base_url, api_key),
+    )
     with pytest.raises(ValueError):
         rc.embed("nope", ["x"])
