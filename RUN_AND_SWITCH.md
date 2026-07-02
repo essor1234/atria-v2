@@ -8,22 +8,22 @@ Quick cheat-sheet for running Atria locally and flipping the chat LLM between
 ## Go to the project (run this first in every terminal)
 
 The project path contains `[` `]`, which PowerShell treats as wildcards — use
-`-LiteralPath` (a plain `cd 'D:\[Project]_atriaV2_GoldenPig'` fails):
+`-LiteralPath` (a plain `cd 'D:\[Project]_atriaV2'` fails):
 
 ```powershell
-Set-Location -LiteralPath 'D:\[Project]_atriaV2_GoldenPig'
+Set-Location -LiteralPath 'D:\[Project]_atriaV2'
 ```
 
 The `.\run-*.ps1` and `.\switch-llm.ps1` scripts already `cd` to their own folder
 internally, so you can also just call them by full path from anywhere, e.g.
-`& 'D:\[Project]_atriaV2_GoldenPig\switch-llm.ps1' status`.
+`& 'D:\[Project]_atriaV2\switch-llm.ps1' status`.
 
 ---
 
 ## TL;DR
 
 ```powershell
-Set-Location -LiteralPath 'D:\[Project]_atriaV2_GoldenPig'   # go to project
+Set-Location -LiteralPath 'D:\[Project]_atriaV2'   # go to project
 .\switch-llm.ps1 qwen        # use Qwen via DashScope (default; OpenAI is out of quota)
 .\run-backend.ps1            # Terminal 1  -> API  http://127.0.0.1:8080
 .\run-frontend.ps1           # Terminal 2  -> Web  http://localhost:5173  (open this)
@@ -52,7 +52,7 @@ First time (creates it, loads schema, publishes 5432):
 ```powershell
 docker run -d --name atria-pg -p 5432:5432 `
   -e POSTGRES_DB=atria -e POSTGRES_USER=atria -e POSTGRES_PASSWORD=atria `
-  -v "D:\[Project]_atriaV2_GoldenPig\schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro" `
+  -v "D:\[Project]_atriaV2\schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro" `
   postgres:16-alpine
 ```
 

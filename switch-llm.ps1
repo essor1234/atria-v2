@@ -1,7 +1,7 @@
 # switch-llm.ps1 - flip Atria's chat LLM provider between Qwen (DashScope) and OpenAI.
 #
 # Usage:
-#   .\switch-llm.ps1 qwen      # use Qwen via DashScope (qwen3.5-122b-a10b)
+#   .\switch-llm.ps1 qwen      # use Qwen via DashScope (qwen3.5-plus-2026-02-15)
 #   .\switch-llm.ps1 openai    # use OpenAI (gpt-5.5)  [needs OpenAI quota]
 #   .\switch-llm.ps1 status    # print the currently active provider
 #
@@ -70,7 +70,7 @@ if ($Provider -eq 'status') {
 # Provider profiles. The API key is resolved from the .env key vault.
 if ($Provider -eq 'qwen') {
   $key = Get-VaultKey 'LLM_KEY_QWEN'
-  $model = 'qwen3.5-122b-a10b'
+  $model = 'qwen3.5-plus-2026-02-15'
   $fallback = 'qwen3.5-flash'
   $baseUrl = 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions'
   $label = 'QWEN (DashScope)'

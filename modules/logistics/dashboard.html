@@ -10,11 +10,16 @@
     .kpi { border: 1px solid rgba(127,127,127,.25); border-radius: 10px; padding: 10px 14px; min-width: 110px; }
     .kpi .label { font-size: 11px; opacity: .6; text-transform: uppercase; letter-spacing: .04em; }
     .kpi .value { font-size: 22px; font-weight: 600; margin-top: 2px; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .tab { padding: 8px 16px; border: 1px solid rgba(127,127,127,.35); border-radius: 8px; background: transparent; cursor: pointer; font: inherit; color: inherit; }
+    .tab.active { background: rgba(127,127,127,.2); font-weight: 600; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
     h3 { margin: 18px 0 8px; font-size: 14px; }
     .controls { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
     select, input { padding: 6px 8px; border: 1px solid rgba(127,127,127,.35); border-radius: 8px; background: transparent; color: inherit; font: inherit; }
     input { flex: 1; min-width: 160px; }
-    .table-wrap { overflow: auto; border: 1px solid rgba(127,127,127,.2); border-radius: 10px; max-height: 38vh; }
+    .table-wrap { overflow: auto; border: 1px solid rgba(127,127,127,.2); border-radius: 10px; max-height: 50vh; }
     table { border-collapse: collapse; width: 100%; font-size: 13px; }
     th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid rgba(127,127,127,.15); white-space: nowrap; }
     th { position: sticky; top: 0; background: rgba(127,127,127,.10); }
@@ -23,6 +28,7 @@
     .returning { color: #a56300; border-color: rgba(165,99,0,.4); }
     .busy { color: #a50e0e; border-color: rgba(165,14,14,.4); }
     .empty { padding: 18px; opacity: .6; text-align: center; }
+    .readonly-notice { font-size: 12px; opacity: .7; margin-bottom: 8px; }
   </style>
 </head>
 <body>
@@ -33,29 +39,87 @@
     <div class="kpi"><div class="label">Đơn đang mở</div><div class="value" id="kpi-open">-</div></div>
   </div>
 
-  <h3>Đội xe (DKI / DKI 2)</h3>
-  <div class="controls">
-    <select id="status-filter">
-      <option value="">Tất cả trạng thái</option>
-      <option value="free">free</option>
-      <option value="returning">returning</option>
-      <option value="busy">busy</option>
-    </select>
-    <input id="fleet-filter" type="text" placeholder="Lọc xe / tài xế / hãng..." />
+  <div class="tabs">
+    <button class="tab active" data-tab="fleet">Đội xe</button>
+    <button class="tab" data-tab="bookings">Booking</button>
+    <button class="tab" data-tab="customers">Khách hàng</button>
+    <button class="tab" data-tab="warehouses">Kho bãi</button>
+    <button class="tab" data-tab="truck-specs">Xe & tải</button>
+    <button class="tab" data-tab="traffic-bans">Cấm tải</button>
   </div>
-  <div class="table-wrap"><table><thead id="fleet-head"></thead><tbody id="fleet-body"></tbody></table></div>
-  <div class="empty" id="fleet-empty" style="display:none">Chưa có xe trong DKI/DKI2.</div>
 
-  <h3>Booking</h3>
-  <div class="table-wrap"><table><thead id="bk-head"></thead><tbody id="bk-body"></tbody></table></div>
-  <div class="empty" id="bk-empty" style="display:none">Chưa có booking nào.</div>
+  <div id="fleet" class="tab-content active">
+    <h3>Đội xe (DKI / DKI 2)</h3>
+    <div class="controls">
+      <select id="status-filter">
+        <option value="">Tất cả trạng thái</option>
+        <option value="free">free</option>
+        <option value="returning">returning</option>
+        <option value="busy">busy</option>
+      </select>
+      <input id="fleet-filter" type="text" placeholder="Lọc xe / tài xế / hãng..." />
+    </div>
+    <div class="table-wrap"><table><thead id="fleet-head"></thead><tbody id="fleet-body"></tbody></table></div>
+    <div class="empty" id="fleet-empty" style="display:none">Chưa có xe trong DKI/DKI2.</div>
+  </div>
+
+  <div id="bookings" class="tab-content">
+    <h3>Booking</h3>
+    <div class="table-wrap"><table><thead id="bk-head"></thead><tbody id="bk-body"></tbody></table></div>
+    <div class="empty" id="bk-empty" style="display:none">Chưa có booking nào.</div>
+  </div>
+
+  <div id="customers" class="tab-content">
+    <h3>Khách hàng</h3>
+    <div class="table-wrap"><table><thead id="cust-head"></thead><tbody id="cust-body"></tbody></table></div>
+    <div class="empty" id="cust-empty" style="display:none">Chưa có khách hàng nào.</div>
+  </div>
+
+  <div id="warehouses" class="tab-content">
+    <h3>Kho bãi</h3>
+    <div class="table-wrap"><table><thead id="wh-head"></thead><tbody id="wh-body"></tbody></table></div>
+    <div class="empty" id="wh-empty" style="display:none">Chưa có kho bãi nào.</div>
+  </div>
+
+  <div id="truck-specs" class="tab-content">
+    <h3>Thông số xe</h3>
+    <div class="readonly-notice">Dữ liệu tham khảo - chỉ xem</div>
+    <div class="table-wrap"><table><thead id="ts-head"></thead><tbody id="ts-body"></tbody></table></div>
+    <div class="empty" id="ts-empty" style="display:none">Chưa có thông số xe nào.</div>
+  </div>
+
+  <div id="traffic-bans" class="tab-content">
+    <h3>Giới hạn tải & cấm giờ</h3>
+    <div class="readonly-notice">Dữ liệu tham khảo - chỉ xem</div>
+    <div class="table-wrap"><table><thead id="ban-head"></thead><tbody id="ban-body"></tbody></table></div>
+    <div class="empty" id="ban-empty" style="display:none">Chưa có quy định cấm tải nào.</div>
+  </div>
 
   <script src="__bridge.js"></script>
   <script>
   (function () {
-    var fleet = [], bookings = [];
+    var fleet = [], bookings = [], customers = [], warehouses = [], truckSpecs = [], trafficBans = [];
+    var currentTab = 'fleet';
     function $(id){ return document.getElementById(id); }
     function resize(){ try { AtriaDash.resize(document.body.scrollHeight + 24); } catch(e){} }
+
+    // Tab switching
+    function switchTab(tabId){
+      document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+      document.querySelectorAll('.tab-content').forEach(function(c){ c.classList.remove('active'); });
+      var tabBtn = document.querySelector('.tab[data-tab="'+tabId+'"]');
+      if (tabBtn) tabBtn.classList.add('active');
+      var content = $(tabId);
+      if (content) content.classList.add('active');
+      currentTab = tabId;
+      resize();
+    }
+
+    document.querySelectorAll('.tab').forEach(function(tab){
+      tab.addEventListener('click', function(){
+        switchTab(this.dataset.tab);
+      });
+    });
 
     var FLEET_COLS = [
       ['vehicle_number','Số xe'], ['weight_class','Tải'], ['brand','Hãng'],
@@ -98,15 +162,96 @@
       var head = $('bk-head'), body = $('bk-body');
       head.innerHTML = ''; body.innerHTML = '';
       $('bk-empty').style.display = bookings.length ? 'none' : 'block';
-      var cols = ['Mã','Khách','Điểm đến','Tải (T)','Trạng thái','Xe / Tài xế'];
+      var cols = ['booking_id','customer','destination_zone','requested_weight_t','status','trucks'];
+      var colLabels = ['Mã','Khách','Điểm đến','Tải (T)','Trạng thái','Xe / Tài xế'];
       var trh = document.createElement('tr');
-      cols.forEach(function(c){ var th=document.createElement('th'); th.textContent=c; trh.appendChild(th); });
+      colLabels.forEach(function(c){ var th=document.createElement('th'); th.textContent=c; trh.appendChild(th); });
       head.appendChild(trh);
       bookings.forEach(function(b){
         var tr = document.createElement('tr');
         var trucks = (b.trucks||[]).map(function(t){ return t.vehicle_number+' / '+t.driver_name+' @'+(t.delivery_time||'?'); }).join('; ') || '(chưa gán xe)';
         [b.booking_id, b.customer, b.destination_zone, b.requested_weight_t, b.status, trucks].forEach(function(val){
           var td = document.createElement('td'); td.textContent = val == null ? '' : val; tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      });
+      resize();
+    }
+
+    function renderCustomers(){
+      var head = $('cust-head'), body = $('cust-body');
+      head.innerHTML = ''; body.innerHTML = '';
+      $('cust-empty').style.display = customers.length ? 'none' : 'block';
+      var cols = [['customer_id','Mã KH'],['name','Tên'],['phone','SĐT'],['address','Địa chỉ'],['notes','Ghi chú']];
+      var trh = document.createElement('tr');
+      cols.forEach(function(c){ var th=document.createElement('th'); th.textContent=c[1]; trh.appendChild(th); });
+      head.appendChild(trh);
+      customers.forEach(function(c){
+        var tr = document.createElement('tr');
+        cols.forEach(function(col){
+          var td = document.createElement('td');
+          td.textContent = c[col[0]] == null ? '' : c[col[0]];
+          tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      });
+      resize();
+    }
+
+    function renderWarehouses(){
+      var head = $('wh-head'), body = $('wh-body');
+      head.innerHTML = ''; body.innerHTML = '';
+      $('wh-empty').style.display = warehouses.length ? 'none' : 'block';
+      var cols = [['warehouse_id','Mã kho'],['name','Tên'],['address','Địa chỉ'],['contact','Liên hệ'],['phone','SĐT']];
+      var trh = document.createElement('tr');
+      cols.forEach(function(c){ var th=document.createElement('th'); th.textContent=c[1]; trh.appendChild(th); });
+      head.appendChild(trh);
+      warehouses.forEach(function(w){
+        var tr = document.createElement('tr');
+        cols.forEach(function(col){
+          var td = document.createElement('td');
+          td.textContent = w[col[0]] == null ? '' : w[col[0]];
+          tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      });
+      resize();
+    }
+
+    function renderTruckSpecs(){
+      var head = $('ts-head'), body = $('ts-body');
+      head.innerHTML = ''; body.innerHTML = '';
+      $('ts-empty').style.display = truckSpecs.length ? 'none' : 'block';
+      var cols = [['weight_class','Tải trọng'],['max_cbm','CBM tối đa'],['description','Mô tả']];
+      var trh = document.createElement('tr');
+      cols.forEach(function(c){ var th=document.createElement('th'); th.textContent=c[1]; trh.appendChild(th); });
+      head.appendChild(trh);
+      truckSpecs.forEach(function(t){
+        var tr = document.createElement('tr');
+        cols.forEach(function(col){
+          var td = document.createElement('td');
+          td.textContent = t[col[0]] == null ? '' : t[col[0]];
+          tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      });
+      resize();
+    }
+
+    function renderTrafficBans(){
+      var head = $('ban-head'), body = $('ban-body');
+      head.innerHTML = ''; body.innerHTML = '';
+      $('ban-empty').style.display = trafficBans.length ? 'none' : 'block';
+      var cols = [['zone','Khu vực'],['weight_limit_t','Giới hạn tải'],['time_restrictions','Giờ cấm'],['notes','Ghi chú']];
+      var trh = document.createElement('tr');
+      cols.forEach(function(c){ var th=document.createElement('th'); th.textContent=c[1]; trh.appendChild(th); });
+      head.appendChild(trh);
+      trafficBans.forEach(function(b){
+        var tr = document.createElement('tr');
+        cols.forEach(function(col){
+          var td = document.createElement('td');
+          td.textContent = b[col[0]] == null ? '' : b[col[0]];
+          tr.appendChild(td);
         });
         body.appendChild(tr);
       });
@@ -130,7 +275,27 @@
         renderBookings();
       }).catch(function(){ bookings=[]; renderBookings(); });
 
-      return Promise.all([p1, p2]);
+      var p3 = AtriaDash.json('bookings.py', ['customers','--json']).then(function(res){
+        customers = (res && res.customers) || [];
+        renderCustomers();
+      }).catch(function(){ customers=[]; renderCustomers(); });
+
+      var p4 = AtriaDash.json('bookings.py', ['warehouses','--json']).then(function(res){
+        warehouses = (res && res.warehouses) || [];
+        renderWarehouses();
+      }).catch(function(){ warehouses=[]; renderWarehouses(); });
+
+      var p5 = AtriaDash.json('recommend.py', ['truck-specs','--json']).then(function(res){
+        truckSpecs = (res && res.truck_specs) || [];
+        renderTruckSpecs();
+      }).catch(function(){ truckSpecs=[]; renderTruckSpecs(); });
+
+      var p6 = AtriaDash.json('bans.py', ['list','--json']).then(function(res){
+        trafficBans = (res && res.bans) || [];
+        renderTrafficBans();
+      }).catch(function(){ trafficBans=[]; renderTrafficBans(); });
+
+      return Promise.all([p1, p2, p3, p4, p5, p6]);
     }
 
     $('fleet-filter').addEventListener('input', renderFleet);
