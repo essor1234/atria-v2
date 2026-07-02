@@ -85,3 +85,16 @@ def test_query_current_revision_excludes_superseded(store):
     hits = s.query("gear", k=5, revision="current")
     ids = [h["chunk_id"] for h in hits]
     assert "amm_new#0" in ids and "amm_old#0" not in ids
+
+
+def test_numeric_revision_comparison_rev9_vs_rev42(store):
+    """Rev-42 must win over Rev-9 even though '9' > '4' lexicographically."""
+    s, chunking, _ = store
+    s.upsert_chunks([
+        _rec(chunking, "amm_rev9#0", "gear inspection step", revision="Rev-9"),
+        _rec(chunking, "amm_rev42#0", "gear inspection step", revision="Rev-42"),
+    ])
+    hits = s.query("gear", k=5, revision="current")
+    ids = [h["chunk_id"] for h in hits]
+    assert "amm_rev42#0" in ids, "Rev-42 chunk should be returned as the latest revision"
+    assert "amm_rev9#0" not in ids, "Rev-9 chunk should be excluded as superseded"

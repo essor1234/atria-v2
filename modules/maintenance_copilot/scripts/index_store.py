@@ -9,6 +9,7 @@ per ``doc_type`` is searched.
 
 from __future__ import annotations
 
+import re
 import uuid
 from typing import Callable, Dict, List, Optional
 
@@ -20,6 +21,16 @@ COLLECTION = "manual_chunks"
 _POINT_NS = uuid.UUID("6f6b1e2a-1c1a-4f2b-9a3e-2b0c7c9d4e11")
 
 EmbedFn = Callable[[List[str]], List[List[float]]]
+
+
+def _revision_key(revision: str) -> tuple[int, str]:
+    """Sort key for revision strings: numeric suffix first, then the raw string.
+
+    Extracts the last run of digits (e.g. 'Rev-42' -> 42) so 'Rev-42' > 'Rev-9'.
+    Falls back to (-1, revision) when no digits are present.
+    """
+    matches = re.findall(r"\d+", revision)
+    return (int(matches[-1]) if matches else -1, revision)
 
 
 class IndexStore:
@@ -45,6 +56,9 @@ class IndexStore:
         Point ids are a stable ``uuid5`` of the citation, so re-indexing the
         same chunk (even in a new process) updates in place rather than
         duplicating.
+
+        ``records`` must be ``ChunkRecord`` instances; the parameter is typed
+        ``List[object]`` to avoid a sibling-module import at the package boundary.
         """
         if not records:
             return 0
@@ -80,7 +94,7 @@ class IndexStore:
             for r in recs:
                 dt = r.payload["doc_type"]
                 rev = r.payload["revision"]
-                if dt not in latest or rev > latest[dt]:
+                if dt not in latest or _revision_key(rev) > _revision_key(latest[dt]):
                     latest[dt] = rev
             if offset is None:
                 break
@@ -121,7 +135,7 @@ class IndexStore:
         result = self._q.query_points(
             collection_name=self._collection,
             query=vector,
-            limit=k if not should_current else max(k * 4, k),
+            limit=k if not should_current else k * 4,  # over-fetch so post-filtering superseded hits can still yield k
             query_filter=models.Filter(must=must) if must else None,
         )
         latest = self._latest_revision_by_doctype() if should_current else {}
