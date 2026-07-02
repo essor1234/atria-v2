@@ -3,131 +3,206 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Maintenance Copilot · P1 Concept Brief</title>
+  <title>Maintenance Copilot</title>
   <link rel="stylesheet" href="__base.css" />
   <style>
-    body { font: 14px/1.55 ui-sans-serif, system-ui, sans-serif; color: hsl(var(--card-foreground)); background: hsl(var(--background)); padding: 16px; }
+    body { font: 14px/1.5 ui-sans-serif, system-ui, sans-serif; color: hsl(var(--card-foreground)); background: hsl(var(--background)); padding: 14px; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-    .bar { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:6px; }
-    .bar h1 { font-size:16px; font-weight:600; margin:0; letter-spacing:-0.3px; }
-    .sub { color:hsl(var(--muted)); font-size:12px; margin-bottom:18px; }
-    section { margin-bottom:20px; }
-    h2 { font-size:12px; text-transform:uppercase; letter-spacing:.6px; color:hsl(var(--muted)); margin:0 0 10px 0; }
-    p.lead { margin:0 0 14px 0; }
-    .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:20px; }
-    .kpi { border:1px solid hsl(var(--border)); border-radius:10px; padding:12px 14px; background:hsl(var(--card)); }
-    .kpi .label { font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:hsl(var(--muted)); }
-    .kpi .value { font-size:22px; font-weight:600; margin-top:4px; letter-spacing:-0.5px; }
-    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
-    .card { border:1px solid hsl(var(--border)); border-radius:12px; padding:14px 16px; background:hsl(var(--card)); }
-    .card h3 { margin:0 0 10px 0; font-size:14px; font-weight:600; letter-spacing:-0.2px; display:flex; align-items:center; gap:8px; }
-    ul { margin:0; padding-left:18px; }
-    li { margin:5px 0; }
-    .pilot { display:inline-block; padding:0 7px; border-radius:999px; font-size:10px; font-weight:600;
-      background:hsl(150 46% 42% / 0.16); color:hsl(150 46% 38%); margin-left:6px; vertical-align:middle; }
-    .chip { display:inline-block; padding:1px 8px; border-radius:999px; background:hsl(var(--muted) / 0.15); font-size:11px; margin:2px 4px 2px 0; }
-    .guard { border-left:3px solid hsl(0 72% 55%); }
-    .guard h3 { color:hsl(0 72% 51%); }
-    .callout { border:1px solid hsl(var(--border)); border-left:3px solid hsl(210 90% 55%); border-radius:10px; padding:12px 14px; background:hsl(var(--card)); margin-bottom:20px; }
-    .muted { color:hsl(var(--muted)); }
+    .muted { color: hsl(var(--muted)); }
+    h1 { font-size: 15px; font-weight: 600; margin: 0 0 2px; letter-spacing: -0.2px; }
+    .sub { font-size: 12px; color: hsl(var(--muted)); margin-bottom: 12px; }
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid hsl(var(--border)); margin-bottom: 14px; }
+    .tab { cursor: pointer; font: inherit; padding: 7px 13px; border: none; background: none;
+      color: hsl(var(--muted)); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+    .tab.active { color: hsl(var(--card-foreground)); border-bottom-color: hsl(210 90% 55%); font-weight: 600; }
+    .panel { display: none; } .panel.active { display: block; }
+    input[type=text], input[type=number] { font: inherit; padding: 7px 10px; border-radius: 8px;
+      border: 1px solid hsl(var(--border)); background: hsl(var(--card)); color: hsl(var(--card-foreground)); }
+    input[type=text] { width: 100%; box-sizing: border-box; }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+    label.chk { font-size: 12px; color: hsl(var(--muted)); display: inline-flex; align-items: center; gap: 4px; }
+    button.go { cursor: pointer; font: inherit; padding: 7px 14px; border-radius: 8px; border: 1px solid hsl(var(--border));
+      background: hsl(210 90% 55%); color: white; font-weight: 600; }
+    button.go:disabled { opacity: .5; cursor: default; }
+    .card { border: 1px solid hsl(var(--border)); border-radius: 10px; padding: 11px 13px; background: hsl(var(--card)); margin-bottom: 8px; }
+    .card h3 { margin: 0 0 5px; font-size: 13px; font-weight: 600; }
+    .cite { font-size: 11px; color: hsl(210 80% 55%); }
+    .badge { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 10px; margin-left: 6px; }
+    .b-info { background: hsl(var(--muted) / 0.15); }
+    .b-warn { background: hsl(38 92% 50% / 0.18); color: hsl(30 80% 40%); }
+    .answer { border-left: 3px solid hsl(210 90% 55%); }
+    .review { border-left: 3px solid hsl(38 92% 50%); }
+    .disclaimer { font-size: 11px; color: hsl(var(--muted)); margin-top: 6px; font-style: italic; }
+    .err { color: hsl(0 72% 51%); font-size: 12px; margin: 8px 0; }
+    .empty { border: 1px dashed hsl(var(--border)); border-radius: 10px; padding: 26px; text-align: center; color: hsl(var(--muted)); }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid hsl(var(--border)); vertical-align: top; }
+    th { color: hsl(var(--muted)); font-weight: 600; }
+    .about ul { margin: 4px 0 12px; padding-left: 18px; } .about li { margin: 2px 0; }
+    .about h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: hsl(var(--muted)); margin: 0 0 4px; }
   </style>
 </head>
 <body>
-  <div class="bar">
-    <h1>AI Maintenance Knowledge Copilot</h1>
-    <span class="mono muted" style="font-size:12px">P1 · Concept Brief &amp; Brainstorm</span>
-  </div>
-  <div class="sub">Prepared for the Maintenance Control Center (MCC) and Engineering Teams · July 1, 2026</div>
+  <h1>AI Maintenance Knowledge Copilot</h1>
+  <div class="sub mono">Advisory only · a licensed engineer decides & signs every dispatch</div>
 
-  <div class="callout">
-    <strong>Human-in-the-loop, always.</strong> The copilot combines RAG, document
-    intelligence, and knowledge graphs to retrieve, validate, and cross-reference
-    maintenance documentation faster and with fewer errors — but a licensed
-    engineer stays in the loop for every dispatch decision. <em>Dispatch is never
-    fully automated.</em>
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-tab="query">Query</button>
+    <button class="tab" data-tab="graph">Graph</button>
+    <button class="tab" data-tab="audit">Audit</button>
+    <button class="tab" data-tab="about">About</button>
   </div>
 
-  <div class="kpis">
-    <div class="kpi"><div class="label">Phase</div><div class="value">P1</div></div>
-    <div class="kpi"><div class="label">Pilot use cases</div><div class="value">6</div></div>
-    <div class="kpi"><div class="label">Candidate extensions</div><div class="value">13</div></div>
-    <div class="kpi"><div class="label">Doc sources</div><div class="value">6</div></div>
-  </div>
-
-  <section>
-    <h2>Problem statement</h2>
-    <p class="lead">
-      MCC and engineering teams must continuously reference large volumes of
-      documentation. As fleets grow and operational pressure increases, manual
-      validation becomes more time-consuming and more susceptible to human error.
-    </p>
-    <div>
-      <span class="chip">AMM</span><span class="chip">MEL</span><span class="chip">CDL</span>
-      <span class="chip">TSM</span><span class="chip">Engineering orders</span>
-      <span class="chip">Historical defect records</span>
+  <section class="panel active" id="p-query">
+    <div class="row"><input type="text" id="q-text" placeholder="Describe a defect or ask a procedure question…" /></div>
+    <div class="row">
+      <label class="chk">ATA <input type="text" id="q-ata" style="width:56px" placeholder="32" /></label>
+      <label class="chk">k <input type="number" id="q-k" value="5" min="1" max="20" style="width:56px" /></label>
+      <label class="chk"><input type="checkbox" id="q-syn" /> synthesize answer</label>
+      <label class="chk"><input type="checkbox" id="q-graph" /> graph context</label>
+      <button class="go" id="q-run">Retrieve</button>
     </div>
+    <div id="q-err" class="err" style="display:none"></div>
+    <div id="q-out"></div>
   </section>
 
-  <section>
-    <h2>Current challenges</h2>
-    <div class="grid">
-      <div class="card"><h3>Search burden</h3><p class="muted">Significant time spent searching and cross-referencing across multiple manuals.</p></div>
-      <div class="card"><h3>Reference errors</h3><p class="muted">Incorrect AMM task or MEL item references may cause delays or operational risk.</p></div>
-      <div class="card"><h3>Manual, inconsistent entry</h3><p class="muted">Defect classifications and dispatch conditions are hand-entered and inconsistent.</p></div>
-      <div class="card"><h3>Fragmented knowledge</h3><p class="muted">Institutional knowledge is scattered with no unified way to query it.</p></div>
-      <div class="card"><h3>Human factors</h3><p class="muted">Fatigue and workload raise the chance of missed information — worst during AOG.</p></div>
+  <section class="panel" id="p-graph">
+    <div class="row">
+      <input type="text" id="g-key" placeholder="Entity key (e.g. 32, 32-30-01)" style="max-width:320px" />
+      <label class="chk">hops <input type="number" id="g-hops" value="1" min="1" max="3" style="width:56px" /></label>
+      <button class="go" id="g-run">Show</button>
     </div>
+    <div id="g-err" class="err" style="display:none"></div>
+    <div id="g-out"></div>
   </section>
 
-  <section>
-    <h2>Brainstormed use cases <span class="muted" style="text-transform:none;letter-spacing:0"> · <span class="pilot">Pilot</span> maps to stated pilot scope</span></h2>
-    <div class="grid">
-      <div class="card">
-        <h3>Retrieval &amp; search</h3>
-        <ul>
-          <li>Natural-language retrieval of AMM/TSM procedures from a defect description or ATA chapter.<span class="pilot">Pilot</span></li>
-          <li>Voice / free-text query for MCC during live AOG, returning the top procedure with page/section citation.</li>
-          <li>Unified search across AMM, MEL, CDL, TSM, and engineering orders in one query.</li>
-          <li>Automatic surfacing of the correct manual revision — never a superseded page.</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>Validation &amp; cross-referencing</h3>
-        <ul>
-          <li>Validate defect entries against approved documentation before submission.<span class="pilot">Pilot</span></li>
-          <li>Recommend the relevant AMM/MEL/CDL/TSM reference for a defect write-up.<span class="pilot">Pilot</span></li>
-          <li>Highlight inconsistencies (e.g. dispatch condition vs cited MEL item) before sign-off.<span class="pilot">Pilot</span></li>
-          <li>Cross-check classification against historical similar defects.</li>
-          <li>Detect missing placarding, tooling, or interval requirements implied by a MEL/CDL item.</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>Decision support</h3>
-        <ul>
-          <li>Dispatch-readiness summary: open items, applicable MEL/CDL relief, time-limited deadlines.</li>
-          <li>Alerting on approaching MEL category deadlines (A/B/C/D).</li>
-          <li>Suggested next TSM troubleshooting step from symptoms + prior fix history.</li>
-          <li>Fleet-wide pattern detection: recurring defects across tail numbers.</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>Knowledge capture &amp; explainability</h3>
-        <ul>
-          <li>Explainable reasoning with source references for every recommendation.<span class="pilot">Pilot</span></li>
-          <li>Confidence scoring; low-confidence results routed for mandatory manual review.</li>
-          <li>Feedback loop: engineer corrections improve retrieval ranking and flag doc gaps.</li>
-          <li>OCR / digitization of legacy paper logbooks and historical defect records.</li>
-        </ul>
-      </div>
-      <div class="card guard">
-        <h3>Compliance &amp; audit</h3>
-        <ul>
-          <li>Full audit trail linking every AI-suggested reference to document, revision, and page.</li>
-          <li>Mandatory human-in-the-loop sign-off — the copilot recommends, a licensed engineer decides and signs.</li>
-          <li>Version-aware indexing reflecting the currently approved AMM/MEL/CDL revision.</li>
-        </ul>
-      </div>
-    </div>
+  <section class="panel" id="p-audit">
+    <div class="row"><button class="go" id="a-run">Refresh audit trail</button>
+      <span class="muted mono" style="font-size:11px">reads data/audit.log.jsonl</span></div>
+    <div id="a-err" class="err" style="display:none"></div>
+    <div id="a-out"></div>
   </section>
+
+  <section class="panel about" id="p-about">
+    <h3>What this does</h3>
+    <p class="muted">Retrieve, validate, and cross-reference maintenance documentation (AMM, MEL, CDL, TSM)
+      grounded in the approved manuals. Every recommendation is cited; every graph link starts
+      <em>unverified</em> until an engineer confirms it. <strong>Dispatch is never automated.</strong></p>
+    <h3>Guardrails</h3>
+    <ul>
+      <li>Mandatory citation — uncited sentences are dropped from synthesized answers.</li>
+      <li>Confidence threshold — low-confidence results are routed for manual review.</li>
+      <li>Version-aware retrieval — defaults to the current approved revision.</li>
+      <li>Audit trail — every query, recommendation, and confirmation is logged.</li>
+    </ul>
+    <h3>CLI (also available in chat)</h3>
+    <p class="mono muted" style="font-size:11px">copilot.py query · recommend-refs · validate · check · graph build/show/confirm · audit</p>
+  </section>
+
+  <script src="__bridge.js"></script>
+  <script>
+    (function () {
+      var D = window.AtriaDash;
+      function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+        return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+      function el(id){ return document.getElementById(id); }
+      function showErr(id, e){ var n=el(id); n.style.display="block";
+        n.textContent = (e && e.message) ? e.message : String(e); }
+      function clearErr(id){ var n=el(id); n.style.display="none"; n.textContent=""; }
+
+      // Tabs
+      var tabs = document.querySelectorAll(".tab");
+      tabs.forEach(function(t){ t.addEventListener("click", function(){
+        tabs.forEach(function(x){ x.classList.remove("active"); });
+        document.querySelectorAll(".panel").forEach(function(p){ p.classList.remove("active"); });
+        t.classList.add("active");
+        el("p-" + t.dataset.tab).classList.add("active");
+        if (t.dataset.tab === "audit") runAudit();
+      }); });
+
+      function run(args){ return D.json("copilot.py", args, { timeout_ms: 60000 }); }
+
+      // ── Query ──
+      el("q-run").addEventListener("click", function(){
+        var text = el("q-text").value.trim();
+        if (!text) return;
+        clearErr("q-err"); el("q-out").innerHTML = '<div class="muted">Retrieving…</div>';
+        var args = ["query", text, "--revision", "current", "--k", String(el("q-k").value || 5)];
+        var ata = el("q-ata").value.trim(); if (ata) args.push("--ata", ata);
+        if (el("q-syn").checked) args.push("--synthesize");
+        if (el("q-graph").checked) args.push("--graph");
+        run(args).then(renderQuery).catch(function(e){
+          el("q-out").innerHTML=""; showErr("q-err", e); });
+      });
+      function renderQuery(d){
+        var h = "";
+        if (d.answer){
+          var a = d.answer, cls = a.needs_review ? "review" : "answer";
+          h += '<div class="card '+cls+'"><h3>Answer'
+            + (a.needs_review ? '<span class="badge b-warn">needs review</span>' : '')
+            + ' <span class="muted" style="font-weight:400">conf '+ (a.confidence||0).toFixed(2) +'</span></h3>'
+            + '<div>'+esc(a.answer)+'</div>'
+            + (a.citations && a.citations.length ? '<div class="cite">cited: '+a.citations.map(esc).join(", ")+'</div>' : '')
+            + '<div class="disclaimer">'+esc(a.disclaimer||"")+'</div></div>';
+        }
+        var hits = d.hits || [];
+        h += hits.length ? hits.map(function(x){
+          return '<div class="card"><h3>'+esc(x.doc_type)+' · '+esc(x.revision)
+            +'<span class="muted" style="font-weight:400"> score '+(x.score||0).toFixed(2)+'</span></h3>'
+            +'<div>'+esc(x.text)+'</div><div class="cite">'+esc(x.citation)+'</div></div>';
+        }).join("") : '<div class="empty">No matching passages.</div>';
+        if (d.graph_context && d.graph_context.related && d.graph_context.related.length){
+          h += '<div class="card"><h3>Related (ATA '+esc(d.graph_context.ata_chapter)+')</h3>'
+            + d.graph_context.related.map(function(r){
+              return '<div>'+esc(r.neighbor_key)+' <span class="cite">'+esc(r.edge_type)+'</span>'
+                + statusBadge(r.status)+'</div>'; }).join("") + '</div>';
+        }
+        el("q-out").innerHTML = h;
+      }
+      function statusBadge(s){ return s==="unverified"
+        ? '<span class="badge b-warn">unverified</span>'
+        : '<span class="badge b-info">'+esc(s||"")+'</span>'; }
+
+      // ── Graph ──
+      el("g-run").addEventListener("click", function(){
+        var key = el("g-key").value.trim();
+        if (!key) return;
+        clearErr("g-err"); el("g-out").innerHTML = '<div class="muted">Loading…</div>';
+        run(["graph","show",key,"--hops",String(el("g-hops").value||1)])
+          .then(renderGraph).catch(function(e){ el("g-out").innerHTML=""; showErr("g-err", e); });
+      });
+      function renderGraph(d){
+        var rows = d.neighbors || [];
+        if (!rows.length){ el("g-out").innerHTML='<div class="empty">No neighbors for '+esc(d.key)+'.</div>'; return; }
+        var body = rows.map(function(r){
+          return '<tr><td>'+esc(r.neighbor_key)+'</td><td>'+esc((r.neighbor_labels||[]).join(", "))
+            +'</td><td>'+esc(r.edge_type)+'</td><td>'+statusBadge(r.status)+'</td>'
+            +'<td>'+((r.confidence!=null)?Number(r.confidence).toFixed(2):"")+'</td></tr>'; }).join("");
+        el("g-out").innerHTML = '<div class="muted" style="margin-bottom:6px">'+rows.length+' neighbor(s) · '
+          + (d.unverified||0) + ' unverified</div>'
+          + '<table><thead><tr><th>Entity</th><th>Type</th><th>Edge</th><th>Status</th><th>Conf</th></tr></thead>'
+          + '<tbody>'+body+'</tbody></table>';
+      }
+
+      // ── Audit ──
+      el("a-run").addEventListener("click", runAudit);
+      function runAudit(){
+        clearErr("a-err"); el("a-out").innerHTML = '<div class="muted">Loading…</div>';
+        run(["audit","--limit","50"]).then(function(d){
+          var ev = (d.events||[]).slice().reverse();
+          if (!ev.length){ el("a-out").innerHTML='<div class="empty">No audit events yet.</div>'; return; }
+          var body = ev.map(function(e){
+            var extra = Object.keys(e).filter(function(k){return k!=="ts"&&k!=="type";})
+              .map(function(k){ return k+"="+ (typeof e[k]==="object"?JSON.stringify(e[k]):e[k]); }).join("  ");
+            return '<tr><td class="mono">'+esc(e.ts)+'</td><td>'+esc(e.type)
+              +'</td><td class="mono" style="font-size:11px">'+esc(extra)+'</td></tr>'; }).join("");
+          el("a-out").innerHTML = '<table><thead><tr><th>Time</th><th>Type</th><th>Detail</th></tr></thead>'
+            + '<tbody>'+body+'</tbody></table>';
+        }).catch(function(e){ el("a-out").innerHTML=""; showErr("a-err", e); });
+      }
+
+      if (D && D.ready) D.ready();
+    })();
+  </script>
 </body>
 </html>

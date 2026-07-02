@@ -363,6 +363,22 @@ def _cmd_validate(raw: str) -> int:
     return 0
 
 
+def _cmd_audit(limit: int) -> int:
+    """Print the most recent audit-trail events as JSON.
+
+    Args:
+        limit: Max events to return (most recent last); non-positive means all.
+
+    Returns:
+        ``0`` on success.
+    """
+    events = audit.read_events()
+    if limit and limit > 0:
+        events = events[-limit:]
+    print(json.dumps({"events": events}, indent=2))
+    return 0
+
+
 def _cmd_check(raw: str) -> int:
     """Flag inconsistencies in a defect write-up against approved docs and the graph.
 
@@ -469,6 +485,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_val.add_argument("payload", help="JSON string, or '-' to read stdin.")
     p_check = sub.add_parser("check", help="Flag inconsistencies in a defect write-up.")
     p_check.add_argument("payload", help="JSON string, or '-' to read stdin.")
+    p_audit = sub.add_parser("audit", help="Show recent audit-trail events.")
+    p_audit.add_argument("--limit", type=int, default=50)
     sub.add_parser("list", help="Show index stats.")
     sub.add_parser("reset", help="Delete the index collection.")
     p_graph = sub.add_parser("graph", help="Knowledge-graph build/query/verify.")
@@ -516,6 +534,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_validate(args.payload)
     if args.command == "check":
         return _cmd_check(args.payload)
+    if args.command == "audit":
+        return _cmd_audit(args.limit)
     if args.command == "list":
         return _cmd_list()
     if args.command == "reset":
