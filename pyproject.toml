@@ -90,6 +90,8 @@ dependencies = [
     "watchdog>=4.0",
     # JWT validation for Keycloak auth
     "pyjwt[crypto]>=2.8",
+    "qdrant-client>=1.18.0",
+    "chonkie>=1.6.8",
 ]
 
 [project.optional-dependencies]
