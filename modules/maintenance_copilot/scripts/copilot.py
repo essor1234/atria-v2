@@ -295,6 +295,71 @@ def synthesize_answer(text: str, hits: list) -> dict:
     return _synth(text, hits, _synthesis_chat_fn())
 
 
+def _read_json_arg(value: str) -> dict:
+    """Parse a JSON string, or read JSON from stdin when value == '-'.
+
+    Args:
+        value: A JSON string, or ``"-"`` to read from stdin.
+
+    Returns:
+        Parsed JSON as a dict.
+    """
+    if value == "-":
+        value = sys.stdin.read()
+    return json.loads(value)
+
+
+def _cmd_recommend_refs(text: str, k: int) -> int:
+    """Retrieve top-k refs for *text* and print ranked recommendations.
+
+    Args:
+        text: Natural-language defect description to query.
+        k: Maximum number of recommendations to return.
+
+    Returns:
+        ``0`` on success.
+    """
+    store = _build_store()
+    hits = store.query(text, k=k, revision="current")
+    recs = [
+        {"citation": h["citation"], "chunk_id": h["chunk_id"], "doc_type": h["doc_type"],
+         "revision": h["revision"], "confidence": h["score"]}
+        for h in hits
+    ]
+    audit.append_event({"type": "recommend", "query": text,
+                        "citations": [r["chunk_id"] for r in recs]})
+    print(json.dumps({"query": text, "recommendations": recs}, indent=2))
+    return 0
+
+
+def _cmd_validate(raw: str) -> int:
+    """Validate cited refs against approved docs in the index.
+
+    Args:
+        raw: JSON string (or ``"-"`` for stdin) with ``defect`` and ``cited_refs`` keys.
+
+    Returns:
+        ``0`` on success.
+    """
+    data = _read_json_arg(raw)
+    store = _build_store()
+    results = []
+    for ref in data.get("cited_refs", []):
+        token = ref.split()[-1].lower() if ref.split() else ref.lower()
+        hits = store.query(ref, k=3, revision="current")
+        support = None
+        for h in hits:
+            if token in h["citation"].lower() or token in h["text"].lower():
+                support = h["citation"]
+                break
+        results.append({"ref": ref, "status": "pass" if support else "fail",
+                        "support": support})
+    audit.append_event({"type": "validate", "refs": data.get("cited_refs", []),
+                        "results": results})
+    print(json.dumps({"defect": data.get("defect", ""), "results": results}, indent=2))
+    return 0
+
+
 def _cmd_list() -> int:
     """Print index stats as JSON.
 
@@ -341,6 +406,11 @@ def build_parser() -> argparse.ArgumentParser:
                          help="Attach related knowledge-graph entities (needs Neo4j).")
     p_query.add_argument("--synthesize", action="store_true",
                          help="Compose a cited answer (needs the synthesis LLM).")
+    p_rec = sub.add_parser("recommend-refs", help="Rank AMM/MEL/CDL/TSM refs for a defect.")
+    p_rec.add_argument("text")
+    p_rec.add_argument("--k", type=int, default=5)
+    p_val = sub.add_parser("validate", help="Validate cited refs against approved docs.")
+    p_val.add_argument("payload", help="JSON string, or '-' to read stdin.")
     sub.add_parser("list", help="Show index stats.")
     sub.add_parser("reset", help="Delete the index collection.")
     p_graph = sub.add_parser("graph", help="Knowledge-graph build/query/verify.")
@@ -382,6 +452,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "query":
         return _cmd_query(args.text, args.k, args.ata, args.revision,
                           args.graph, args.synthesize)
+    if args.command == "recommend-refs":
+        return _cmd_recommend_refs(args.text, args.k)
+    if args.command == "validate":
+        return _cmd_validate(args.payload)
     if args.command == "list":
         return _cmd_list()
     if args.command == "reset":
