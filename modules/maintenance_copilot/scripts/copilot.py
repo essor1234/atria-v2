@@ -24,6 +24,7 @@ from chunking import chunk_document  # type: ignore[import-not-found]
 from index_store import IndexStore  # type: ignore[import-not-found]
 from extraction import extract_graph  # type: ignore[import-not-found]
 from graph_store import GraphStore, neo4j_run_fn  # type: ignore[import-not-found]
+import audit  # type: ignore[import-not-found]
 
 # Output dimension of the deployed TEI embedding model (Qwen3-Embedding-0.6B).
 # Must match the model configured for the index_embed role.
@@ -120,6 +121,12 @@ def _kg_chat_fn() -> Callable[[list], str]:
     """Return a chat callable bound to the kg_extract role."""
     rc = RoleClient(load_config())
     return lambda messages: rc.chat("kg_extract", messages)
+
+
+def _synthesis_chat_fn() -> Callable[[list], str]:
+    """Return a chat callable bound to the synthesis role."""
+    rc = RoleClient(load_config())
+    return lambda messages: rc.chat("synthesis", messages)
 
 
 def _build_graph_store(run_fn: Callable | None = None) -> GraphStore:
@@ -248,7 +255,7 @@ def _cmd_ingest(samples: str) -> int:
 
 
 def _cmd_query(text: str, k: int, ata: str | None, revision: str,
-               with_graph: bool = False) -> int:
+               with_graph: bool = False, synthesize: bool = False) -> int:
     """Retrieve top cited passages for *text*.
 
     Args:
@@ -258,6 +265,7 @@ def _cmd_query(text: str, k: int, ata: str | None, revision: str,
         revision: Revision filter string, or ``"none"`` to disable.
         with_graph: When ``True``, attach related knowledge-graph entities for the
             top hit's ATA chapter (or ``ata`` if provided). Requires Neo4j.
+        synthesize: When ``True``, compose a cited answer and append an audit event.
 
     Returns:
         ``0`` on success.
@@ -270,8 +278,21 @@ def _cmd_query(text: str, k: int, ata: str | None, revision: str,
         chapter = ata or hits[0].get("ata_chapter")
         related = _build_graph_store().neighbors(chapter, hops=1) if chapter else []
         payload["graph_context"] = {"ata_chapter": chapter, "related": related}
+    if synthesize:
+        answer = synthesize_answer(text, hits)
+        payload["answer"] = answer
+        audit.append_event({"type": "query", "query": text,
+                            "citations": answer["citations"],
+                            "needs_review": answer["needs_review"]})
     print(json.dumps(payload, indent=2))
     return 0
+
+
+def synthesize_answer(text: str, hits: list) -> dict:
+    """Synthesize a cited answer for ``text`` over ``hits`` via the synthesis role."""
+    from synthesis import synthesize as _synth  # local alias to avoid shadowing
+
+    return _synth(text, hits, _synthesis_chat_fn())
 
 
 def _cmd_list() -> int:
@@ -318,6 +339,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_query.add_argument("--graph", action="store_true",
                          help="Attach related knowledge-graph entities (needs Neo4j).")
+    p_query.add_argument("--synthesize", action="store_true",
+                         help="Compose a cited answer (needs the synthesis LLM).")
     sub.add_parser("list", help="Show index stats.")
     sub.add_parser("reset", help="Delete the index collection.")
     p_graph = sub.add_parser("graph", help="Knowledge-graph build/query/verify.")
@@ -357,7 +380,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.command in ("ingest", "index"):
         return _cmd_ingest(args.samples if getattr(args, "samples", None) else _samples_dir())
     if args.command == "query":
-        return _cmd_query(args.text, args.k, args.ata, args.revision, args.graph)
+        return _cmd_query(args.text, args.k, args.ata, args.revision,
+                          args.graph, args.synthesize)
     if args.command == "list":
         return _cmd_list()
     if args.command == "reset":
