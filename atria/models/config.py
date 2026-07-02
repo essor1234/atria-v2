@@ -106,8 +106,9 @@ def _default_iframe_allowlist() -> list[str]:
 
 
 def _default_config_read_keys() -> list[str]:
-    # Only non-secret, UI-relevant keys may be read by blocks.
-    return ["mode", "autonomy_level", "thinking_level", "model", "simple_mode"]
+    # Only non-secret, UI-relevant AppConfig attributes. mode/autonomy_level/thinking_level
+    # are runtime-state, not AppConfig fields — excluded to avoid confusing None returns.
+    return ["model", "simple_mode"]
 
 
 class IframeRpcConfig(BaseModel):

@@ -51,8 +51,8 @@ async def test_config_read_returns_whitelisted_only(mgr, monkeypatch):
     class _Cfg:
         class web:
             iframe_rpc = IframeRpcConfig()
-        mode = "normal"
-        autonomy_level = "Manual"
+        model = "gpt-4"
+        simple_mode = True
 
     class _CfgMgr:
         def get_config(self):
@@ -70,9 +70,9 @@ async def test_config_read_returns_whitelisted_only(mgr, monkeypatch):
     await mgr._handle_block_rpc(
         _FakeWS(),
         {"data": {"block_id": "b1", "req_id": "r1", "method": "config.read",
-                  "args": {"keys": ["mode", "api_key"]}, "session_id": "s1"}},
+                  "args": {"keys": ["model", "api_key"]}, "session_id": "s1"}},
     )
     assert mgr.last["data"]["ok"] is True
     data = mgr.last["data"]["data"]
-    assert data.get("mode") == "normal"
+    assert data.get("model") == "gpt-4"
     assert "api_key" not in data

@@ -82,24 +82,46 @@ class WebSocketManager:
         for conn in disconnected:
             self.disconnect(conn)
 
-    def forward_to_block_feed(self, session_id: str, event: str, data: Dict[str, Any]) -> None:
-        """Emit a block_event_feed message for every block subscribed in this session."""
+    def forward_to_block_feed(
+        self, session_id: str, event: str, data: Dict[str, Any], loop: Any = None
+    ) -> None:
+        """Emit a block_event_feed message for every block subscribed in this session.
+
+        Args:
+            session_id: Session whose block subscriptions to fan-out to.
+            event: Event type string (e.g. ``"message_chunk"``).
+            data: Payload forwarded verbatim to subscribers.
+            loop: When provided (the web event loop from a worker thread), schedules
+                each broadcast via ``run_coroutine_threadsafe`` (fire-and-forget).
+                When None, falls back to ``get_running_loop().create_task`` or
+                ``asyncio.run``.
+        """
         import asyncio as _asyncio
 
         subs = self._block_feed_subs.get(session_id)
         if not subs:
             return
         for block_id in list(subs):
-            msg = {
+            msg: Dict[str, Any] = {
                 "type": "block_event_feed",
-                "data": {"block_id": block_id, "event": event, "data": data,
-                         "session_id": session_id},
+                "data": {
+                    "block_id": block_id,
+                    "event": event,
+                    "data": data,
+                    "session_id": session_id,
+                },
             }
-            try:
-                loop = _asyncio.get_running_loop()
-                loop.create_task(self.broadcast(msg))
-            except RuntimeError:
-                _asyncio.run(self.broadcast(msg))
+            if loop is not None:
+                try:
+                    _asyncio.run_coroutine_threadsafe(self.broadcast(msg), loop)
+                except Exception as exc:
+                    logger.debug("forward_to_block_feed run_coroutine_threadsafe: %s", exc)
+            else:
+                try:
+                    running_loop = _asyncio.get_running_loop()
+                    running_loop.create_task(self.broadcast(msg))
+                except RuntimeError:
+                    _asyncio.run(self.broadcast(msg))
 
     async def handle_message(self, websocket: WebSocket, data: Dict[str, Any]):
         """Handle incoming WebSocket message."""
@@ -532,7 +554,11 @@ class WebSocketManager:
 
             if method == "config.read":
                 app_config = state.config_manager.get_config()
-                allowed_keys = set(app_config.web.iframe_rpc.config_read_keys or [])
+                allowed_keys = set(getattr(
+                    getattr(getattr(app_config, "web", None), "iframe_rpc", None),
+                    "config_read_keys",
+                    [],
+                ) or [])
                 requested = args.get("keys") or list(allowed_keys)
                 out: Dict[str, Any] = {}
                 for k in requested:
@@ -549,14 +575,10 @@ class WebSocketManager:
                     return
                 requested = args.get("events")
                 if requested:
-                    subscribed = [
-                        e for e in requested if e in _BLOCK_FEED_EVENT_TYPES
-                    ]
+                    subscribed = [e for e in requested if e in _BLOCK_FEED_EVENT_TYPES]
                 else:
                     subscribed = list(_BLOCK_FEED_EVENT_TYPES)
-                self._block_feed_subs.setdefault(
-                    session_id, set()
-                ).add(block_id)
+                self._block_feed_subs.setdefault(session_id, set()).add(block_id)
                 await _reply(True, data={"subscribed": subscribed})
                 return
 
@@ -587,101 +609,6 @@ class WebSocketManager:
                     await _reply(True, data={"injected": True})
                 except Exception as exc:
                     await _reply(False, error=str(exc))
-                return
-
-            if method in ("chat.get_messages", "chat.get_session"):
-                if not session_id:
-                    await _reply(False, error="no active session")
-                    return
-                try:
-                    session = await state.session_manager.get_session_by_id(session_id)
-                except Exception as exc:  # noqa: BLE001
-                    await _reply(False, error=str(exc))
-                    return
-                if session is None:
-                    await _reply(False, error="session not found")
-                    return
-                if method == "chat.get_session":
-                    await _reply(True, data={
-                        "session_id": session_id,
-                        "title": getattr(session, "title", None),
-                        "message_count": len(session.messages),
-                    })
-                    return
-                limit = args.get("limit")
-                msgs = session.messages
-                if isinstance(limit, int) and limit > 0:
-                    msgs = msgs[-limit:]
-                await _reply(True, data={
-                    "messages": [m.model_dump(mode="json") for m in msgs],
-                })
-                return
-
-            if method == "artifact.list":
-                try:
-                    from atria.core.context_engineering.tools.context import ToolExecutionContext
-                    from atria.core.context_engineering.tools.handlers.artifacts_handler import (
-                        ArtifactsHandler,
-                    )
-
-                    handler = ArtifactsHandler()
-                    ctx = ToolExecutionContext(session_manager=state.session_manager)
-                    scope = args.get("scope", "conversation")
-                    result = await _asyncio.to_thread(
-                        handler.list_artifact_images, {"scope": scope}, ctx
-                    )
-                    await _reply(True, data=result)
-                except Exception as exc:  # noqa: BLE001
-                    await _reply(False, error=str(exc))
-                return
-
-            if method == "module.rpc":
-                from fastapi import HTTPException as _HTTPException
-                from atria.core.modules.registry import get_registry
-                from atria.web.routes.module_dashboard import (
-                    run_module_rpc,
-                    _try_acquire,
-                    _release,
-                )
-
-                module_name = args.get("module")
-                rpc_method = args.get("rpc_method")
-                rpc_payload = args.get("payload") or {}
-                if not module_name:
-                    await _reply(False, error="module.rpc requires 'module'")
-                    return
-                if not rpc_method:
-                    await _reply(False, error="module.rpc requires 'rpc_method'")
-                    return
-                sid = session_id or "default"
-                reg = get_registry()
-                if not _try_acquire(sid, module_name):
-                    await _reply(False, error="rate-limited")
-                    return
-                try:
-                    result = await _asyncio.to_thread(
-                        run_module_rpc,
-                        reg,
-                        module_name,
-                        rpc_method,
-                        rpc_payload,
-                        sid,
-                    )
-                    if result.get("ok"):
-                        await _reply(True, data=result.get("data"))
-                    else:
-                        await _reply(False, error=result.get("error") or "module rpc failed")
-                except _HTTPException as exc:  # noqa: BLE001
-                    detail = exc.detail
-                    if isinstance(detail, str):
-                        err_msg = detail
-                    else:
-                        err_msg = detail.get("message", str(detail))
-                    await _reply(False, error=err_msg)
-                except Exception as exc:  # noqa: BLE001
-                    await _reply(False, error=str(exc))
-                finally:
-                    _release(sid, module_name)
                 return
 
             # tool.invoke and artifact.read run synchronously off-thread

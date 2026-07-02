@@ -181,9 +181,18 @@ def _persist_block_message_sync(
     session_id: str,
     metadata: Dict[str, Any],
     session_manager: Any,
+    loop: Any = None,
 ) -> None:
-    """Append + save a custom_block ChatMessage. Raises BlockPersistError on failure."""
-    import anyio
+    """Append + save a custom_block ChatMessage. Raises BlockPersistError on failure.
+
+    Args:
+        session_id: Target session identifier.
+        metadata: Block payload stored on the message.
+        session_manager: Active session manager instance.
+        loop: When provided (the web event loop), coroutines are scheduled via
+            ``run_coroutine_threadsafe`` to avoid spinning a new loop in a
+            worker thread. When None, falls back to ``asyncio.run``.
+    """
 
     async def _save() -> None:
         sess = await session_manager.get_session_by_id(session_id)
@@ -193,20 +202,21 @@ def _persist_block_message_sync(
         sess.add_message(msg)
         await session_manager.save_session(sess)
 
-    try:
-        anyio.from_thread.run(_save)
-    except RuntimeError:
-        # Not called from a worker thread bound to a loop — run our own.
+    if loop is not None:
+        try:
+            fut = asyncio.run_coroutine_threadsafe(_save(), loop)
+            fut.result(timeout=10)
+        except BlockPersistError:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            raise BlockPersistError(str(exc)) from exc
+    else:
         try:
             asyncio.run(_save())
         except BlockPersistError:
             raise
         except Exception as exc:  # noqa: BLE001
             raise BlockPersistError(str(exc)) from exc
-    except BlockPersistError:
-        raise
-    except Exception as exc:  # noqa: BLE001
-        raise BlockPersistError(str(exc)) from exc
 
 
 def _persist_block(
@@ -215,18 +225,36 @@ def _persist_block(
     cb: Optional["WebUICallback"] = None,
 ) -> None:
     """Resolve the active session manager and persist ``metadata`` as a
-    custom_block message."""
+    custom_block message. Logs and swallows BlockPersistError so a UI failure
+    never bubbles up to the agent turn."""
     if not session_id:
-        raise BlockPersistError("cannot persist block without a session_id")
-    sm = getattr(cb, "state", None)
+        logger.debug("ui_bridge persist: no session_id, skipping")
+        return
+    sm = getattr(cb, "state", None) if cb is not None else None
     session_manager = getattr(sm, "session_manager", None) if sm else None
     if session_manager is None:
-        from atria.web.state import get_state
+        try:
+            from atria.web.state import get_state
 
-        session_manager = getattr(get_state(), "session_manager", None)
+            session_manager = getattr(get_state(), "session_manager", None)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("ui_bridge persist: cannot resolve session_manager (%s)", exc)
+            return
     if session_manager is None:
-        raise BlockPersistError("no session_manager available to persist block")
-    _persist_block_message_sync(session_id, metadata, session_manager)
+        logger.debug("ui_bridge persist: no session_manager available for session %s", session_id)
+        return
+    loop = getattr(cb, "loop", None) if cb is not None else None
+    if loop is None:
+        try:
+            from atria.web.state import get_state
+
+            loop = getattr(get_state(), "_event_loop", None)
+        except Exception:  # noqa: BLE001
+            pass
+    try:
+        _persist_block_message_sync(session_id, metadata, session_manager, loop=loop)
+    except BlockPersistError as exc:
+        logger.warning("Failed to persist custom_block message: %s", exc)
 
 
 # ── Public API ───────────────────────────────────────────────────────────────

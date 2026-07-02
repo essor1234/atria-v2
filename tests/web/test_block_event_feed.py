@@ -35,6 +35,7 @@ async def test_subscribe_records_interest(mgr, monkeypatch):
 
     class _State:
         config_manager = _CfgMgr()
+
         async def get_current_session_id(self):
             return "s1"
 
@@ -44,8 +45,15 @@ async def test_subscribe_records_interest(mgr, monkeypatch):
     monkeypatch.setattr(_ws, "get_state", lambda: _State())
     await mgr._handle_block_rpc(
         _FakeWS(),
-        {"data": {"block_id": "b1", "req_id": "r1", "method": "events.subscribe",
-                  "args": {"events": ["tool_call"]}, "session_id": "s1"}},
+        {
+            "data": {
+                "block_id": "b1",
+                "req_id": "r1",
+                "method": "events.subscribe",
+                "args": {"events": ["tool_call"]},
+                "session_id": "s1",
+            }
+        },
     )
     assert "b1" in mgr._block_feed_subs.get("s1", set())
 

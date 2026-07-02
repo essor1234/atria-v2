@@ -87,15 +87,17 @@ async def init_schema() -> None:
     engine = await get_engine()
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-        # Widen messages.role so block roles (e.g. custom_block) are not
-        # truncated. Idempotent: ALTER to a wider VARCHAR is a no-op if already wide.
-        try:
-            await conn.execute(text("ALTER TABLE messages ALTER COLUMN role TYPE VARCHAR(32)"))
-        except Exception as _alter_err:  # noqa: BLE001
-            logger.warning("Failed to widen messages.role: %s", _alter_err)
         # Legacy DB-backed modules system removed; drop its tables if present.
         for _legacy in ("module_tasks", "module_tools", "modules"):
             try:
                 await conn.execute(text(f"DROP TABLE IF EXISTS {_legacy} CASCADE"))
             except Exception as _drop_err:
                 logger.warning("Failed to drop legacy table %s: %s", _legacy, _drop_err)
+
+    # Widen messages.role so block roles (e.g. custom_block) are not truncated.
+    # Run in its own transaction so an error here never aborts create_all above.
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(text("ALTER TABLE messages ALTER COLUMN role TYPE VARCHAR(32)"))
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Failed to widen messages.role: %s", exc)
