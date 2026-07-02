@@ -12,6 +12,7 @@ from atria.web.logging_config import logger
 from atria.web.protocol import WSMessageType
 from atria.models.message import ChatMessage, Role
 from atria.web.routes.auth import TOKEN_COOKIE, verify_token
+from atria.web.web_ui_callback import _BLOCK_FEED_EVENT_TYPES
 
 
 class WebSocketManager:
@@ -546,10 +547,17 @@ class WebSocketManager:
                 if not session_id:
                     await _reply(False, error="no active session")
                     return
-                self._block_feed_subs.setdefault(session_id, set()).add(block_id)
-                await _reply(True, data={"subscribed": list(
-                    args.get("events") or ["tool_call", "tool_result", "message_complete"]
-                )})
+                requested = args.get("events")
+                if requested:
+                    subscribed = [
+                        e for e in requested if e in _BLOCK_FEED_EVENT_TYPES
+                    ]
+                else:
+                    subscribed = list(_BLOCK_FEED_EVENT_TYPES)
+                self._block_feed_subs.setdefault(
+                    session_id, set()
+                ).add(block_id)
+                await _reply(True, data={"subscribed": subscribed})
                 return
 
             if method == "session.send_user_message":

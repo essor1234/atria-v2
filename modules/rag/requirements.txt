@@ -1,3 +1,0 @@
-# Optional PDF text extraction fallback. The module prefers poppler's
-# `pdftotext` CLI when present; pypdf makes PDF indexing work even without it.
-pypdf>=4.0

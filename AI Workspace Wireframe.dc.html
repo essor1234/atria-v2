@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:'Kalam',system-ui,sans-serif;background:#efece3;color:#33312c;overflow:hidden}
+  ::-webkit-scrollbar{width:9px;height:9px}
+  ::-webkit-scrollbar-thumb{background:#cdc8ba;border-radius:9px;border:2px solid transparent;background-clip:content-box}
+  ::-webkit-scrollbar-track{background:transparent}
+  .wf-scroll{scrollbar-width:thin;scrollbar-color:#cdc8ba transparent}
+  input.wf-cell{font-family:'Kalam',sans-serif}
+  @keyframes wfpulse{0%,100%{opacity:1}50%{opacity:.35}}
+</style>
+</helmet>
+
+<div style="height:100vh;width:100vw;display:flex;flex-direction:column;background:#efece3">
+
+  <!-- ============ TOP NAV ============ -->
+  <div style="flex:none;height:54px;display:flex;align-items:center;gap:18px;padding:0 18px;background:#f6f4ee;border-bottom:1.5px solid #33312c">
+    <div style="display:flex;align-items:center;gap:9px">
+      <div style="width:26px;height:26px;border:2px solid #33312c;border-radius:8px 3px 9px 4px;display:flex;align-items:center;justify-content:center">
+        <div style="width:9px;height:9px;background:#33312c;transform:rotate(45deg)"></div>
+      </div>
+      <span style="font-weight:700;font-size:18px;letter-spacing:.3px">Workbench</span>
+    </div>
+
+    <div style="display:flex;align-items:flex-end;gap:4px;height:100%;padding-top:8px">
+      <sc-for list="{{ navTabs }}" as="tab" hint-placeholder-count="2">
+        <div onClick="{{ tab.onClick }}" style="{{ tab.style }}">{{ tab.label }}</div>
+      </sc-for>
+    </div>
+
+    <div style="flex:1"></div>
+
+    <div style="display:flex;align-items:center;gap:7px;padding:4px 11px;border:1.5px solid #c9c4b6;border-radius:999px">
+      <div style="width:8px;height:8px;border-radius:50%;background:#3f9a5a;animation:wfpulse 2s infinite"></div>
+      <span style="font-size:13px;color:#8f8b82">Connected</span>
+    </div>
+    <span style="font-size:14px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ topContext }}</span>
+    <div style="display:flex;align-items:center;gap:6px;padding:4px 11px;border:1.5px solid #c9c4b6;border-radius:999px;font-size:13px;color:#5f5c54">
+      <div style="width:11px;height:11px;border:1.5px solid currentColor;border-radius:50%"></div>
+      gpt-workbench-4
+    </div>
+    <div style="width:34px;height:34px;border:1.5px solid #33312c;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer" title="Settings">
+      <div style="width:15px;height:15px;border:1.5px solid #33312c;border-radius:4px"></div>
+    </div>
+    <div style="width:34px;height:34px;border:1.5px solid #33312c;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:#e7e2d5;cursor:pointer">JD</div>
+  </div>
+
+  <!-- ============ MAIN 3-COLUMN GRID ============ -->
+  <div style="{{ mainGridStyle }}">
+
+    <!-- ---------- LEFT SIDEBAR ---------- -->
+    <div class="wf-scroll" style="min-width:0;background:#f2efe6;border-right:1.5px solid #33312c;display:flex;flex-direction:column;overflow:hidden">
+      <div style="flex:none;padding:14px 14px 12px;border-bottom:1.5px dashed #cdc8ba">
+        <div style="display:flex;align-items:center;gap:7px;color:#5f5c54;cursor:pointer;font-size:14px;margin-bottom:12px"><span style="font-size:16px">←</span> Workspace</div>
+        <div style="display:flex;gap:8px">
+          <div onClick="{{ backToChat }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border:1.5px solid #33312c;border-radius:12px 5px 12px 5px;background:#33312c;color:#f6f4ee;cursor:pointer;font-weight:700;font-size:14px"><span style="font-size:16px">+</span> Chat</div>
+          <div style="width:38px;display:flex;align-items:center;justify-content:center;border:1.5px solid #c9c4b6;border-radius:9px;cursor:pointer" title="Folder"><div style="width:16px;height:12px;border:1.5px solid #5f5c54;border-radius:3px"></div></div>
+          <div style="width:38px;display:flex;align-items:center;justify-content:center;border:1.5px solid #c9c4b6;border-radius:9px;cursor:pointer" title="Settings"><div style="width:15px;height:15px;border:1.5px solid #5f5c54;border-radius:50%"></div></div>
+        </div>
+      </div>
+
+      <div style="flex:none;padding:14px 12px 8px">
+        <div style="font-size:12px;letter-spacing:1.5px;color:#a29d90;padding:0 4px 8px;text-transform:uppercase">Modules</div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <sc-for list="{{ modules }}" as="m" hint-placeholder-count="4">
+            <div onClick="{{ m.onClick }}" style="{{ m.style }}">
+              <div style="width:15px;height:15px;border:1.6px solid currentColor;border-radius:4px;flex:none"></div>
+              <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">{{ m.label }}</span>
+              <span style="{{ m.dotStyle }}"></span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="height:1.5px;background:#cdc8ba;margin:6px 14px;border-radius:2px"></div>
+
+      <div style="font-size:12px;letter-spacing:1.5px;color:#a29d90;padding:6px 16px 8px;text-transform:uppercase;flex:none">Chats</div>
+      <div class="wf-scroll" style="flex:1;overflow-y:auto;padding:0 12px 14px;display:flex;flex-direction:column;gap:4px">
+        <sc-for list="{{ chats }}" as="c" hint-placeholder-count="3">
+          <div onClick="{{ c.onClick }}" style="{{ c.style }}">
+            <div style="min-width:0;flex:1">
+              <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px">{{ c.title }}</div>
+              <div style="font-size:12px;color:#a29d90;margin-top:1px">{{ c.sub }}</div>
+            </div>
+            <div style="{{ c.badgeStyle }}">{{ c.count }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div onMouseDown="{{ dragLeft }}" style="cursor:col-resize;background:#33312c;position:relative"><div style="position:absolute;inset:0 -4px"></div></div>
+
+    <!-- ---------- CENTER WORKSPACE ---------- -->
+    <div style="min-width:0;display:flex;flex-direction:column;background:#efece3;overflow:hidden">
+
+      <!-- ===== CHAT VIEW ===== -->
+      <div style="display:contents"><sc-if value="{{ isChatView }}">
+          <div class="wf-scroll" ref="{{ convRef }}" style="flex:1;overflow-y:auto;padding:26px 30px 20px;display:flex;flex-direction:column;gap:24px">
+            <div style="max-width:760px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:24px">
+              <sc-for list="{{ messages }}" as="msg" hint-placeholder-count="2">
+                <div style="display:flex;gap:13px;align-items:flex-start">
+                  <div style="{{ msg.avatarStyle }}">{{ msg.initials }}</div>
+                  <div style="min-width:0;flex:1">
+                    <div style="font-weight:700;font-size:15px;margin-bottom:6px">{{ msg.author }}</div>
+                    <div style="display:flex;flex-direction:column;gap:12px">
+                      <sc-for list="{{ msg.blocks }}" as="b" hint-placeholder-count="1">
+                        <div>
+                          <sc-if value="{{ b.isText }}" hint-placeholder-val="{{ true }}"><div style="font-size:15px;line-height:1.55;color:#3d3b34">{{ b.text }}</div></sc-if>
+                          <sc-if value="{{ b.isList }}">
+                            <div style="display:flex;flex-direction:column;gap:7px">
+                              <sc-for list="{{ b.items }}" as="it" hint-placeholder-count="3"><div style="display:flex;gap:9px;align-items:flex-start;font-size:15px;line-height:1.45;color:#3d3b34"><span style="color:#2f6db3;font-weight:700">•</span><span>{{ it }}</span></div></sc-for>
+                            </div>
+                          </sc-if>
+                          <sc-if value="{{ b.isCode }}"><div style="font-family:ui-monospace,monospace;font-size:13px;line-height:1.6;background:#33312c;color:#e7e2d5;padding:14px 16px;border-radius:12px 4px 12px 4px;overflow-x:auto;white-space:pre">{{ b.text }}</div></sc-if>
+                          <sc-if value="{{ b.isFile }}">
+                            <div style="border:1.5px solid #33312c;border-radius:14px 5px 14px 5px;overflow:hidden;max-width:440px">
+                              <div style="display:flex;align-items:center;gap:9px;padding:11px 14px;border-bottom:1.5px dashed #cdc8ba;background:#f6f4ee">
+                                <div style="width:22px;height:26px;border:1.6px solid #33312c;border-radius:3px;flex:none;position:relative"><div style="position:absolute;top:2px;left:3px;right:3px;height:1.4px;background:#33312c"></div><div style="position:absolute;top:6px;left:3px;right:3px;height:1.4px;background:#33312c"></div><div style="position:absolute;top:10px;left:3px;right:8px;height:1.4px;background:#33312c"></div></div>
+                                <div style="font-weight:700;font-size:14px">{{ b.title }}</div>
+                              </div>
+                              <div style="padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:14px;background:#fbfaf6">
+                                <div style="display:flex;gap:8px"><span style="color:#a29d90;width:74px;flex:none">File</span><span>{{ b.file }}</span></div>
+                                <div style="display:flex;gap:8px"><span style="color:#a29d90;width:74px;flex:none">Location</span><span>{{ b.loc }}</span></div>
+                                <div style="display:flex;gap:8px"><span style="color:#a29d90;width:74px;flex:none">Contents</span><span>{{ b.contents }}</span></div>
+                              </div>
+                              <div style="display:flex;gap:8px;padding:10px 14px;border-top:1.5px dashed #cdc8ba">
+                                <div onClick="{{ b.onOpen }}" style="padding:5px 12px;border:1.5px solid #33312c;border-radius:999px;font-size:13px;cursor:pointer;font-weight:700">Open in editor</div>
+                                <div style="padding:5px 12px;border:1.5px solid #c9c4b6;border-radius:999px;font-size:13px;cursor:pointer;color:#5f5c54">Download</div>
+                              </div>
+                            </div>
+                          </sc-if>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="flex:none;margin:0 30px;border:1.5px solid #c9c4b6;border-radius:12px 12px 4px 4px;background:#f6f4ee;overflow:hidden">
+            <div onClick="{{ toggleActivity }}" style="display:flex;align-items:center;gap:12px;padding:10px 15px;cursor:pointer">
+              <span style="{{ activityCaretStyle }}">▸</span>
+              <span style="font-weight:700;font-size:14px">Activity</span>
+              <div style="display:flex;gap:14px;font-size:13px;color:#8f8b82"><span>13 steps</span><span>13 commands</span><span>21 thoughts</span></div>
+              <div style="flex:1"></div>
+              <span style="font-size:13px;color:#a29d90">{{ activityToggleLabel }}</span>
+            </div>
+            <sc-if value="{{ activityOpen }}">
+              <div class="wf-scroll" style="max-height:190px;overflow-y:auto;border-top:1.5px dashed #cdc8ba;padding:6px 15px 12px">
+                <sc-for list="{{ activity }}" as="a" hint-placeholder-count="5">
+                  <div style="display:flex;gap:11px;align-items:flex-start;padding:7px 0;border-bottom:1px dotted #ddd8cb">
+                    <div style="{{ a.tagStyle }}">{{ a.tag }}</div>
+                    <div style="font-size:14px;color:#3d3b34;line-height:1.4;min-width:0;flex:1">{{ a.text }}</div>
+                    <div style="font-size:12px;color:#b8b3a5;flex:none">{{ a.time }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+
+          <div style="flex:none;padding:14px 30px 18px">
+            <div style="border:1.5px solid #33312c;border-radius:16px 6px 16px 6px;background:#fbfaf6;padding:12px 14px">
+              <textarea value="{{ input }}" onInput="{{ onInput }}" onKeyDown="{{ onKeyDown }}" placeholder="Ask the workbench to do something…" style="width:100%;border:none;background:transparent;resize:none;outline:none;font-family:'Kalam',sans-serif;font-size:15px;line-height:1.5;color:#33312c;min-height:44px;max-height:130px"></textarea>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+                <div style="width:32px;height:32px;border:1.5px solid #c9c4b6;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer" title="Attach"><div style="width:13px;height:13px;border:1.6px solid #5f5c54;border-radius:2px;border-bottom-color:transparent"></div></div>
+                <div style="flex:1"></div>
+                <div onClick="{{ send }}" style="display:flex;align-items:center;gap:7px;padding:7px 16px;border:1.5px solid #33312c;border-radius:999px;background:#2f6db3;color:#fff;font-weight:700;font-size:14px;cursor:pointer">Send <span style="font-size:15px">↑</span></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:9px;margin-top:11px;flex-wrap:wrap">
+              <sc-for list="{{ composerCtrls }}" as="ctrl" hint-placeholder-count="4">
+                <div onClick="{{ ctrl.onClick }}" style="display:flex;align-items:center;gap:7px;padding:6px 12px;border:1.5px solid #c9c4b6;border-radius:999px;cursor:pointer;background:#f6f4ee;font-size:13px">
+                  <span style="color:#a29d90">{{ ctrl.label }}</span><span style="font-weight:700;color:#33312c">{{ ctrl.value }}</span><span style="font-size:10px;color:#8f8b82">▾</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+      </sc-if></div>
+
+      <!-- ===== MODULE DASHBOARD VIEW ===== -->
+      <div style="display:contents"><sc-if value="{{ isModuleView }}">
+        <div class="wf-scroll" style="flex:1;overflow-y:auto;padding:24px 30px 34px">
+          <div style="max-width:900px;margin:0 auto">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
+              <div onClick="{{ backToChat }}" style="display:flex;align-items:center;gap:6px;font-size:13px;color:#5f5c54;cursor:pointer;padding:4px 10px;border:1.5px solid #c9c4b6;border-radius:999px">← Chat</div>
+              <div style="font-family:ui-monospace,monospace;font-size:12px;color:#a29d90;letter-spacing:1px">{{ dash.eyebrow }}</div>
+            </div>
+            <div style="font-size:28px;font-weight:700;margin:8px 0 3px">{{ dash.title }}</div>
+            <div style="font-size:15px;color:#8f8b82;margin-bottom:22px">{{ dash.sub }}</div>
+
+            <!-- KPI row -->
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px">
+              <sc-for list="{{ dash.kpis }}" as="k" hint-placeholder-count="3">
+                <div style="border:1.5px solid #c9c4b6;border-radius:14px 5px 14px 5px;background:#f6f4ee;padding:16px 18px">
+                  <div style="font-family:ui-monospace,monospace;font-size:11px;color:#a29d90;letter-spacing:.5px;text-transform:uppercase">{{ k.label }}</div>
+                  <div style="font-size:42px;font-weight:700;line-height:1.1;margin:6px 0 2px">{{ k.val }}</div>
+                  <div style="font-size:13px;color:#8f8b82">{{ k.sub }}</div>
+                </div>
+              </sc-for>
+            </div>
+
+            <!-- chart + table -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+              <div style="border:1.5px solid #c9c4b6;border-radius:14px 5px 14px 5px;background:#fbfaf6;padding:18px 20px">
+                <div style="font-weight:700;font-size:15px;margin-bottom:16px">{{ dash.chartTitle }}</div>
+                <div style="display:flex;align-items:flex-end;gap:12px;height:150px;padding-bottom:22px;position:relative;border-bottom:1.5px solid #ddd8cb">
+                  <sc-for list="{{ dash.bars }}" as="bar" hint-placeholder-count="5">
+                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+                      <div style="{{ bar.style }}"></div>
+                      <div style="position:absolute;bottom:-20px;font-size:12px;color:#a29d90">{{ bar.label }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="border:1.5px solid #c9c4b6;border-radius:14px 5px 14px 5px;background:#fbfaf6;padding:18px 20px">
+                <div style="font-weight:700;font-size:15px;margin-bottom:12px">{{ dash.tableTitle }}</div>
+                <div style="display:flex;gap:10px;padding:6px 0;border-bottom:1.5px solid #ddd8cb;font-size:12px;color:#a29d90;text-transform:uppercase;letter-spacing:.5px">
+                  <sc-for list="{{ dash.cols }}" as="col" hint-placeholder-count="3"><div style="flex:1;min-width:0">{{ col }}</div></sc-for>
+                </div>
+                <sc-for list="{{ dash.rows }}" as="row" hint-placeholder-count="4">
+                  <div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px dotted #ddd8cb;font-size:14px">
+                    <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="3"><div style="{{ cell.style }}">{{ cell.text }}</div></sc-for>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if></div>
+
+      <!-- ===== DISPATCH VIEW ===== -->
+      <div style="display:contents"><sc-if value="{{ isDispatchView }}">
+        <div class="wf-scroll" style="flex:1;overflow-y:auto;padding:24px 30px 34px">
+          <div style="max-width:860px;margin:0 auto">
+            <div style="font-family:ui-monospace,monospace;font-size:12px;color:#a29d90;letter-spacing:1px">DISPATCH · background tasks</div>
+            <div style="font-size:28px;font-weight:700;margin:8px 0 20px">Dispatch</div>
+
+            <div style="display:flex;gap:12px;margin-bottom:22px">
+              <sc-for list="{{ dispatchSummary }}" as="d" hint-placeholder-count="3">
+                <div style="flex:1;border:1.5px solid #c9c4b6;border-radius:12px 4px 12px 4px;background:#f6f4ee;padding:14px 16px;display:flex;align-items:center;gap:11px">
+                  <div style="{{ d.dotStyle }}"></div>
+                  <div><div style="font-size:26px;font-weight:700;line-height:1">{{ d.val }}</div><div style="font-size:13px;color:#8f8b82">{{ d.label }}</div></div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:11px">
+              <sc-for list="{{ dispatchTasks }}" as="t" hint-placeholder-count="5">
+                <div style="border:1.5px solid #c9c4b6;border-radius:13px 4px 13px 4px;background:#fbfaf6;padding:14px 16px">
+                  <div style="display:flex;align-items:center;gap:11px;margin-bottom:9px">
+                    <div style="{{ t.statusStyle }}">{{ t.status }}</div>
+                    <div style="font-weight:700;font-size:15px;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.name }}</div>
+                    <div style="font-size:12px;color:#a29d90;flex:none">{{ t.meta }}</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <div style="font-size:12px;color:#8f8b82;padding:2px 8px;border:1.4px solid #ddd8cb;border-radius:999px;flex:none">{{ t.module }}</div>
+                    <div style="flex:1;height:8px;background:#e7e2d5;border-radius:999px;overflow:hidden"><div style="{{ t.barStyle }}"></div></div>
+                    <div style="font-size:13px;font-variant-numeric:tabular-nums;color:#5f5c54;flex:none;width:42px;text-align:right">{{ t.pctLabel }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if></div>
+    </div>
+
+    <div onMouseDown="{{ dragRight }}" style="cursor:col-resize;background:#33312c;position:relative"><div style="position:absolute;inset:0 -4px"></div></div>
+
+    <!-- ---------- RIGHT WORKSPACE ---------- -->
+    <div style="min-width:0;display:flex;flex-direction:column;background:#f2efe6;overflow:hidden">
+
+      <!-- EXPLORER (top) -->
+      <div style="flex:0 0 42%;display:flex;flex-direction:column;overflow:hidden;border-bottom:1.5px solid #33312c">
+        <div style="flex:none;display:flex;gap:4px;padding:10px 12px 0;border-bottom:1.5px solid #cdc8ba">
+          <sc-for list="{{ explorerTabs }}" as="t" hint-placeholder-count="2">
+            <div onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ showFilesTab }}" hint-placeholder-val="{{ true }}">
+          <div style="flex:none;padding:10px 12px 8px">
+            <div style="display:flex;align-items:center;gap:8px;padding:7px 11px;border:1.5px solid #c9c4b6;border-radius:10px;background:#fbfaf6">
+              <div style="width:13px;height:13px;border:1.6px solid #a29d90;border-radius:50%;flex:none"></div>
+              <span style="font-size:13px;color:#a29d90">Search files…</span>
+            </div>
+          </div>
+          <div class="wf-scroll" style="flex:1;overflow-y:auto;padding:0 8px 12px">
+            <sc-for list="{{ treeNodes }}" as="node" hint-placeholder-count="6">
+              <div>
+                <sc-if value="{{ node.isFolder }}" hint-placeholder-val="{{ true }}">
+                  <div onClick="{{ node.onToggle }}" style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;cursor:pointer;font-size:14px">
+                    <span style="{{ node.caretStyle }}">▸</span>
+                    <div style="width:15px;height:12px;border:1.6px solid #5f5c54;border-radius:3px;flex:none"></div>
+                    <span style="font-weight:700">{{ node.name }}</span>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ node.isFile }}">
+                  <div onClick="{{ node.onClick }}" style="{{ node.rowStyle }}">
+                    <div style="width:12px;height:15px;border:1.5px solid currentColor;border-radius:2px;flex:none;margin-left:2px"></div>
+                    <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ node.name }}</span>
+                    <span style="{{ node.editBadgeStyle }}">{{ node.editBadge }}</span>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ node.showChildren }}">
+                  <div style="padding-left:20px">
+                    <sc-for list="{{ node.children }}" as="child" hint-placeholder-count="2">
+                      <div onClick="{{ child.onClick }}" style="{{ child.rowStyle }}">
+                        <div style="width:12px;height:15px;border:1.5px solid currentColor;border-radius:2px;flex:none"></div>
+                        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ child.name }}</span>
+                        <span style="{{ child.editBadgeStyle }}">{{ child.editBadge }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showModulesTab }}">
+          <div style="flex:none;display:flex;align-items:center;gap:7px;padding:9px 14px;background:#efe9db;border-bottom:1.5px dashed #cdc8ba">
+            <div style="width:12px;height:11px;border:1.6px solid #8f8b82;border-radius:2px;flex:none;position:relative"><div style="position:absolute;top:-4px;left:2px;right:2px;height:4px;border:1.6px solid #8f8b82;border-bottom:none;border-radius:3px 3px 0 0"></div></div>
+            <span style="font-size:12px;color:#8f8b82">View only · modules can't be edited here</span>
+          </div>
+          <div class="wf-scroll" style="flex:1;overflow-y:auto;padding:12px">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ modulesRO }}" as="m" hint-placeholder-count="4">
+                <div onClick="{{ m.onClick }}" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border:1.5px solid #c9c4b6;border-radius:11px 4px 11px 4px;background:#fbfaf6;cursor:pointer">
+                  <div style="width:17px;height:17px;border:1.6px solid #5f5c54;border-radius:4px;flex:none"></div>
+                  <div style="min-width:0;flex:1">
+                    <div style="font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ m.label }}</div>
+                    <div style="font-size:12px;color:#a29d90">{{ m.sub }}</div>
+                  </div>
+                  <div style="width:13px;height:12px;border:1.6px solid #a29d90;border-radius:2px;flex:none;position:relative" title="Read-only"><div style="position:absolute;top:-5px;left:2px;right:2px;height:5px;border:1.6px solid #a29d90;border-bottom:none;border-radius:3px 3px 0 0"></div></div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+
+      <!-- EDITOR (bottom) -->
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0">
+        <div class="wf-scroll" style="flex:none;display:flex;overflow-x:auto;background:#e9e5da;border-bottom:1.5px solid #cdc8ba">
+          <sc-for list="{{ editorTabs }}" as="t" hint-placeholder-count="2">
+            <div onClick="{{ t.onClick }}" style="{{ t.style }}">
+              <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px">{{ t.name }}</span>
+              <span style="{{ t.dotStyle }}"></span>
+              <span onClick="{{ t.onClose }}" style="font-size:15px;color:#8f8b82;line-height:1;padding:0 2px" title="Close">×</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="flex:none;display:flex;align-items:center;gap:8px;padding:7px 12px;background:#f2efe6;border-bottom:1.5px dashed #cdc8ba">
+          <span style="font-size:13px;color:#8f8b82">{{ activeTypeLabel }}</span>
+          <div style="flex:1"></div>
+          <sc-if value="{{ isImage }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:4px">
+              <div onClick="{{ zoomOut }}" style="width:28px;height:28px;border:1.5px solid #c9c4b6;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px">−</div>
+              <div style="min-width:52px;text-align:center;font-size:13px;font-variant-numeric:tabular-nums">{{ scaleLabel }}</div>
+              <div onClick="{{ zoomIn }}" style="width:28px;height:28px;border:1.5px solid #c9c4b6;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px">+</div>
+              <div onClick="{{ fit }}" style="padding:5px 11px;border:1.5px solid #c9c4b6;border-radius:7px;cursor:pointer;font-size:13px;margin-left:4px">Fit</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ isSheet }}">
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#3f7d52;padding:3px 9px;border:1.5px solid #9ac6a8;border-radius:999px;background:#eaf4ed"><span style="width:6px;height:6px;border-radius:50%;background:#3f9a5a"></span>Editable</div>
+              <div onClick="{{ addRow }}" style="padding:5px 11px;border:1.5px solid #c9c4b6;border-radius:7px;cursor:pointer;font-size:13px">+ Row</div>
+              <div onClick="{{ saveSheet }}" style="padding:5px 13px;border:1.5px solid #33312c;border-radius:7px;cursor:pointer;font-size:13px;font-weight:700;background:#33312c;color:#f6f4ee">{{ saveLabel }}</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ isTextish }}">
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="padding:5px 11px;border:1.5px solid #c9c4b6;border-radius:7px;cursor:pointer;font-size:13px">Wrap</div>
+              <div style="padding:5px 11px;border:1.5px solid #c9c4b6;border-radius:7px;cursor:pointer;font-size:13px">Copy</div>
+            </div>
+          </sc-if>
+        </div>
+
+        <div class="wf-scroll" style="flex:1;overflow:auto;min-height:0;background:#fbfaf6">
+
+          <sc-if value="{{ isSheet }}" hint-placeholder-val="{{ true }}">
+            <div style="padding:14px">
+              <div style="display:inline-flex;flex-direction:column;border:1.5px solid #c9c4b6;border-radius:6px;overflow:hidden;min-width:100%">
+                <div style="display:flex;background:#efe9db;border-bottom:1.5px solid #c9c4b6">
+                  <div style="width:34px;flex:none;border-right:1.5px solid #c9c4b6"></div>
+                  <sc-for list="{{ sheet.cols }}" as="col" hint-placeholder-count="4"><div style="flex:1;min-width:120px;padding:8px 11px;font-weight:700;font-size:13px;border-right:1px solid #d8d2c4">{{ col }}</div></sc-for>
+                </div>
+                <sc-for list="{{ sheet.rows }}" as="row" hint-placeholder-count="4">
+                  <div style="display:flex;border-bottom:1px solid #e6e0d2">
+                    <div style="width:34px;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;color:#b8b3a5;background:#f3eee2;border-right:1.5px solid #c9c4b6">{{ row.n }}</div>
+                    <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="4">
+                      <input class="wf-cell" value="{{ cell.value }}" onInput="{{ cell.onInput }}" style="flex:1;min-width:120px;padding:8px 11px;border:none;border-right:1px solid #e6e0d2;background:transparent;outline:none;font-size:14px;color:#33312c" />
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="font-size:12px;color:#a29d90;margin-top:10px">Click any cell to edit · {{ sheet.dirtyLabel }}</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isImage }}">
+            <div style="min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px;background:repeating-conic-gradient(#f0ede4 0% 25%, #f6f4ee 0% 50%) 0/22px 22px">
+              <div style="{{ imageBoxStyle }}">
+                <div style="position:absolute;inset:0;background:linear-gradient(135deg,transparent 48%,#c9c4b6 48%,#c9c4b6 52%,transparent 52%),linear-gradient(45deg,transparent 48%,#c9c4b6 48%,#c9c4b6 52%,transparent 52%)"></div>
+                <span style="position:relative;font-size:15px;color:#8f8b82;background:#fbfaf6;padding:4px 10px;border-radius:6px">{{ activeName }}</span>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isCode }}">
+            <div style="display:flex;font-family:ui-monospace,monospace;font-size:13px;line-height:1.75">
+              <div style="flex:none;padding:14px 10px 14px 14px;color:#c0bbad;text-align:right;user-select:none;border-right:1px solid #eae5d9"><sc-for list="{{ codeLines }}" as="ln" hint-placeholder-count="8"><div>{{ ln.n }}</div></sc-for></div>
+              <div style="padding:14px 16px;white-space:pre;color:#3d3b34"><sc-for list="{{ codeLines }}" as="ln" hint-placeholder-count="8"><div>{{ ln.text }}</div></sc-for></div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isMarkdown }}">
+            <div style="max-width:640px;padding:24px 30px;display:flex;flex-direction:column;gap:16px">
+              <div style="font-size:24px;font-weight:700">{{ activeName }}</div>
+              <div style="height:11px;background:#e2ddd0;border-radius:6px;width:82%"></div>
+              <div style="height:11px;background:#e2ddd0;border-radius:6px;width:94%"></div>
+              <div style="height:11px;background:#e2ddd0;border-radius:6px;width:70%"></div>
+              <div style="font-size:18px;font-weight:700;margin-top:6px">Overview</div>
+              <div style="height:11px;background:#e2ddd0;border-radius:6px;width:88%"></div>
+              <div style="height:11px;background:#e2ddd0;border-radius:6px;width:76%"></div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isPdf }}">
+            <div style="padding:24px;display:flex;justify-content:center;background:#e9e5da;min-height:100%">
+              <div style="width:420px;max-width:100%;background:#fff;border:1.5px solid #cdc8ba;border-radius:4px;box-shadow:0 8px 24px -12px rgba(0,0,0,.4);padding:34px 30px;display:flex;flex-direction:column;gap:13px">
+                <div style="height:16px;background:#33312c;border-radius:5px;width:60%"></div>
+                <div style="height:9px;background:#e2ddd0;border-radius:6px;width:100%"></div>
+                <div style="height:9px;background:#e2ddd0;border-radius:6px;width:92%"></div>
+                <div style="height:130px;background:#f0ede4;border:1.5px dashed #cdc8ba;border-radius:6px;margin:8px 0;display:flex;align-items:center;justify-content:center;color:#a29d90;font-size:13px">chart</div>
+                <div style="height:9px;background:#e2ddd0;border-radius:6px;width:96%"></div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isHtml }}">
+            <div style="min-height:100%;display:flex;flex-direction:column">
+              <div style="flex:none;display:flex;align-items:center;gap:8px;padding:8px 12px;background:#e9e5da;border-bottom:1.5px solid #cdc8ba">
+                <div style="display:flex;gap:5px"><div style="width:10px;height:10px;border-radius:50%;border:1.4px solid #a29d90"></div><div style="width:10px;height:10px;border-radius:50%;border:1.4px solid #a29d90"></div><div style="width:10px;height:10px;border-radius:50%;border:1.4px solid #a29d90"></div></div>
+                <div style="flex:1;padding:4px 10px;background:#fbfaf6;border:1.5px solid #c9c4b6;border-radius:999px;font-size:12px;color:#a29d90">localhost:5173</div>
+              </div>
+              <div style="flex:1;padding:30px;display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center;justify-content:center">
+                <div style="height:20px;background:#33312c;border-radius:6px;width:200px"></div>
+                <div style="height:10px;background:#e2ddd0;border-radius:6px;width:260px"></div>
+                <div style="width:150px;height:38px;border:1.5px solid #2f6db3;border-radius:999px;margin-top:8px"></div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isNone }}">
+            <div style="min-height:100%;display:flex;align-items:center;justify-content:center;color:#a29d90;font-size:15px">No file open</div>
+          </sc-if>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;}}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.convRef = React.createRef();
+    this.COMP_OPTS = {mode:['Build','Ask','Plan'], approval:['Auto','Manual','Review'], think:['Normal','Extended','Deep'], persona:['Analyst','Engineer','Ops']};
+    // file type map — 'sheet' = editable
+    this.FILES = {
+      'eda_advanced.png':'image','batch_report_line4.pdf':'pdf','report.pdf':'pdf',
+      'README.md':'markdown','README':'markdown','architecture.md':'markdown',
+      'eda_12_correlation.py':'code','pipeline.py':'code','test_pipeline.py':'code','session_01.json':'code',
+      'requirements.txt':'code','index.html':'html',
+      'inventory.csv':'sheet','defect_log.csv':'sheet','skus.xlsx':'sheet'
+    };
+    this.TREE = [
+      {id:'artifacts', name:'artifacts/', children:['eda_advanced.png','batch_report_line4.pdf']},
+      {id:'data', name:'data/', children:['inventory.csv','defect_log.csv','skus.xlsx']},
+      {id:'docs', name:'docs/', children:['README.md','architecture.md']},
+      {id:'src', name:'src/', children:['eda_12_correlation.py','pipeline.py','index.html']},
+      {id:'tests', name:'tests/', children:['test_pipeline.py']},
+      {file:'README'},
+      {file:'requirements.txt'}
+    ];
+    this.CODE = ['import pandas as pd','import numpy as np','','df = pd.read_csv("line4_defects.csv")','corr = df.corr(numeric_only=True)','','def top_pairs(c, n=5):','    s = c.abs().unstack().sort_values(','        ascending=False)','    return s[s < 1].head(n)','','print(top_pairs(corr))'];
+
+    // per-module dashboards
+    this.DASH = {
+      batch:{ eyebrow:'01 · Batch Reports', title:'Batch Reports', sub:'Defect summaries across production lines.',
+        kpis:[{label:'Reports this week',val:'24',sub:'+6 vs last week'},{label:'Avg defect rate',val:'2.1%',sub:'−0.4 pts'},{label:'Held for rework',val:'12',sub:'3 lines'}],
+        chartTitle:'Defects by station', bars:[{label:'St1',h:34},{label:'St2',h:52},{label:'St3',h:100},{label:'St4',h:41},{label:'St5',h:28}],
+        tableTitle:'Recent reports', cols:['Report','Line','Status'], rows:[['line4_defects','L4','ready'],['line2_weekly','L2','ready'],['line7_audit','L7','running'],['line1_daily','L1','queued']] },
+      flow:{ eyebrow:'02 · Item Flow Tracking', title:'Item Flow Tracking', sub:'Live movement of items across stations.',
+        kpis:[{label:'Items in transit',val:'1,284',sub:'live'},{label:'Avg dwell',val:'3.4h',sub:'target < 4h'},{label:'Bottlenecks',val:'2',sub:'St3, packing'}],
+        chartTitle:'Throughput by hour', bars:[{label:'08',h:44},{label:'10',h:66},{label:'12',h:88},{label:'14',h:72},{label:'16',h:100}],
+        tableTitle:'Stations', cols:['Station','Rate/h','State'], rows:[['Intake','210','ok'],['Assembly','188','ok'],['Station 3','96','slow'],['Packing','142','watch']] },
+      topic:{ eyebrow:'03 · Topic Briefings', title:'Topic Briefings', sub:'Synthesised briefings grounded in your SOPs.',
+        kpis:[{label:'New briefings',val:'3',sub:'today'},{label:'Sources',val:'128',sub:'documents'},{label:'Open questions',val:'7',sub:'need review'}],
+        chartTitle:'Briefing volume', bars:[{label:'Mon',h:40},{label:'Tue',h:70},{label:'Wed',h:55},{label:'Thu',h:90},{label:'Fri',h:100}],
+        tableTitle:'Latest briefings', cols:['Topic','Sources','Status'], rows:[['Torque drift','14','new'],['Rework flow','9','new'],['Intake delays','22','review'],['Q3 recap','31','done']] },
+      wh:{ eyebrow:'04 · Warehouse', title:'Warehouse', sub:'Zone occupancy, inbound and alerts.',
+        kpis:[{label:'Utilization',val:'78%',sub:'+5 pts'},{label:'Open alerts',val:'2',sub:'zone C'},{label:'Inbound today',val:'46',sub:'pallets'}],
+        chartTitle:'Zone occupancy', bars:[{label:'A',h:88},{label:'B',h:64},{label:'C',h:100},{label:'D',h:38},{label:'E',h:52}],
+        tableTitle:'Zones', cols:['Zone','Fill','State'], rows:[['A','88%','ok'],['B','64%','ok'],['C','98%','alert'],['D','38%','ok']] }
+    };
+
+    this.DISPATCH = [
+      {name:'Nightly defect rollup — line 4', module:'Batch Reports', status:'running', pct:64, meta:'started 12m ago'},
+      {name:'Reindex SOP corpus', module:'Topic Briefings', status:'running', pct:28, meta:'started 3m ago'},
+      {name:'Warehouse zone sync', module:'Warehouse', status:'queued', pct:0, meta:'queued'},
+      {name:'Flow anomaly scan', module:'Item Flow Tracking', status:'queued', pct:0, meta:'queued'},
+      {name:'Export weekly PDF', module:'Batch Reports', status:'done', pct:100, meta:'2h ago'},
+      {name:'Torque calibration report', module:'Warehouse', status:'done', pct:100, meta:'4h ago'}
+    ];
+
+    this.state = {
+      centerView:'chat',
+      selectedChatId:'c1',
+      selectedModuleId:'batch',
+      activityOpen:false,
+      rightTab:'files',
+      expanded:{artifacts:true, data:true, docs:false, src:true, tests:false},
+      openTabs:['eda_advanced.png','inventory.csv','eda_12_correlation.py'],
+      activeTab:'eda_advanced.png',
+      scale:100,
+      comp:{mode:0, approval:0, think:0, persona:0},
+      input:'',
+      leftW:234, rightW:430,
+      dirty:{},
+      sheets:{
+        'inventory.csv':{cols:['SKU','Location','On hand','Reorder pt'], rows:[['A-1021','A3','142','60'],['A-1044','B1','8','25'],['C-2210','A3','310','120'],['C-2255','C2','54','40'],['D-3007','D1','0','15']]},
+        'defect_log.csv':{cols:['Unit','Station','Defect','Action'], rows:[['U-4412','St3','torque low','rework'],['U-4418','St3','misalign','scrap'],['U-4501','St5','cosmetic','pass'],['U-4520','St3','torque low','rework']]},
+        'skus.xlsx':{cols:['SKU','Description','Cost','Vendor'], rows:[['A-1021','M6 bolt','0.12','Acme'],['C-2210','Bracket L','1.80','Nord'],['D-3007','Seal kit','4.50','Vega']]}
+      },
+      messages:[
+        {id:'m1', role:'user', author:'You', blocks:[{kind:'text', text:'Generate the batch defect report for line 4 and export it as a PDF.'}]},
+        {id:'m2', role:'assistant', author:'Workbench', blocks:[
+          {kind:'text', text:'Done. I pulled the defect logs for line 4, grouped them by station, and rendered a summary report.'},
+          {kind:'list', items:['Station 3 accounts for 61% of flagged units','Torque drift detected on fixture B — 40 Nm verified','12 units held for rework']},
+          {kind:'file', title:'PDF generated', file:'batch_report_line4.pdf', loc:'artifacts/', contents:'6 pages · 3 charts · defect table'}
+        ]}
+      ]
+    };
+  }
+
+  componentDidMount(){
+    this._move=(e)=>{ if(!this._drag) return; const dx=e.clientX-this._drag.x;
+      if(this._drag.side==='left'){ let w=this._drag.w+dx; w=Math.max(190,Math.min(380,w)); this.setState({leftW:w}); }
+      else { let w=this._drag.w-dx; w=Math.max(340,Math.min(720,w)); this.setState({rightW:w}); } };
+    this._up=()=>{ this._drag=null; document.body.style.cursor=''; document.body.style.userSelect=''; };
+    window.addEventListener('mousemove',this._move); window.addEventListener('mouseup',this._up);
+  }
+  componentWillUnmount(){ window.removeEventListener('mousemove',this._move); window.removeEventListener('mouseup',this._up); }
+  startDrag(side){ return (e)=>{ e.preventDefault(); this._drag={side,x:e.clientX,w:side==='left'?this.state.leftW:this.state.rightW}; document.body.style.cursor='col-resize'; document.body.style.userSelect='none'; }; }
+
+  openModule(id){ this.setState({selectedModuleId:id, centerView:'module'}); }
+  backToChat(){ this.setState({centerView:'chat'}); }
+  toggleFolder(id){ this.setState(s=>({expanded:{...s.expanded,[id]:!s.expanded[id]}})); }
+  openFile(id){ this.setState(s=>({openTabs:s.openTabs.includes(id)?s.openTabs:[...s.openTabs,id], activeTab:id, scale:100})); }
+  closeTab(id){ return (e)=>{ e.stopPropagation(); this.setState(s=>{ const openTabs=s.openTabs.filter(t=>t!==id); let activeTab=s.activeTab; if(activeTab===id) activeTab=openTabs[openTabs.length-1]||null; return {openTabs,activeTab}; }); }; }
+  cycleComp(key){ return ()=>this.setState(s=>({comp:{...s.comp,[key]:(s.comp[key]+1)%this.COMP_OPTS[key].length}})); }
+  updateCell(file,r,c){ return (e)=>{ const val=e.target.value; this.setState(s=>{ const sh=s.sheets[file]; const rows=sh.rows.map((row,ri)=> ri===r ? row.map((cell,ci)=> ci===c?val:cell) : row); return {sheets:{...s.sheets,[file]:{...sh,rows}}, dirty:{...s.dirty,[file]:true}}; }); }; }
+  addRow(){ const f=this.state.activeTab; this.setState(s=>{ const sh=s.sheets[f]; if(!sh) return {}; const blank=sh.cols.map(()=> ''); return {sheets:{...s.sheets,[f]:{...sh,rows:[...sh.rows,blank]}}, dirty:{...s.dirty,[f]:true}}; }); }
+  saveSheet(){ const f=this.state.activeTab; this.setState(s=>({dirty:{...s.dirty,[f]:false}})); }
+  send(){ const text=(this.state.input||'').trim(); if(!text) return; const uid='u'+Date.now(), aid='a'+Date.now();
+    this.setState(s=>({input:'', centerView:'chat', messages:[...s.messages,{id:uid,role:'user',author:'You',blocks:[{kind:'text',text}]}]}), ()=>this.scrollConv());
+    setTimeout(()=>this.setState(s=>({messages:[...s.messages,{id:aid,role:'assistant',author:'Workbench',blocks:[{kind:'text',text:'On it. Reading the relevant SOPs and files, then I’ll draft the steps below.'},{kind:'code',text:'$ workbench run --scope line4\n> 13 commands queued\n> executing…'}]}]}), ()=>this.scrollConv()), 550);
+  }
+  scrollConv(){ const el=this.convRef.current; if(el) el.scrollTop=el.scrollHeight; }
+
+  renderVals(){
+    const s=this.state;
+    const ink='#33312c', muted='#8f8b82', accent='#2f6db3', accentSoft='rgba(47,109,179,.13)';
+    const cv=s.centerView;
+
+    // top nav
+    const navTab=(id,label)=>{ const active=cv===id; return {label, onClick:()=>this.setState({centerView:id}),
+      style:{padding:'8px 14px 10px',cursor:'pointer',fontSize:'15px',fontWeight:active?700:400,color:active?ink:muted,borderBottom:active?'2.5px solid #33312c':'2.5px solid transparent'}}; };
+    const navTabs=[navTab('chat','Chat'), navTab('dispatch','Dispatch')];
+    const topCtx = cv==='dispatch'?'Dispatch': cv==='module'?this.DASH[s.selectedModuleId].title : 'Batch report analysis';
+
+    // modules (sidebar) — click opens dashboard
+    const moduleBase={display:'flex',alignItems:'center',gap:'11px',padding:'8px 10px',borderRadius:'8px',cursor:'pointer',fontSize:'15px'};
+    const modDot=(id)=>{ const map={flow:'#3f9a5a', wh:'#d08a2b'}; const c=map[id]; return c?{width:'7px',height:'7px',borderRadius:'50%',background:c,flex:'none'}:{display:'none'}; };
+    const mkMod=(id,label,sub)=>{ const active=(cv==='module'&&s.selectedModuleId===id); return {label,sub, onClick:()=>this.openModule(id),
+      style:active?{...moduleBase,background:accentSoft,color:accent,fontWeight:700}:{...moduleBase,color:'#4a4740'}, dotStyle:modDot(id)}; };
+    const modDefs=[['batch','Batch Reports','24 reports'],['flow','Item Flow Tracking','live'],['topic','Topic Briefings','3 new'],['wh','Warehouse','2 alerts']];
+    const modules=modDefs.map(d=>mkMod(d[0],d[1],d[2]));
+    const modulesRO=modDefs.map(d=>({label:d[1], sub:d[2], onClick:()=>this.openModule(d[0])}));
+
+    // chats
+    const chatBase={display:'flex',alignItems:'center',gap:'10px',padding:'9px 11px',borderRadius:'11px 4px 11px 4px',cursor:'pointer',border:'1.5px solid transparent'};
+    const badge=(a)=>({flex:'none',minWidth:'22px',height:'20px',padding:'0 6px',display:'flex',alignItems:'center',justifyContent:'center',borderRadius:'999px',fontSize:'12px',fontWeight:700,background:a?accent:'#e4dfd2',color:a?'#fff':'#8f8b82'});
+    const mkChat=(id,title,sub,count)=>{ const a=s.selectedChatId===id; return {title,sub,count, onClick:()=>this.setState({selectedChatId:id, centerView:'chat'}), style:a?{...chatBase,background:'#fff',border:'1.5px solid #33312c'}:chatBase, badgeStyle:badge(a)}; };
+    const chats=[mkChat('c1','Batch report analysis','2m ago',12),mkChat('c2','Warehouse audit','1h ago',5),mkChat('c3','Q3 topic briefing','yesterday',8)];
+
+    // messages
+    const messages=s.messages.map(m=>{ const isUser=m.role==='user'; return {
+      author:m.author, initials:isUser?'You':'AI',
+      avatarStyle:{flex:'none',width:'34px',height:'34px',borderRadius:isUser?'50%':'9px 3px 9px 3px',border:'1.5px solid #33312c',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px',fontWeight:700,background:isUser?'#e7e2d5':'#33312c',color:isUser?ink:'#f6f4ee'},
+      blocks:m.blocks.map(b=>({isText:b.kind==='text',isList:b.kind==='list',isCode:b.kind==='code',isFile:b.kind==='file',text:b.text,items:b.items,title:b.title,file:b.file,loc:b.loc,contents:b.contents,onOpen:b.file?()=>this.openFile(b.file):null}))
+    };});
+
+    // activity
+    const tag=(c)=>({flex:'none',fontSize:'11px',fontWeight:700,padding:'2px 7px',borderRadius:'999px',border:'1.5px solid '+c,color:c});
+    const activity=[
+      {tag:'CMD',tagStyle:tag(accent),text:'read artifacts/line4_defects.csv',time:'0.4s'},
+      {tag:'THINK',tagStyle:tag('#8f6bd6'),text:'grouping flagged units by station to find the dominant source',time:''},
+      {tag:'CMD',tagStyle:tag(accent),text:'compute correlation matrix',time:'1.1s'},
+      {tag:'STEP',tagStyle:tag('#3f9a5a'),text:'rendered 3 charts → batch_report_line4.pdf',time:'2.7s'},
+      {tag:'THINK',tagStyle:tag('#8f6bd6'),text:'torque drift on fixture B is within tolerance but trending',time:''}
+    ];
+
+    const composerCtrls=Object.keys(this.COMP_OPTS).map(k=>({label:k.charAt(0).toUpperCase()+k.slice(1), value:this.COMP_OPTS[k][s.comp[k]], onClick:this.cycleComp(k)}));
+
+    // ---- module dashboard ----
+    const d=this.DASH[s.selectedModuleId]||this.DASH.batch;
+    const barMax=Math.max.apply(null,d.bars.map(b=>b.h));
+    const stateColor={ready:'#3f9a5a',running:'#2f6db3',queued:'#a29d90',ok:'#3f9a5a',slow:'#d08a2b',watch:'#d08a2b',alert:'#c65a4f',new:'#2f6db3',review:'#d08a2b',done:'#8f8b82'};
+    const dash={ eyebrow:d.eyebrow, title:d.title, sub:d.sub, kpis:d.kpis, chartTitle:d.chartTitle,
+      bars:d.bars.map(b=>({label:b.label, style:{width:'70%',maxWidth:'42px',height:(b.h/barMax*118)+'px',background:accent,borderRadius:'5px 5px 0 0',opacity:b.h===barMax?1:0.72}})),
+      tableTitle:d.tableTitle, cols:d.cols,
+      rows:d.rows.map(r=>({cells:r.map((c,i)=>{ const isState=i===r.length-1; const col=stateColor[c]; return {text:c, style:isState&&col?{flex:1,minWidth:0,fontWeight:700,color:col}:{flex:1,minWidth:0,color:i===0?ink:'#5f5c54'}}; })})) };
+
+    // ---- dispatch ----
+    const running=this.DISPATCH.filter(t=>t.status==='running').length;
+    const queued=this.DISPATCH.filter(t=>t.status==='queued').length;
+    const done=this.DISPATCH.filter(t=>t.status==='done').length;
+    const dispatchSummary=[
+      {val:running,label:'running',dotStyle:{width:'11px',height:'11px',borderRadius:'50%',background:'#2f6db3',flex:'none',animation:'wfpulse 2s infinite'}},
+      {val:queued,label:'queued',dotStyle:{width:'11px',height:'11px',borderRadius:'50%',background:'#c9c4b6',flex:'none'}},
+      {val:done,label:'completed',dotStyle:{width:'11px',height:'11px',borderRadius:'50%',background:'#3f9a5a',flex:'none'}}
+    ];
+    const stChip=(st)=>{ const map={running:['#2f6db3','rgba(47,109,179,.12)'],queued:['#8f8b82','#eceadf'],done:['#3f9a5a','#eaf4ed']}; const [col,bg]=map[st]; return {flex:'none',fontSize:'11px',fontWeight:700,textTransform:'uppercase',letterSpacing:'.5px',padding:'3px 9px',borderRadius:'999px',color:col,background:bg,border:'1.5px solid '+col}; };
+    const dispatchTasks=this.DISPATCH.map(t=>({name:t.name,module:t.module,status:t.status,meta:t.meta,pctLabel:t.pct+'%',
+      statusStyle:stChip(t.status),
+      barStyle:{width:t.pct+'%',height:'100%',background:t.status==='done'?'#3f9a5a':t.status==='running'?'#2f6db3':'#c9c4b6',borderRadius:'999px',transition:'width .3s'}}));
+
+    // ---- right explorer ----
+    const expTab=(id,label)=>{ const a=s.rightTab===id; return {label, onClick:()=>this.setState({rightTab:id}),
+      style:{padding:'8px 14px',cursor:'pointer',fontSize:'14px',fontWeight:a?700:400,color:a?ink:muted,borderBottom:a?'2.5px solid #33312c':'2.5px solid transparent',marginBottom:'-1.5px'}}; };
+    const explorerTabs=[expTab('files','Files'), expTab('modules','Modules')];
+
+    // ---- file tree ----
+    const fileRowBase={display:'flex',alignItems:'center',gap:'8px',padding:'5px 8px',borderRadius:'7px',cursor:'pointer',fontSize:'14px'};
+    const fileRow=(id)=>{ const a=s.activeTab===id; return a?{...fileRowBase,background:accentSoft,color:accent,fontWeight:700}:{...fileRowBase,color:'#4a4740'}; };
+    const editBadge=(id)=>{ const editable=this.FILES[id]==='sheet'; return {editBadge: editable?'edit':'', editBadgeStyle: editable?{flex:'none',fontSize:'10px',fontWeight:700,color:'#3f7d52',border:'1.4px solid #9ac6a8',borderRadius:'4px',padding:'0 5px',background:'#eaf4ed'}:{display:'none'}}; };
+    const treeNodes=this.TREE.map(node=>{
+      if(node.file){ const eb=editBadge(node.file); return {isFolder:false,isFile:true,showChildren:false,name:node.file,children:[],onClick:()=>this.openFile(node.file),rowStyle:fileRow(node.file),editBadge:eb.editBadge,editBadgeStyle:eb.editBadgeStyle}; }
+      const ex=!!s.expanded[node.id];
+      return {isFolder:true,isFile:false,name:node.name,showChildren:ex,onToggle:()=>this.toggleFolder(node.id),
+        caretStyle:{fontSize:'10px',color:muted,display:'inline-block',transition:'transform .18s',transform:ex?'rotate(90deg)':'rotate(0deg)'},
+        children:node.children.map(cid=>{ const eb=editBadge(cid); return {name:cid,onClick:()=>this.openFile(cid),rowStyle:fileRow(cid),editBadge:eb.editBadge,editBadgeStyle:eb.editBadgeStyle}; })};
+    });
+
+    // ---- editor tabs ----
+    const tabBase={display:'flex',alignItems:'center',gap:'8px',padding:'9px 12px',cursor:'pointer',fontSize:'13px',borderRight:'1.5px solid #cdc8ba',whiteSpace:'nowrap'};
+    const editorTabs=s.openTabs.map(id=>{ const a=s.activeTab===id; const dirty=!!s.dirty[id];
+      return {name:id, onClick:()=>this.setState({activeTab:id}), onClose:this.closeTab(id),
+        dotStyle: dirty?{width:'7px',height:'7px',borderRadius:'50%',background:'#2f6db3',flex:'none'}:{display:'none'},
+        style:a?{...tabBase,background:'#fbfaf6',fontWeight:700,borderTop:'2.5px solid #2f6db3'}:{...tabBase,background:'#e9e5da',color:muted,borderTop:'2.5px solid transparent'}}; });
+
+    // ---- active file content ----
+    const activeName=s.activeTab||'';
+    const type=this.FILES[activeName]||(activeName?'code':'none');
+    const isImage=type==='image',isCode=type==='code',isMarkdown=type==='markdown',isPdf=type==='pdf',isHtml=type==='html',isSheet=type==='sheet',isNone=type==='none';
+    const typeLabels={image:'Image preview',code:'Code · read-only',markdown:'Markdown',pdf:'PDF viewer',html:'HTML preview',sheet:'Spreadsheet · editable',none:''};
+    const codeLines=this.CODE.map((t,i)=>({n:i+1,text:t||' '}));
+    const boxW=Math.round(300*s.scale/100), boxH=Math.round(200*s.scale/100);
+
+    // sheet grid
+    let sheet={cols:[],rows:[],dirtyLabel:''};
+    if(isSheet && s.sheets[activeName]){ const sh=s.sheets[activeName];
+      sheet={ cols:sh.cols, dirtyLabel: s.dirty[activeName]?'unsaved changes':'all changes saved',
+        rows:sh.rows.map((row,ri)=>({n:ri+1, cells:row.map((val,ci)=>({value:val, onInput:this.updateCell(activeName,ri,ci)}))})) };
+    }
+
+    return {
+      mainGridStyle:{flex:'1',minHeight:'0',display:'grid',gridTemplateColumns:s.leftW+'px 2px 1fr 2px '+s.rightW+'px'},
+      navTabs, topContext:topCtx, modules, modulesRO, chats, messages, activity, composerCtrls,
+      explorerTabs, treeNodes, editorTabs, dash, dispatchSummary, dispatchTasks, sheet,
+      convRef:this.convRef,
+      isChatView: cv==='chat', isModuleView: cv==='module', isDispatchView: cv==='dispatch',
+      backToChat:()=>this.backToChat(),
+      toggleActivity:()=>this.setState(x=>({activityOpen:!x.activityOpen})), activityOpen:s.activityOpen,
+      activityToggleLabel:s.activityOpen?'Collapse':'Expand',
+      activityCaretStyle:{fontSize:'11px',color:muted,display:'inline-block',transition:'transform .18s',transform:s.activityOpen?'rotate(90deg)':'rotate(0deg)'},
+      input:s.input, onInput:(e)=>this.setState({input:e.target.value}), onKeyDown:(e)=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); this.send(); } }, send:()=>this.send(),
+      dragLeft:this.startDrag('left'), dragRight:this.startDrag('right'),
+      showFilesTab:s.rightTab==='files', showModulesTab:s.rightTab==='modules',
+      activeName, activeTypeLabel:typeLabels[type]||'',
+      isImage,isCode,isMarkdown,isPdf,isHtml,isSheet,isNone, isTextish:isCode||isMarkdown,
+      codeLines, scaleLabel:s.scale+'%',
+      zoomIn:()=>this.setState(x=>({scale:Math.min(400,x.scale+25)})), zoomOut:()=>this.setState(x=>({scale:Math.max(25,x.scale-25)})), fit:()=>this.setState({scale:100}),
+      addRow:()=>this.addRow(), saveSheet:()=>this.saveSheet(), saveLabel: s.dirty[activeName]?'Save':'Saved',
+      imageBoxStyle:{position:'relative',width:boxW+'px',height:boxH+'px',minWidth:boxW+'px',minHeight:boxH+'px',border:'1.5px solid #c9c4b6',background:'#fbfaf6',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 10px 30px -14px rgba(0,0,0,.4)'}
+    };
+  }
+}
+</script>
+</body>
+</html>

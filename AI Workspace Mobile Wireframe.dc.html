@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:'Kalam',system-ui,sans-serif;background:#e6e2d8;color:#33312c}
+  .wf-scroll{scrollbar-width:thin;scrollbar-color:#cdc8ba transparent}
+  .wf-scroll::-webkit-scrollbar{width:0;height:0}
+  @keyframes wfpulse{0%,100%{opacity:1}50%{opacity:.35}}
+</style>
+</helmet>
+
+<div style="padding:44px;display:flex;gap:40px;align-items:flex-start">
+
+  <!-- annotation -->
+  <div style="width:250px;flex:none;padding-top:20px">
+    <div style="font-size:12px;letter-spacing:2px;color:#a29d90;text-transform:uppercase;margin-bottom:10px">Mobile · low-fi</div>
+    <div style="font-size:22px;font-weight:700;line-height:1.25;margin-bottom:14px">One panel at a time</div>
+    <div style="font-size:15px;line-height:1.6;color:#5f5c54">The desktop's three columns collapse into a bottom tab bar. The left sidebar becomes a slide-in menu drawer.</div>
+    <div style="margin-top:20px;display:flex;flex-direction:column;gap:11px">
+      <div style="display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.45;color:#4a4740"><span style="color:#2f6db3;font-weight:700">1</span> Tap the bottom tabs to switch Chat / Files / Editor.</div>
+      <div style="display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.45;color:#4a4740"><span style="color:#2f6db3;font-weight:700">2</span> Tap ☰ to open the workspace drawer.</div>
+      <div style="display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.45;color:#4a4740"><span style="color:#2f6db3;font-weight:700">3</span> Tap a file to open it in the editor.</div>
+    </div>
+  </div>
+
+  <!-- PHONE -->
+  <div style="flex:none;width:392px;height:812px;border:2.5px solid #33312c;border-radius:44px;background:#33312c;padding:11px;box-shadow:0 30px 60px -24px rgba(0,0,0,.5);position:relative">
+    <!-- screen -->
+    <div style="position:relative;width:100%;height:100%;background:#efece3;border-radius:34px;overflow:hidden;display:flex;flex-direction:column">
+
+      <!-- status bar -->
+      <div style="flex:none;height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:700">
+        <span>9:41</span>
+        <div style="width:120px;height:22px;background:#33312c;border-radius:0 0 16px 16px;position:absolute;left:50%;transform:translateX(-50%);top:0"></div>
+        <div style="display:flex;gap:5px;align-items:center">
+          <div style="width:18px;height:10px;border:1.4px solid #33312c;border-radius:3px"></div>
+        </div>
+      </div>
+
+      <!-- app header -->
+      <div style="flex:none;display:flex;align-items:center;gap:11px;padding:8px 16px 12px;border-bottom:1.5px solid #33312c">
+        <div onClick="{{ openDrawer }}" style="width:34px;height:34px;display:flex;flex-direction:column;justify-content:center;gap:4px;cursor:pointer" title="Menu">
+          <div style="height:2px;background:#33312c;border-radius:2px"></div>
+          <div style="height:2px;background:#33312c;border-radius:2px"></div>
+          <div style="height:2px;background:#33312c;border-radius:2px"></div>
+        </div>
+        <div style="min-width:0;flex:1">
+          <div style="font-size:16px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ headerTitle }}</div>
+          <div style="font-size:12px;color:#a29d90;display:flex;align-items:center;gap:6px">
+            <span style="width:7px;height:7px;border-radius:50%;background:#3f9a5a;animation:wfpulse 2s infinite"></span>{{ headerSub }}
+          </div>
+        </div>
+        <div style="width:34px;height:34px;border:1.5px solid #33312c;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:#e7e2d5">JD</div>
+      </div>
+
+      <!-- ============ CHAT VIEW ============ -->
+      <sc-if value="{{ isChat }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1;display:flex;flex-direction:column;min-height:0">
+          <div class="wf-scroll" ref="{{ convRef }}" style="flex:1;overflow-y:auto;padding:16px 16px 8px;display:flex;flex-direction:column;gap:18px">
+            <sc-for list="{{ messages }}" as="msg" hint-placeholder-count="2">
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <div style="{{ msg.avatarStyle }}">{{ msg.initials }}</div>
+                <div style="min-width:0;flex:1">
+                  <div style="font-weight:700;font-size:14px;margin-bottom:5px">{{ msg.author }}</div>
+                  <div style="display:flex;flex-direction:column;gap:10px">
+                    <sc-for list="{{ msg.blocks }}" as="b" hint-placeholder-count="1">
+                      <div>
+                        <sc-if value="{{ b.isText }}" hint-placeholder-val="{{ true }}">
+                          <div style="font-size:14px;line-height:1.5;color:#3d3b34">{{ b.text }}</div>
+                        </sc-if>
+                        <sc-if value="{{ b.isList }}">
+                          <div style="display:flex;flex-direction:column;gap:6px">
+                            <sc-for list="{{ b.items }}" as="it" hint-placeholder-count="2">
+                              <div style="display:flex;gap:8px;align-items:flex-start;font-size:14px;line-height:1.4;color:#3d3b34"><span style="color:#2f6db3;font-weight:700">•</span><span>{{ it }}</span></div>
+                            </sc-for>
+                          </div>
+                        </sc-if>
+                        <sc-if value="{{ b.isCode }}">
+                          <div style="font-family:ui-monospace,monospace;font-size:12px;line-height:1.55;background:#33312c;color:#e7e2d5;padding:11px 13px;border-radius:11px 4px 11px 4px;overflow-x:auto;white-space:pre">{{ b.text }}</div>
+                        </sc-if>
+                        <sc-if value="{{ b.isFile }}">
+                          <div style="border:1.5px solid #33312c;border-radius:12px 4px 12px 4px;overflow:hidden">
+                            <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1.5px dashed #cdc8ba;background:#f6f4ee">
+                              <div style="width:18px;height:22px;border:1.5px solid #33312c;border-radius:3px;flex:none"></div>
+                              <div style="font-weight:700;font-size:13px">{{ b.title }}</div>
+                            </div>
+                            <div style="padding:10px 12px;display:flex;flex-direction:column;gap:5px;font-size:13px;background:#fbfaf6">
+                              <div style="display:flex;gap:8px"><span style="color:#a29d90;width:62px;flex:none">File</span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis">{{ b.file }}</span></div>
+                              <div style="display:flex;gap:8px"><span style="color:#a29d90;width:62px;flex:none">Location</span><span>{{ b.loc }}</span></div>
+                            </div>
+                            <div onClick="{{ b.onOpen }}" style="padding:9px 12px;border-top:1.5px dashed #cdc8ba;font-size:13px;font-weight:700;color:#2f6db3;cursor:pointer">Open in editor →</div>
+                          </div>
+                        </sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <!-- activity collapsible -->
+          <div style="flex:none;margin:0 16px;border:1.5px solid #c9c4b6;border-radius:11px 11px 4px 4px;background:#f6f4ee;overflow:hidden">
+            <div onClick="{{ toggleActivity }}" style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer">
+              <span style="{{ activityCaretStyle }}">▸</span>
+              <span style="font-weight:700;font-size:13px">Activity</span>
+              <span style="font-size:12px;color:#a29d90">13 steps · 21 thoughts</span>
+            </div>
+            <sc-if value="{{ activityOpen }}">
+              <div class="wf-scroll" style="max-height:130px;overflow-y:auto;border-top:1.5px dashed #cdc8ba;padding:4px 13px 10px">
+                <sc-for list="{{ activity }}" as="a" hint-placeholder-count="4">
+                  <div style="display:flex;gap:9px;align-items:flex-start;padding:6px 0;border-bottom:1px dotted #ddd8cb">
+                    <div style="{{ a.tagStyle }}">{{ a.tag }}</div>
+                    <div style="font-size:13px;color:#3d3b34;line-height:1.35;min-width:0;flex:1">{{ a.text }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+
+          <!-- composer -->
+          <div style="flex:none;padding:10px 16px 8px">
+            <div style="border:1.5px solid #33312c;border-radius:14px 5px 14px 5px;background:#fbfaf6;padding:9px 11px;display:flex;align-items:flex-end;gap:8px">
+              <textarea value="{{ input }}" onInput="{{ onInput }}" placeholder="Message…" style="flex:1;border:none;background:transparent;resize:none;outline:none;font-family:'Kalam',sans-serif;font-size:14px;line-height:1.4;color:#33312c;min-height:22px;max-height:80px"></textarea>
+              <div style="width:30px;height:30px;border:1.5px solid #c9c4b6;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:none" title="Attach"><div style="width:12px;height:12px;border:1.5px solid #5f5c54;border-radius:2px;border-bottom-color:transparent"></div></div>
+              <div onClick="{{ send }}" style="width:34px;height:34px;border-radius:50%;background:#2f6db3;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex:none;cursor:pointer">↑</div>
+            </div>
+            <div class="wf-scroll" style="display:flex;gap:7px;margin-top:9px;overflow-x:auto;padding-bottom:2px">
+              <sc-for list="{{ composerCtrls }}" as="ctrl" hint-placeholder-count="4">
+                <div onClick="{{ ctrl.onClick }}" style="flex:none;display:flex;align-items:center;gap:6px;padding:5px 11px;border:1.5px solid #c9c4b6;border-radius:999px;cursor:pointer;background:#f6f4ee;font-size:12px">
+                  <span style="color:#a29d90">{{ ctrl.label }}</span><span style="font-weight:700">{{ ctrl.value }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ============ FILES VIEW ============ -->
+      <sc-if value="{{ isFiles }}">
+        <div style="flex:1;display:flex;flex-direction:column;min-height:0">
+          <div style="flex:none;padding:12px 16px 8px">
+            <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px solid #c9c4b6;border-radius:11px;background:#fbfaf6">
+              <div style="width:14px;height:14px;border:1.6px solid #a29d90;border-radius:50%;flex:none"></div>
+              <span style="font-size:14px;color:#a29d90">Search files…</span>
+            </div>
+          </div>
+          <div class="wf-scroll" style="flex:1;overflow-y:auto;padding:0 12px 16px">
+            <sc-for list="{{ treeNodes }}" as="node" hint-placeholder-count="6">
+              <div>
+                <sc-if value="{{ node.isFolder }}" hint-placeholder-val="{{ true }}">
+                  <div onClick="{{ node.onToggle }}" style="display:flex;align-items:center;gap:9px;padding:9px 8px;cursor:pointer;font-size:15px">
+                    <span style="{{ node.caretStyle }}">▸</span>
+                    <div style="width:17px;height:13px;border:1.6px solid #5f5c54;border-radius:3px;flex:none"></div>
+                    <span style="font-weight:700">{{ node.name }}</span>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ node.isFile }}">
+                  <div onClick="{{ node.onClick }}" style="{{ node.rowStyle }}">
+                    <div style="width:13px;height:16px;border:1.5px solid currentColor;border-radius:2px;flex:none;margin-left:2px"></div>
+                    <span>{{ node.name }}</span>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ node.showChildren }}">
+                  <div style="padding-left:22px">
+                    <sc-for list="{{ node.children }}" as="child" hint-placeholder-count="2">
+                      <div onClick="{{ child.onClick }}" style="{{ child.rowStyle }}">
+                        <div style="width:13px;height:16px;border:1.5px solid currentColor;border-radius:2px;flex:none"></div>
+                        <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ child.name }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ============ EDITOR VIEW ============ -->
+      <sc-if value="{{ isEditor }}">
+        <div style="flex:1;display:flex;flex-direction:column;min-height:0">
+          <!-- tab bar -->
+          <div class="wf-scroll" style="flex:none;display:flex;overflow-x:auto;background:#e9e5da;border-bottom:1.5px solid #cdc8ba">
+            <sc-for list="{{ editorTabs }}" as="t" hint-placeholder-count="2">
+              <div onClick="{{ t.onClick }}" style="{{ t.style }}">
+                <span style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.name }}</span>
+                <span onClick="{{ t.onClose }}" style="font-size:15px;color:#8f8b82;padding:0 2px">×</span>
+              </div>
+            </sc-for>
+          </div>
+          <!-- toolbar -->
+          <div style="flex:none;display:flex;align-items:center;gap:8px;padding:7px 14px;background:#f2efe6;border-bottom:1.5px dashed #cdc8ba">
+            <span style="font-size:12px;color:#8f8b82">{{ activeTypeLabel }}</span>
+            <div style="flex:1"></div>
+            <sc-if value="{{ isImage }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:center;gap:4px">
+                <div onClick="{{ zoomOut }}" style="width:28px;height:28px;border:1.5px solid #c9c4b6;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:17px">−</div>
+                <div style="min-width:46px;text-align:center;font-size:12px">{{ scaleLabel }}</div>
+                <div onClick="{{ zoomIn }}" style="width:28px;height:28px;border:1.5px solid #c9c4b6;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:17px">+</div>
+              </div>
+            </sc-if>
+          </div>
+          <!-- content -->
+          <div class="wf-scroll" style="flex:1;overflow:auto;min-height:0;background:#fbfaf6">
+            <sc-if value="{{ isImage }}" hint-placeholder-val="{{ true }}">
+              <div style="min-height:100%;display:flex;align-items:center;justify-content:center;padding:18px;background:repeating-conic-gradient(#f0ede4 0% 25%, #f6f4ee 0% 50%) 0/20px 20px">
+                <div style="{{ imageBoxStyle }}">
+                  <div style="position:absolute;inset:0;background:linear-gradient(135deg,transparent 48%,#c9c4b6 48%,#c9c4b6 52%,transparent 52%),linear-gradient(45deg,transparent 48%,#c9c4b6 48%,#c9c4b6 52%,transparent 52%)"></div>
+                  <span style="position:relative;font-size:13px;color:#8f8b82;background:#fbfaf6;padding:3px 8px;border-radius:5px">{{ activeName }}</span>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isCode }}">
+              <div style="display:flex;font-family:ui-monospace,monospace;font-size:12px;line-height:1.7">
+                <div style="flex:none;padding:12px 8px;color:#c0bbad;text-align:right;border-right:1px solid #eae5d9">
+                  <sc-for list="{{ codeLines }}" as="ln" hint-placeholder-count="6"><div>{{ ln.n }}</div></sc-for>
+                </div>
+                <div style="padding:12px 12px;white-space:pre;color:#3d3b34">
+                  <sc-for list="{{ codeLines }}" as="ln" hint-placeholder-count="6"><div>{{ ln.text }}</div></sc-for>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isMarkdown }}">
+              <div style="padding:18px 20px;display:flex;flex-direction:column;gap:13px">
+                <div style="font-size:20px;font-weight:700">{{ activeName }}</div>
+                <div style="height:10px;background:#e2ddd0;border-radius:6px;width:88%"></div>
+                <div style="height:10px;background:#e2ddd0;border-radius:6px;width:72%"></div>
+                <div style="font-size:16px;font-weight:700;margin-top:4px">Overview</div>
+                <div style="height:10px;background:#e2ddd0;border-radius:6px;width:90%"></div>
+                <div style="height:10px;background:#e2ddd0;border-radius:6px;width:66%"></div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isPdf }}">
+              <div style="padding:16px;display:flex;justify-content:center;background:#e9e5da;min-height:100%">
+                <div style="width:100%;background:#fff;border:1.5px solid #cdc8ba;border-radius:4px;box-shadow:0 8px 24px -12px rgba(0,0,0,.4);padding:24px 20px;display:flex;flex-direction:column;gap:11px">
+                  <div style="height:14px;background:#33312c;border-radius:5px;width:60%"></div>
+                  <div style="height:8px;background:#e2ddd0;border-radius:6px;width:100%"></div>
+                  <div style="height:8px;background:#e2ddd0;border-radius:6px;width:92%"></div>
+                  <div style="height:110px;background:#f0ede4;border:1.5px dashed #cdc8ba;border-radius:6px;margin:6px 0;display:flex;align-items:center;justify-content:center;color:#a29d90;font-size:12px">chart</div>
+                  <div style="height:8px;background:#e2ddd0;border-radius:6px;width:80%"></div>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ============ BOTTOM TAB BAR ============ -->
+      <div style="flex:none;display:flex;border-top:1.5px solid #33312c;background:#f6f4ee;padding-bottom:14px">
+        <sc-for list="{{ bottomTabs }}" as="t" hint-placeholder-count="3">
+          <div onClick="{{ t.onClick }}" style="{{ t.style }}">
+            <div style="{{ t.iconStyle }}"></div>
+            <span style="font-size:11px">{{ t.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- ============ DRAWER ============ -->
+      <sc-if value="{{ drawerOpen }}">
+        <div onClick="{{ closeDrawer }}" style="position:absolute;inset:0;background:rgba(51,49,44,.42);z-index:5"></div>
+        <div class="wf-scroll" style="position:absolute;top:0;left:0;bottom:0;width:300px;z-index:6;background:#f2efe6;border-right:2px solid #33312c;display:flex;flex-direction:column;overflow-y:auto;box-shadow:8px 0 30px -8px rgba(0,0,0,.4)">
+          <div style="padding:44px 16px 12px;border-bottom:1.5px dashed #cdc8ba">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <div style="display:flex;align-items:center;gap:7px;color:#5f5c54;font-size:14px;cursor:pointer">← Workspace</div>
+              <div onClick="{{ closeDrawer }}" style="font-size:22px;color:#8f8b82;cursor:pointer;line-height:1">×</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px;border:1.5px solid #33312c;border-radius:12px 5px 12px 5px;background:#33312c;color:#f6f4ee;font-weight:700;font-size:14px;cursor:pointer"><span style="font-size:16px">+</span> New chat</div>
+          </div>
+          <div style="padding:14px 12px 6px">
+            <div style="font-size:11px;letter-spacing:1.5px;color:#a29d90;padding:0 4px 8px;text-transform:uppercase">Modules</div>
+            <sc-for list="{{ modules }}" as="m" hint-placeholder-count="4">
+              <div onClick="{{ m.onClick }}" style="{{ m.style }}">
+                <div style="width:15px;height:15px;border:1.6px solid currentColor;border-radius:4px;flex:none"></div>
+                <span>{{ m.label }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="height:1.5px;background:#cdc8ba;margin:6px 14px"></div>
+          <div style="padding:8px 12px 20px">
+            <div style="font-size:11px;letter-spacing:1.5px;color:#a29d90;padding:0 4px 8px;text-transform:uppercase">Chats</div>
+            <sc-for list="{{ chats }}" as="c" hint-placeholder-count="3">
+              <div onClick="{{ c.onClick }}" style="{{ c.style }}">
+                <div style="min-width:0;flex:1"><div style="font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.title }}</div><div style="font-size:11px;color:#a29d90">{{ c.sub }}</div></div>
+                <div style="{{ c.badgeStyle }}">{{ c.count }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.convRef = React.createRef();
+    this.COMP_OPTS = {mode:['Build','Ask','Plan'], approval:['Auto','Manual','Review'], think:['Normal','Extended','Deep'], persona:['Analyst','Engineer','Ops']};
+    this.FILES = {'eda_advanced.png':'image','batch_report_line4.pdf':'pdf','report.pdf':'pdf','README.md':'markdown','README':'markdown','architecture.md':'markdown','eda_12_correlation.py':'code','pipeline.py':'code','test_pipeline.py':'code','session_01.json':'code','requirements.txt':'code','index.html':'html'};
+    this.TREE = [
+      {id:'artifacts', name:'artifacts/', children:['eda_advanced.png','batch_report_line4.pdf']},
+      {id:'docs', name:'docs/', children:['README.md','architecture.md']},
+      {id:'src', name:'src/', children:['eda_12_correlation.py','pipeline.py']},
+      {id:'tests', name:'tests/', children:['test_pipeline.py']},
+      {file:'README'},
+      {file:'requirements.txt'}
+    ];
+    this.CODE = ['import pandas as pd','import numpy as np','','df = pd.read_csv("line4.csv")','corr = df.corr()','','def top_pairs(c, n=5):','    s = c.abs().unstack()','    return s.head(n)','','print(top_pairs(corr))'];
+    this.state = {
+      view:'chat', drawerOpen:false,
+      selectedModuleId:'batch', selectedChatId:'c1',
+      activityOpen:false,
+      expanded:{artifacts:true, docs:false, src:true, tests:false},
+      openTabs:['eda_advanced.png','eda_12_correlation.py'],
+      activeTab:'eda_advanced.png', scale:100,
+      comp:{mode:0,approval:0,think:0,persona:0}, input:'',
+      messages:[
+        {id:'m1', role:'user', author:'You', blocks:[{kind:'text', text:'Generate the batch defect report for line 4 and export it as a PDF.'}]},
+        {id:'m2', role:'assistant', author:'Workbench', blocks:[
+          {kind:'text', text:'Done. I pulled the defect logs for line 4 and rendered a summary.'},
+          {kind:'list', items:['Station 3 = 61% of flagged units','Torque drift on fixture B — 40 Nm verified']},
+          {kind:'file', title:'PDF generated', file:'batch_report_line4.pdf', loc:'artifacts/'}
+        ]}
+      ]
+    };
+  }
+  componentDidUpdate(_, prev){ if(prev.view!=='chat' && this.state.view==='chat') this.scrollConv(); }
+  toggleFolder(id){ this.setState(s=>({expanded:{...s.expanded,[id]:!s.expanded[id]}})); }
+  openFile(id){ this.setState(s=>({openTabs:s.openTabs.includes(id)?s.openTabs:[...s.openTabs,id], activeTab:id, scale:100, view:'editor', drawerOpen:false})); }
+  closeTab(id){ return (e)=>{ e.stopPropagation(); this.setState(s=>{ const openTabs=s.openTabs.filter(t=>t!==id); let activeTab=s.activeTab; if(activeTab===id) activeTab=openTabs[openTabs.length-1]||null; return {openTabs, activeTab}; }); }; }
+  cycleComp(key){ return ()=>this.setState(s=>({comp:{...s.comp,[key]:(s.comp[key]+1)%this.COMP_OPTS[key].length}})); }
+  send(){ const text=(this.state.input||'').trim(); if(!text) return; const uid='u'+Date.now(), aid='a'+Date.now();
+    this.setState(s=>({input:'', messages:[...s.messages,{id:uid,role:'user',author:'You',blocks:[{kind:'text',text}]}]}), ()=>this.scrollConv());
+    setTimeout(()=>this.setState(s=>({messages:[...s.messages,{id:aid,role:'assistant',author:'Workbench',blocks:[{kind:'text',text:'On it — reading the relevant SOPs and files now.'},{kind:'code',text:'$ workbench run --scope line4\n> 13 commands queued'}]}]}), ()=>this.scrollConv()), 550);
+  }
+  scrollConv(){ const el=this.convRef.current; if(el) el.scrollTop=el.scrollHeight; }
+
+  renderVals(){
+    const s=this.state;
+    const ink='#33312c', muted='#8f8b82', accent='#2f6db3', accentSoft='rgba(47,109,179,.13)';
+    const view=s.view;
+
+    // header title per view
+    const titles={chat:'Batch report analysis', files:'Files', editor:s.activeTab||'Editor'};
+    const subs={chat:'gpt-workbench-4 · connected', files:'workspace · 8 files', editor:'gpt-workbench-4 · connected'};
+
+    // messages
+    const messages=s.messages.map(m=>{ const isUser=m.role==='user'; return {
+      author:m.author, initials:isUser?'You':'AI',
+      avatarStyle:{flex:'none',width:'30px',height:'30px',borderRadius:isUser?'50%':'8px 3px 8px 3px',border:'1.5px solid #33312c',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',fontWeight:700,background:isUser?'#e7e2d5':'#33312c',color:isUser?ink:'#f6f4ee'},
+      blocks:m.blocks.map(b=>({isText:b.kind==='text',isList:b.kind==='list',isCode:b.kind==='code',isFile:b.kind==='file',text:b.text,items:b.items,title:b.title,file:b.file,loc:b.loc,onOpen:b.file?()=>this.openFile(b.file):null}))
+    };});
+
+    // activity
+    const tag=(c)=>({flex:'none',fontSize:'10px',fontWeight:700,padding:'2px 6px',borderRadius:'999px',border:'1.5px solid '+c,color:c});
+    const activity=[
+      {tag:'CMD',tagStyle:tag(accent),text:'read artifacts/line4_defects.csv'},
+      {tag:'THINK',tagStyle:tag('#8f6bd6'),text:'grouping flagged units by station'},
+      {tag:'CMD',tagStyle:tag(accent),text:'compute correlation matrix'},
+      {tag:'STEP',tagStyle:tag('#3f9a5a'),text:'rendered 3 charts → batch_report_line4.pdf'}
+    ];
+
+    const composerCtrls=Object.keys(this.COMP_OPTS).map(k=>({label:k.charAt(0).toUpperCase()+k.slice(1), value:this.COMP_OPTS[k][s.comp[k]], onClick:this.cycleComp(k)}));
+
+    // modules / chats (drawer)
+    const moduleBase={display:'flex',alignItems:'center',gap:'11px',padding:'9px 10px',borderRadius:'8px',cursor:'pointer',fontSize:'15px'};
+    const mkMod=(id,label)=>{ const a=s.selectedModuleId===id; return {label, onClick:()=>this.setState({selectedModuleId:id}), style:a?{...moduleBase,background:accentSoft,color:accent,fontWeight:700}:{...moduleBase,color:'#4a4740'}}; };
+    const modules=[mkMod('batch','Batch Reports'),mkMod('flow','Item Flow Tracking'),mkMod('topic','Topic Briefings'),mkMod('wh','Warehouse')];
+    const chatBase={display:'flex',alignItems:'center',gap:'10px',padding:'9px 11px',borderRadius:'11px 4px 11px 4px',cursor:'pointer',border:'1.5px solid transparent'};
+    const badge=(a)=>({flex:'none',minWidth:'20px',height:'19px',padding:'0 6px',display:'flex',alignItems:'center',justifyContent:'center',borderRadius:'999px',fontSize:'11px',fontWeight:700,background:a?accent:'#e4dfd2',color:a?'#fff':'#8f8b82'});
+    const mkChat=(id,title,sub,count)=>{ const a=s.selectedChatId===id; return {title,sub,count, onClick:()=>this.setState({selectedChatId:id, drawerOpen:false, view:'chat'}), style:a?{...chatBase,background:'#fff',border:'1.5px solid #33312c'}:chatBase, badgeStyle:badge(a)}; };
+    const chats=[mkChat('c1','Batch report analysis','2m ago',12),mkChat('c2','Warehouse audit','1h ago',5),mkChat('c3','Q3 topic briefing','yesterday',8)];
+
+    // tree
+    const fileRowBase={display:'flex',alignItems:'center',gap:'9px',padding:'8px 8px',borderRadius:'7px',cursor:'pointer',fontSize:'15px'};
+    const fileRow=(id)=>{ const a=s.activeTab===id; return a?{...fileRowBase,background:accentSoft,color:accent,fontWeight:700}:{...fileRowBase,color:'#4a4740'}; };
+    const treeNodes=this.TREE.map(node=>{
+      if(node.file) return {isFolder:false,isFile:true,showChildren:false,name:node.file,children:[],onClick:()=>this.openFile(node.file),rowStyle:fileRow(node.file)};
+      const ex=!!s.expanded[node.id];
+      return {isFolder:true,isFile:false,name:node.name,showChildren:ex,onToggle:()=>this.toggleFolder(node.id),
+        caretStyle:{fontSize:'11px',color:muted,display:'inline-block',transition:'transform .18s',transform:ex?'rotate(90deg)':'rotate(0deg)'},
+        children:node.children.map(cid=>({name:cid,onClick:()=>this.openFile(cid),rowStyle:fileRow(cid)}))};
+    });
+
+    // editor tabs
+    const tabBase={display:'flex',alignItems:'center',gap:'7px',padding:'9px 12px',cursor:'pointer',fontSize:'13px',borderRight:'1.5px solid #cdc8ba',whiteSpace:'nowrap'};
+    const editorTabs=s.openTabs.map(id=>{ const a=s.activeTab===id; return {name:id,onClick:()=>this.setState({activeTab:id}),onClose:this.closeTab(id), style:a?{...tabBase,background:'#fbfaf6',fontWeight:700,borderTop:'2.5px solid #2f6db3'}:{...tabBase,background:'#e9e5da',color:muted,borderTop:'2.5px solid transparent'}}; });
+
+    const type=this.FILES[s.activeTab]||(s.activeTab?'code':'none');
+    const typeLabels={image:'Image preview',code:'Code',markdown:'Markdown',pdf:'PDF viewer',html:'HTML preview',none:'No file open'};
+    const codeLines=this.CODE.map((t,i)=>({n:i+1,text:t||' '}));
+    const bw=Math.round(230*s.scale/100), bh=Math.round(160*s.scale/100);
+
+    // bottom tabs
+    const tabIcon=(a,shape)=>{ const base={width:'20px',height:'16px',border:'1.8px solid currentColor',flex:'none'}; if(shape==='chat') return {...base,borderRadius:'6px 6px 6px 2px'}; if(shape==='files') return {...base,width:'16px',height:'18px',borderRadius:'2px'}; return {...base,borderRadius:'3px'}; };
+    const mkBtab=(id,label,shape)=>{ const a=view===id; return {label, onClick:()=>this.setState({view:id, drawerOpen:false}),
+      style:{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',padding:'8px 0 4px',cursor:'pointer',color:a?accent:muted,fontWeight:a?700:400},
+      iconStyle:tabIcon(a,shape)}; };
+    const bottomTabs=[mkBtab('chat','Chat','chat'),mkBtab('files','Files','files'),mkBtab('editor','Editor','editor')];
+
+    return {
+      isChat:view==='chat', isFiles:view==='files', isEditor:view==='editor',
+      headerTitle:titles[view], headerSub:subs[view],
+      convRef:this.convRef,
+      messages, activity, composerCtrls, modules, chats, treeNodes, editorTabs, bottomTabs,
+      drawerOpen:s.drawerOpen, openDrawer:()=>this.setState({drawerOpen:true}), closeDrawer:()=>this.setState({drawerOpen:false}),
+      activityOpen:s.activityOpen, toggleActivity:()=>this.setState(x=>({activityOpen:!x.activityOpen})),
+      activityCaretStyle:{fontSize:'11px',color:muted,display:'inline-block',transition:'transform .18s',transform:s.activityOpen?'rotate(90deg)':'rotate(0deg)'},
+      input:s.input, onInput:(e)=>this.setState({input:e.target.value}), send:()=>this.send(),
+      activeName:s.activeTab||'', activeTypeLabel:typeLabels[type]||'',
+      isImage:type==='image', isCode:type==='code', isMarkdown:type==='markdown', isPdf:type==='pdf', isHtml:type==='html',
+      codeLines, scaleLabel:s.scale+'%',
+      zoomIn:()=>this.setState(x=>({scale:Math.min(400,x.scale+25)})), zoomOut:()=>this.setState(x=>({scale:Math.max(25,x.scale-25)})),
+      imageBoxStyle:{position:'relative',width:bw+'px',height:bh+'px',minWidth:bw+'px',minHeight:bh+'px',border:'1.5px solid #c9c4b6',background:'#fbfaf6',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 10px 30px -14px rgba(0,0,0,.4)'}
+    };
+  }
+}
+</script>
+</body>
+</html>

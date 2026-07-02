@@ -1,0 +1,24 @@
+{
+  "display_name": "Maintenance Copilot",
+  "tooltip": "AI Maintenance Knowledge Copilot · P1 concept brief & brainstorm (MCC / engineering)",
+  "icon": "icon.svg",
+  "dashboard": {
+    "title": "Maintenance Copilot · P1 Concept Brief",
+    "default_height": 820,
+    "badge_color": "info"
+  },
+  "activity": {
+    "default": { "running": "Working…", "done": "Done" },
+    "actions": {
+      "brief":    { "running": "Opening concept brief…",   "done": "Ready" },
+      "usecases": { "running": "Loading use-case map…",     "done": "Ready" },
+      "validate": { "running": "Validating reference…",     "done": "Checked" },
+      "retrieve": { "running": "Retrieving procedure…",     "done": "Retrieved" }
+    }
+  },
+  "subagent": {
+    "enabled": false,
+    "model": null,
+    "tools": null
+  }
+}
