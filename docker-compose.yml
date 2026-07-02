@@ -68,6 +68,15 @@ services:
       - ATRIA_MODEL=${ATRIA_MODEL}
       - DATABASE_URL=${DATABASE_URL:-postgresql://atria:atria@db:5432/atria}
       - ATRIA_REDIS_URL=redis://redis:6379/0
+      - ATRIA_DISABLED_MODULES=${ATRIA_DISABLED_MODULES:-}
+      - MC_INDEX_EMBED_BASE_URL=http://tei:80/v1
+      - MC_CHUNK_EMBED_BASE_URL=http://tei:80/v1
+      - MC_SYNTHESIS_BASE_URL=${MC_SYNTHESIS_BASE_URL:-http://copilot-llm:8000/v1}
+      - MC_KG_EXTRACT_BASE_URL=${MC_KG_EXTRACT_BASE_URL:-http://copilot-llm:8000/v1}
+      - MC_QDRANT_URL=http://qdrant:6333
+      - MC_NEO4J_URI=bolt://neo4j:7687
+      - MC_NEO4J_USER=neo4j
+      - MC_NEO4J_PASSWORD=atria-neo4j
       - AUTH_MODE=${AUTH_MODE:-keycloak}
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_PUBLIC_URL=${KEYCLOAK_PUBLIC_URL:-http://localhost:8082}
@@ -109,6 +118,15 @@ services:
       - ATRIA_MODEL=${ATRIA_MODEL}
       - DATABASE_URL=${DATABASE_URL:-postgresql://atria:atria@db:5432/atria}
       - ATRIA_REDIS_URL=redis://redis:6379/0
+      - ATRIA_DISABLED_MODULES=${ATRIA_DISABLED_MODULES:-}
+      - MC_INDEX_EMBED_BASE_URL=http://tei:80/v1
+      - MC_CHUNK_EMBED_BASE_URL=http://tei:80/v1
+      - MC_SYNTHESIS_BASE_URL=${MC_SYNTHESIS_BASE_URL:-http://copilot-llm:8000/v1}
+      - MC_KG_EXTRACT_BASE_URL=${MC_KG_EXTRACT_BASE_URL:-http://copilot-llm:8000/v1}
+      - MC_QDRANT_URL=http://qdrant:6333
+      - MC_NEO4J_URI=bolt://neo4j:7687
+      - MC_NEO4J_USER=neo4j
+      - MC_NEO4J_PASSWORD=atria-neo4j
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -130,6 +148,50 @@ services:
       redis:
         condition: service_healthy
 
+  tei:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.9
+    command: ["--model-id", "Qwen/Qwen3-Embedding-0.6B"]
+    ports:
+      - "8082:80"
+    volumes:
+      - tei_data:/data
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
+  neo4j:
+    image: neo4j:5
+    environment:
+      - NEO4J_AUTH=neo4j/atria-neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+    restart: unless-stopped
+
+  # GPU-dependent. On a no-GPU host, do NOT start this service; instead point
+  # MC_SYNTHESIS_BASE_URL / MC_KG_EXTRACT_BASE_URL at an external endpoint.
+  copilot-llm:
+    image: vllm/vllm-openai:latest
+    command: ["--model", "Qwen/Qwen2.5-1.5B-Instruct", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - hf_cache:/root/.cache/huggingface
+    restart: unless-stopped
+    profiles: ["gpu"]
+
 volumes:
   atria_data:
   postgres_data:
+  tei_data:
+  qdrant_data:
+  neo4j_data:
+  hf_cache:
