@@ -381,6 +381,7 @@ function ListFooter({ context }: { context?: ListContext }) {
 // ─── main component ───────────────────────────────────────────────────────────
 
 export function MessageList() {
+  const currentSessionId = useChatStore(state => state.currentSessionId);
   const allMessages = useChatStore(state => {
     const sid = state.currentSessionId;
     return sid ? state.sessionStates[sid]?.messages ?? [] : [];
@@ -430,13 +431,28 @@ export function MessageList() {
     [isLoading, progressMessage, messages.length, turnByIndex, actions]
   );
 
-  // Keep viewport pinned to bottom during streaming (item content grows, no new
-  // array entry added, so Virtuoso's followOutput alone won't fire).
+  // On conversation switch, jump to the latest message once. The component does
+  // not remount between conversations, so initialTopMostItemIndex (mount-only)
+  // isn't enough. After this, Virtuoso's followOutput keeps the viewport pinned
+  // during streaming as long as the user stays at the bottom — we deliberately
+  // do NOT scroll on every message update, which previously fought the user's
+  // own scrolling and made the view jump/bounce.
   useEffect(() => {
-    if (atBottomRef.current && messages.length > 0) {
+    atBottomRef.current = true;
+    setAtBottom(true);
+    const id = requestAnimationFrame(() => {
       virtuosoRef.current?.scrollToIndex({ index: 'LAST', align: 'end', behavior: 'auto' });
-    }
-  }, [messages]);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [currentSessionId]);
+
+  // Auto-follow during streaming is handled SOLELY by Virtuoso's own
+  // `followOutput` (see the prop below). We deliberately do NOT run a manual
+  // scroll effect per message update: a manual scrollToIndex fired per streamed
+  // token reads the last item's *previous* (smaller) height while it's still
+  // growing, so its target lands above the current position and the view
+  // visibly jumps UP — the flicker/bounce. `followOutput` scrolls only after
+  // Virtuoso has re-measured, so it sticks to the bottom smoothly.
 
   // PageUp / PageDown keyboard scrolling
   useEffect(() => {
@@ -459,16 +475,26 @@ export function MessageList() {
         style={{ height: '100%' }}
         data={renderItems}
         context={context}
-        // followOutput: auto-scroll to bottom only when already pinned there.
-        // Covers new message arrivals; the useEffect above covers streaming growth.
+        // Sole auto-follow authority. Sticks to the bottom (instant, no animation
+        // bounce) while at the bottom — for both new message arrivals AND the
+        // last message growing during streaming — and stops the moment the user
+        // scrolls up. No competing manual scroll effect (that caused the flicker).
         followOutput={(isAtBottom) => isAtBottom ? 'auto' : false}
-        alignToBottom
         atBottomStateChange={(bottom) => {
           atBottomRef.current = bottom;
           setAtBottom(bottom);
         }}
-        atBottomThreshold={50}
+        // Generous threshold so fast streaming growth doesn't briefly flip
+        // "at bottom" off (which would stop the follow mid-stream).
+        atBottomThreshold={100}
+        increaseViewportBy={{ top: 400, bottom: 400 }}
         initialTopMostItemIndex={renderItems.length - 1}
+        // Stable per-item identity so re-renders don't remount/re-measure items.
+        computeItemKey={(_index, item) =>
+          item.kind === 'activity'
+            ? item.key
+            : (item.message.tool_call_id ?? item.message.data_message_id ?? `${item.message.role}:${item.index}`)
+        }
         scrollerRef={(el) => { scrollerRef.current = el as HTMLElement | null; }}
         itemContent={(itemIndex, item, ctx) => (
           <div
