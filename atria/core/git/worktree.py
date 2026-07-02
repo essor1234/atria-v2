@@ -8,6 +8,8 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
+from atria.core.paths import atria_dir
+
 logger = logging.getLogger(__name__)
 
 # Adjective-noun naming for worktrees
@@ -71,7 +73,7 @@ class WorktreeManager:
 
     def __init__(self, project_dir: Path):
         self._project_dir = project_dir.resolve()
-        self._worktree_base = Path.home() / ".atria" / "data" / "worktree"
+        self._worktree_base = atria_dir() / "data" / "worktree"
 
     def create(
         self,

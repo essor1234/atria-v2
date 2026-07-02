@@ -9,6 +9,7 @@ import { FileTree } from './FileTree';
 import { ViewerDispatcher } from './viewers';
 import { LeftPaneTabs, useLeftMode } from './LeftPaneTabs';
 import { ModuleGallery } from './ModuleGallery';
+import { ResizeHandle } from '../ui/ResizeHandle';
 
 const KEY_COLLAPSED = 'artifact-viewer.collapsed';
 const KEY_WIDTH = 'artifact-viewer.width';
@@ -69,6 +70,14 @@ export function ArtifactViewer() {
   const maxTop = contentH > 0 ? Math.max(MIN_TOP, contentH - MIN_BOTTOM) : MAX_TOP;
   const effectiveTopHeight = Math.max(MIN_TOP, Math.min(topHeight, maxTop));
 
+  const onPanelResize = useCallback((next: number) => {
+    setPanelWidth(next);
+    setTreeWidth(prev => Math.min(prev, next - 2 - MIN_VIEWER));
+  }, [setPanelWidth, setTreeWidth]);
+
+  const onTreeResize = useCallback((next: number) => {
+    setTreeWidth(next);
+  }, [setTreeWidth]);
   // Shared defaults required by bundled .d.ts (static defaultProps not inferred by TS)
   const resizableDefaults = {
     handleSize: [8, 8] as [number, number],
@@ -165,6 +174,48 @@ export function ArtifactViewer() {
   }
 
   return (
+    <div className="relative flex h-full shadow-modal" style={{ width: panelWidth }}>
+
+      {/* Resize the whole panel from its left (west) edge. Parent isn't clipped
+          here, so the grab strip can straddle the border. */}
+      <ResizeHandle
+        side="left"
+        width={panelWidth}
+        min={MIN_PANEL}
+        max={MAX_PANEL}
+        onResize={onPanelResize}
+        className="absolute top-0 bottom-0 -left-1 w-2 cursor-col-resize hover:bg-sky-400/30 transition-colors z-30"
+      />
+
+      {/* ── Left: file tree, full height ── */}
+      <div
+        className="relative flex-shrink-0 h-full overflow-hidden border-r border-hairline-soft/60 flex flex-col"
+        style={{ width: effectiveTreeWidth }}
+      >
+        <LeftPaneTabs mode={leftMode} onChange={setLeftMode} />
+        <div className="flex-1 min-h-0 overflow-hidden">
+          {leftMode === 'files'
+            ? <FileTree
+                convId={currentSessionId}
+                scope={{ kind: 'conv', id: convInt }}
+                autoExpand={['.artifacts']}
+              />
+            : <ModuleGallery convId={currentSessionId} />}
+        </div>
+        {/* Resize the tree from its right edge. Kept within bounds (parent is
+            overflow-hidden) so it isn't clipped. */}
+        <ResizeHandle
+          side="right"
+          width={effectiveTreeWidth}
+          min={MIN_TREE}
+          max={Math.min(MAX_TREE, panelWidth - 2 - MIN_VIEWER)}
+          onResize={onTreeResize}
+          className="absolute top-0 bottom-0 right-0 w-2 cursor-col-resize hover:bg-sky-400/30 transition-colors z-30"
+        />
+      </div>
+
+      {/* ── Right: [tab bar | collapse btn] + viewer ── */}
+      <div className="flex flex-col flex-1 min-w-0 min-h-0 bg-canvas">
     // Outer panel — resizable from the left (west) edge
     <Resizable
       {...resizableDefaults}
@@ -253,6 +304,5 @@ export function ArtifactViewer() {
 
         </div>
       </div>
-    </Resizable>
   );
 }

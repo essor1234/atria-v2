@@ -1,0 +1,29 @@
+{
+  "id": "claudinio",
+  "name": "Claudinio",
+  "description": "Claudinio models",
+  "api_key_env": "CLAUDINIO_API_KEY",
+  "api_base_url": "https://api.claudin.io/v1",
+  "models": {
+    "claudinio": {
+      "id": "claudinio",
+      "name": "Claudinio",
+      "provider": "Claudinio",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.5,
+        "output": 2.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    }
+  }
+}

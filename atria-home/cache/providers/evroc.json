@@ -1,0 +1,202 @@
+{
+  "id": "evroc",
+  "name": "evroc",
+  "description": "evroc models",
+  "api_key_env": "EVROC_API_KEY",
+  "api_base_url": "https://models.think.evroc.com/v1",
+  "models": {
+    "moonshotai/Kimi-K2.5": {
+      "id": "moonshotai/Kimi-K2.5",
+      "name": "Kimi K2.5",
+      "provider": "evroc",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.47,
+        "output": 5.9,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 262144,
+      "supports_temperature": true
+    },
+    "microsoft/Phi-4-multimodal-instruct": {
+      "id": "microsoft/Phi-4-multimodal-instruct",
+      "name": "Phi-4 15B",
+      "provider": "evroc",
+      "context_length": 32000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.24,
+        "output": 0.47,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-Embedding-8B": {
+      "id": "Qwen/Qwen3-Embedding-8B",
+      "name": "Qwen3 Embedding 8B",
+      "provider": "evroc",
+      "context_length": 40960,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.12,
+        "output": 0.12,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-30B-A3B-Instruct-2507-FP8": {
+      "id": "Qwen/Qwen3-30B-A3B-Instruct-2507-FP8",
+      "name": "Qwen3 30B 2507",
+      "provider": "evroc",
+      "context_length": 64000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.35,
+        "output": 1.42,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-VL-30B-A3B-Instruct": {
+      "id": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "name": "Qwen3 VL 30B",
+      "provider": "evroc",
+      "context_length": 100000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.24,
+        "output": 0.94,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 100000,
+      "supports_temperature": true
+    },
+    "openai/gpt-oss-120b": {
+      "id": "openai/gpt-oss-120b",
+      "name": "GPT OSS 120B",
+      "provider": "evroc",
+      "context_length": 65536,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.24,
+        "output": 0.94,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "mistralai/devstral-small-2-24b-instruct-2512": {
+      "id": "mistralai/devstral-small-2-24b-instruct-2512",
+      "name": "Devstral Small 2 24B Instruct 2512",
+      "provider": "evroc",
+      "context_length": 32768,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.12,
+        "output": 0.47,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "mistralai/Magistral-Small-2509": {
+      "id": "mistralai/Magistral-Small-2509",
+      "name": "Magistral Small 1.2 24B",
+      "provider": "evroc",
+      "context_length": 131072,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.59,
+        "output": 2.36,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "mistralai/Voxtral-Small-24B-2507": {
+      "id": "mistralai/Voxtral-Small-24B-2507",
+      "name": "Voxtral Small 24B",
+      "provider": "evroc",
+      "context_length": 32000,
+      "capabilities": [
+        "text",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.00236,
+        "output": 0.00236,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "nvidia/Llama-3.3-70B-Instruct-FP8": {
+      "id": "nvidia/Llama-3.3-70B-Instruct-FP8",
+      "name": "Llama 3.3 70B",
+      "provider": "evroc",
+      "context_length": 131072,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 1.18,
+        "output": 1.18,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "intfloat/multilingual-e5-large-instruct": {
+      "id": "intfloat/multilingual-e5-large-instruct",
+      "name": "E5 Multi-Lingual Large Embeddings 0.6B",
+      "provider": "evroc",
+      "context_length": 512,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.12,
+        "output": 0.12,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 512,
+      "supports_temperature": true
+    }
+  }
+}

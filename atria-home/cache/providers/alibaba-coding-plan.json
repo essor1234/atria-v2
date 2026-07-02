@@ -1,0 +1,227 @@
+{
+  "id": "alibaba-coding-plan",
+  "name": "Alibaba Coding Plan",
+  "description": "Alibaba Coding Plan models",
+  "api_key_env": "ALIBABA_CODING_PLAN_API_KEY",
+  "api_base_url": "https://coding-intl.dashscope.aliyuncs.com/v1",
+  "models": {
+    "qwen3-coder-plus": {
+      "id": "qwen3-coder-plus",
+      "name": "Qwen3 Coder Plus",
+      "provider": "Alibaba Coding Plan",
+      "context_length": 1000000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "glm-4.7": {
+      "id": "glm-4.7",
+      "name": "GLM-4.7",
+      "provider": "Alibaba Coding Plan",
+      "context_length": 202752,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "qwen3.7-plus": {
+      "id": "qwen3.7-plus",
+      "name": "Qwen3.7 Plus",
+      "provider": "Alibaba Coding Plan",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "qwen3.7-max": {
+      "id": "qwen3.7-max",
+      "name": "Qwen3.7 Max",
+      "provider": "Alibaba Coding Plan",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 2.5,
+        "output": 7.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "qwen3.6-flash": {
+      "id": "qwen3.6-flash",
+      "name": "Qwen3.6 Flash",
+      "provider": "Alibaba Coding Plan",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.1875,
+        "output": 1.125,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "qwen3-max-2026-01-23": {
+      "id": "qwen3-max-2026-01-23",
+      "name": "Qwen3 Max",
+      "provider": "Alibaba Coding Plan",
+      "context_length": 262144,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "qwen3.5-plus": {
+      "id": "qwen3.5-plus",
+      "name": "Qwen3.5 Plus",
+      "provider": "Alibaba Coding Plan",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "kimi-k2.5": {
+      "id": "kimi-k2.5",
+      "name": "Kimi K2.5",
+      "provider": "Alibaba Coding Plan",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "MiniMax-M2.5": {
+      "id": "MiniMax-M2.5",
+      "name": "MiniMax-M2.5",
+      "provider": "Alibaba Coding Plan",
+      "context_length": 196608,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 24576,
+      "supports_temperature": true
+    },
+    "qwen3-coder-next": {
+      "id": "qwen3-coder-next",
+      "name": "Qwen3 Coder Next",
+      "provider": "Alibaba Coding Plan",
+      "context_length": 262144,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "glm-5": {
+      "id": "glm-5",
+      "name": "GLM-5",
+      "provider": "Alibaba Coding Plan",
+      "context_length": 202752,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "qwen3.6-plus": {
+      "id": "qwen3.6-plus",
+      "name": "Qwen3.6 Plus",
+      "provider": "Alibaba Coding Plan",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    }
+  }
+}

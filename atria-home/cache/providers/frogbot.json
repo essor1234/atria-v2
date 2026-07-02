@@ -1,0 +1,494 @@
+{
+  "id": "frogbot",
+  "name": "FrogBot",
+  "description": "FrogBot models",
+  "api_key_env": "FROGBOT_API_KEY",
+  "api_base_url": "https://app.frogbot.ai/api/v1",
+  "models": {
+    "minimax-m2-5": {
+      "id": "minimax-m2-5",
+      "name": "MiniMax-M2.5",
+      "provider": "FrogBot",
+      "context_length": 192000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.3,
+        "output": 1.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "kimi-k2-6": {
+      "id": "kimi-k2-6",
+      "name": "Kimi-K2.6",
+      "provider": "FrogBot",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.95,
+        "output": 4.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "zai-glm-5-1": {
+      "id": "zai-glm-5-1",
+      "name": "Z.AI GLM-5.1",
+      "provider": "FrogBot",
+      "context_length": 198000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 1.4,
+        "output": 4.4,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "grok-code-fast-1": {
+      "id": "grok-code-fast-1",
+      "name": "Grok 4.1 Fast (Reasoning)",
+      "provider": "FrogBot",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.2,
+        "output": 1.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "gemini-2.5-pro": {
+      "id": "gemini-2.5-pro",
+      "name": "Gemini 2.5 Pro",
+      "provider": "FrogBot",
+      "context_length": 1048576,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 1.25,
+        "output": 10.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "gemini-2.5-flash": {
+      "id": "gemini-2.5-flash",
+      "name": "Gemini 2.5 Flash",
+      "provider": "FrogBot",
+      "context_length": 1048576,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.3,
+        "output": 2.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "gpt-4o": {
+      "id": "gpt-4o",
+      "name": "GPT-4o",
+      "provider": "FrogBot",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 2.5,
+        "output": 10.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "qwen-3-6-plus": {
+      "id": "qwen-3-6-plus",
+      "name": "Qwen 3.6 Plus",
+      "provider": "FrogBot",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.5,
+        "output": 3.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "grok-4-3": {
+      "id": "grok-4-3",
+      "name": "Grok 4.3",
+      "provider": "FrogBot",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.25,
+        "output": 2.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "deepseek-v4-pro": {
+      "id": "deepseek-v4-pro",
+      "name": "DeepSeek v4 Pro",
+      "provider": "FrogBot",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 1.74,
+        "output": 3.48,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "claude-opus-4-7": {
+      "id": "claude-opus-4-7",
+      "name": "Claude Opus 4.7",
+      "provider": "FrogBot",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 5.0,
+        "output": 25.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": false
+    },
+    "grok-4-1-fast-non-reasoning": {
+      "id": "grok-4-1-fast-non-reasoning",
+      "name": "Grok 4.1 Fast (Non-Reasoning)",
+      "provider": "FrogBot",
+      "context_length": 2000000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.2,
+        "output": 0.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "minimax-m2-7": {
+      "id": "minimax-m2-7",
+      "name": "MiniMax-M2.7",
+      "provider": "FrogBot",
+      "context_length": 192000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.3,
+        "output": 1.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "gpt-5-3-codex": {
+      "id": "gpt-5-3-codex",
+      "name": "GPT-5.3 Codex",
+      "provider": "FrogBot",
+      "context_length": 400000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.75,
+        "output": 14.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": false
+    },
+    "gpt-5-4-nano": {
+      "id": "gpt-5-4-nano",
+      "name": "GPT-5.4 Nano",
+      "provider": "FrogBot",
+      "context_length": 400000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.2,
+        "output": 1.25,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": false
+    },
+    "gpt-5-4-mini": {
+      "id": "gpt-5-4-mini",
+      "name": "GPT-5.4 Mini",
+      "provider": "FrogBot",
+      "context_length": 400000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.75,
+        "output": 4.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": false
+    },
+    "kimi-k2.5": {
+      "id": "kimi-k2.5",
+      "name": "Kimi-K2.5",
+      "provider": "FrogBot",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.6,
+        "output": 3.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "gpt-oss-120b": {
+      "id": "gpt-oss-120b",
+      "name": "GPT OSS 120B",
+      "provider": "FrogBot",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.15,
+        "output": 0.6,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "gpt-5-5": {
+      "id": "gpt-5-5",
+      "name": "GPT-5.5",
+      "provider": "FrogBot",
+      "context_length": 272000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 2.5,
+        "output": 15.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": false
+    },
+    "claude-haiku-4-5": {
+      "id": "claude-haiku-4-5",
+      "name": "Claude Haiku 4.5",
+      "provider": "FrogBot",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.0,
+        "output": 5.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "claude-opus-4-6": {
+      "id": "claude-opus-4-6",
+      "name": "Claude Opus 4.6",
+      "provider": "FrogBot",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 5.0,
+        "output": 25.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "gemini-3-1-pro-preview": {
+      "id": "gemini-3-1-pro-preview",
+      "name": "Gemini 3.1 Pro Preview",
+      "provider": "FrogBot",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 2.0,
+        "output": 12.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "grok-4-1-fast-reasoning": {
+      "id": "grok-4-1-fast-reasoning",
+      "name": "Grok 4.1 Fast (Reasoning)",
+      "provider": "FrogBot",
+      "context_length": 2000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.2,
+        "output": 0.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "claude-sonnet-4-6": {
+      "id": "claude-sonnet-4-6",
+      "name": "Claude Sonnet 4.6",
+      "provider": "FrogBot",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 3.0,
+        "output": 15.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "gemini-3-flash-preview": {
+      "id": "gemini-3-flash-preview",
+      "name": "Gemini 3 Flash Preview",
+      "provider": "FrogBot",
+      "context_length": 1048576,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.5,
+        "output": 3.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "gpt-oss-20b": {
+      "id": "gpt-oss-20b",
+      "name": "GPT OSS 20B",
+      "provider": "FrogBot",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.07,
+        "output": 0.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    }
+  }
+}

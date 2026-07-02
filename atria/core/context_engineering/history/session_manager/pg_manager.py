@@ -88,6 +88,10 @@ class PgSessionManager:
             mode=channel[:10],
             working_directory=working_directory,
         )
+        # Map channel conversations (channel+user+thread -> conversation) so repeat
+        # messages from the same chat reuse this session. Skipped for cli/web.
+        if channel_user_id:
+            await self._upsert_channel_mapping(channel, channel_user_id, thread_id, conv_id)
         session = Session(
             id=str(conv_id),
             working_directory=working_directory or self._working_directory,
@@ -355,10 +359,71 @@ class PgSessionManager:
         session = await self.load_session(session_id)
         return session.messages
 
+    async def _upsert_channel_mapping(
+        self, channel: str, channel_user_id: str, thread_id: Optional[str], conv_id: int
+    ) -> None:
+        """Insert/update the (channel, user, thread) -> conversation mapping."""
+        from atria.db.models import ChannelSession
+
+        sm = await get_sessionmaker()
+        tid = thread_id or ""
+        async with sm() as db:
+            existing = await db.execute(
+                select(ChannelSession).where(
+                    ChannelSession.channel == channel,
+                    ChannelSession.channel_user_id == channel_user_id,
+                    ChannelSession.thread_id == tid,
+                )
+            )
+            row = existing.scalar_one_or_none()
+            if row is not None:
+                row.conversation_id = conv_id
+                row.updated_at = func.now()
+            else:
+                db.add(
+                    ChannelSession(
+                        channel=channel,
+                        channel_user_id=channel_user_id,
+                        thread_id=tid,
+                        conversation_id=conv_id,
+                    )
+                )
+            await db.commit()
+
     async def find_session_by_channel_user(
         self, channel: str, user_id: str, thread_id: Optional[str] = None
     ) -> Optional[SessionMetadata]:
-        return None
+        from atria.db.models import ChannelSession
+
+        sm = await get_sessionmaker()
+        tid = thread_id or ""
+        async with sm() as db:
+            res = await db.execute(
+                select(ChannelSession.conversation_id).where(
+                    ChannelSession.channel == channel,
+                    ChannelSession.channel_user_id == user_id,
+                    ChannelSession.thread_id == tid,
+                )
+            )
+            conv_id = res.scalar_one_or_none()
+        if conv_id is None:
+            return None
+        conv_repo, _ = await self._get_repos()
+        row = await conv_repo.get_by_id(conv_id)
+        if row is None or row.get("is_deleted"):
+            return None
+        return SessionMetadata(
+            id=str(conv_id),
+            created_at=row["created_at"],
+            updated_at=row["updated_at"] or row["created_at"],
+            message_count=0,
+            total_tokens=0,
+            title=row.get("title"),
+            channel=channel,
+            channel_user_id=user_id,
+            thread_id=thread_id,
+            working_directory=row.get("working_directory"),
+        )
 
     async def list_user_workspaces(self) -> list[str]:
         return []

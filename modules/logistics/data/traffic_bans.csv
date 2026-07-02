@@ -1,0 +1,7 @@
+zone,comparator,weight_threshold_t,ban_windows,allowed_windows,notes
+Nội thành HCM,gt,2.5,06:00-22:00,,Xe lớn chỉ giao đêm trong nội thành. Vùng rìa (Củ Chi Hóc Môn Bình Chánh Bình Tân) giao OK nhưng phải check đường trước khi nhận.
+Nội thành HCM,le,2.5,06:00-09:00;16:00-20:00,,Xe từ 2.5T trở xuống bị cấm vào nội thành 2 khung giờ.
+KCN Tân Bình,gt,2.5,,09:00-16:00,Xe lớn vô được 9-16h; sau 16h bị cấm tới 22h.
+An Lạc,gt,2.5,,09:00-16:00,Xe lớn vô được 9-16h; sau 16h bị cấm tới 18h.
+Nội thành Biên Hoà,gt,5,06:00-22:00,,Cấm xe >5T từ 6-22h. Xe 5T mà TTĐK >5T thì không vô được - note dùng xe TTĐK 4.9T cho đơn 5T.
+Nội thành Biên Hoà,gt,2,06:00-08:00;11:00-13:00;16:00-22:00,,Xe >2T bị cấm 6-8h 11-13h và 16-22h.

@@ -12,6 +12,7 @@ from typing import Dict, List
 from atria.core.modules import store
 from atria.core.modules.deps import install_module_deps
 from atria.core.modules.store import Module, ModuleNotFound
+from atria.core.paths import atria_dir
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,7 @@ def resolve_modules_root() -> Path:
     cwd_project = Path.cwd() / ".atria"
     if cwd_project.is_dir():
         return (cwd_project / "modules").resolve()
-    return (Path.home() / ".atria" / "modules").resolve()
+    return (atria_dir() / "modules").resolve()
 
 
 class ModuleRegistry:

@@ -1,0 +1,278 @@
+{
+  "id": "scaleway",
+  "name": "Scaleway",
+  "description": "Scaleway models",
+  "api_key_env": "SCALEWAY_API_KEY",
+  "api_base_url": "https://api.scaleway.ai/v1",
+  "models": {
+    "qwen3-235b-a22b-instruct-2507": {
+      "id": "qwen3-235b-a22b-instruct-2507",
+      "name": "Qwen3 235B A22B Instruct 2507",
+      "provider": "Scaleway",
+      "context_length": 260000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.75,
+        "output": 2.25,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "qwen3-coder-30b-a3b-instruct": {
+      "id": "qwen3-coder-30b-a3b-instruct",
+      "name": "Qwen3-Coder 30B-A3B Instruct",
+      "provider": "Scaleway",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.2,
+        "output": 0.8,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "qwen3-embedding-8b": {
+      "id": "qwen3-embedding-8b",
+      "name": "Qwen3 Embedding 8B",
+      "provider": "Scaleway",
+      "context_length": 32768,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.1,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": false
+    },
+    "bge-multilingual-gemma2": {
+      "id": "bge-multilingual-gemma2",
+      "name": "BGE Multilingual Gemma2",
+      "provider": "Scaleway",
+      "context_length": 8191,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.1,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 3072,
+      "supports_temperature": false
+    },
+    "qwen3.6-35b-a3b": {
+      "id": "qwen3.6-35b-a3b",
+      "name": "Qwen3.6 35B A3B",
+      "provider": "Scaleway",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.25,
+        "output": 1.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "llama-3.3-70b-instruct": {
+      "id": "llama-3.3-70b-instruct",
+      "name": "Llama-3.3-70B-Instruct",
+      "provider": "Scaleway",
+      "context_length": 100000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.9,
+        "output": 0.9,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "pixtral-12b-2409": {
+      "id": "pixtral-12b-2409",
+      "name": "Pixtral 12B 2409",
+      "provider": "Scaleway",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.2,
+        "output": 0.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "mistral-small-3.2-24b-instruct-2506": {
+      "id": "mistral-small-3.2-24b-instruct-2506",
+      "name": "Mistral Small 3.2 24B Instruct (2506)",
+      "provider": "Scaleway",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.15,
+        "output": 0.35,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "gpt-oss-120b": {
+      "id": "gpt-oss-120b",
+      "name": "GPT-OSS 120B",
+      "provider": "Scaleway",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.15,
+        "output": 0.6,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "gemma-4-26b-a4b-it": {
+      "id": "gemma-4-26b-a4b-it",
+      "name": "Gemma 4 26B A4B IT",
+      "provider": "Scaleway",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.25,
+        "output": 0.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "mistral-medium-3.5-128b": {
+      "id": "mistral-medium-3.5-128b",
+      "name": "Mistral Medium 3.5 128B",
+      "provider": "Scaleway",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.5,
+        "output": 7.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "qwen3.5-397b-a17b": {
+      "id": "qwen3.5-397b-a17b",
+      "name": "Qwen3.5 397B A17B",
+      "provider": "Scaleway",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.6,
+        "output": 3.6,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "gemma-3-27b-it": {
+      "id": "gemma-3-27b-it",
+      "name": "Gemma-3-27B-IT",
+      "provider": "Scaleway",
+      "context_length": 40000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.25,
+        "output": 0.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "voxtral-small-24b-2507": {
+      "id": "voxtral-small-24b-2507",
+      "name": "Voxtral Small 24B 2507",
+      "provider": "Scaleway",
+      "context_length": 32000,
+      "capabilities": [
+        "text",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.15,
+        "output": 0.35,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "devstral-2-123b-instruct-2512": {
+      "id": "devstral-2-123b-instruct-2512",
+      "name": "Devstral 2 123B Instruct (2512)",
+      "provider": "Scaleway",
+      "context_length": 256000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.4,
+        "output": 2.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    }
+  }
+}

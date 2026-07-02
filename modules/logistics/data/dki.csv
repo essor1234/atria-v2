@@ -1,0 +1,6 @@
+vehicle_number,driver_name,phone,national_id,license_id,weight_class,brand,ttdk_capacity,status
+51C-123.45,Nguyễn Văn An,0901234567,079090001234,B2-0011,5T,ISUZU,4.9,free
+51C-234.56,Trần Văn Bình,0902345678,079090002345,C-0022,3.5T,VINHPHAT,1.9,free
+51C-345.67,Lê Văn Cường,0903456789,079090003456,FC-0033,8T,HINO,7.8,returning
+51C-456.78,Phạm Văn Dũng,0904567890,079090004567,FC-0044,15T,ISUZU,14.5,free
+51C-567.89,Hoàng Văn Em,0905678901,079090005678,B2-0055,2T,THACO,1.9,busy

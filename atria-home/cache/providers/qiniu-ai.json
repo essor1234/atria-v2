@@ -1,0 +1,1669 @@
+{
+  "id": "qiniu-ai",
+  "name": "Qiniu",
+  "description": "Qiniu models",
+  "api_key_env": "QINIU_API_KEY",
+  "api_base_url": "https://api.qnaigc.com/v1",
+  "models": {
+    "deepseek-r1-0528": {
+      "id": "deepseek-r1-0528",
+      "name": "DeepSeek-R1-0528",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "doubao-1.5-thinking-pro": {
+      "id": "doubao-1.5-thinking-pro",
+      "name": "Doubao 1.5 Thinking Pro",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16000,
+      "supports_temperature": true
+    },
+    "qwen3-vl-30b-a3b-thinking": {
+      "id": "qwen3-vl-30b-a3b-thinking",
+      "name": "Qwen3-Vl 30b A3b Thinking",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "claude-3.5-haiku": {
+      "id": "claude-3.5-haiku",
+      "name": "Claude 3.5 Haiku",
+      "provider": "Qiniu",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "deepseek-v3-0324": {
+      "id": "deepseek-v3-0324",
+      "name": "DeepSeek-V3-0324",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16000,
+      "supports_temperature": true
+    },
+    "qwen3-235b-a22b-instruct-2507": {
+      "id": "qwen3-235b-a22b-instruct-2507",
+      "name": "Qwen3 235b A22B Instruct 2507",
+      "provider": "Qiniu",
+      "context_length": 262144,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "deepseek-v3": {
+      "id": "deepseek-v3",
+      "name": "DeepSeek-V3",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16000,
+      "supports_temperature": true
+    },
+    "kimi-k2": {
+      "id": "kimi-k2",
+      "name": "Kimi K2",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "qwen3-32b": {
+      "id": "qwen3-32b",
+      "name": "Qwen3 32B",
+      "provider": "Qiniu",
+      "context_length": 40000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "qwen3-max-preview": {
+      "id": "qwen3-max-preview",
+      "name": "Qwen3 Max Preview",
+      "provider": "Qiniu",
+      "context_length": 256000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "claude-3.5-sonnet": {
+      "id": "claude-3.5-sonnet",
+      "name": "Claude 3.5 Sonnet",
+      "provider": "Qiniu",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8200,
+      "supports_temperature": true
+    },
+    "qwen3-next-80b-a3b-instruct": {
+      "id": "qwen3-next-80b-a3b-instruct",
+      "name": "Qwen3 Next 80B A3B Instruct",
+      "provider": "Qiniu",
+      "context_length": 131072,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "gemini-2.5-pro": {
+      "id": "gemini-2.5-pro",
+      "name": "Gemini 2.5 Pro",
+      "provider": "Qiniu",
+      "context_length": 1048576,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "claude-4.5-haiku": {
+      "id": "claude-4.5-haiku",
+      "name": "Claude 4.5 Haiku",
+      "provider": "Qiniu",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "kling-v2-6": {
+      "id": "kling-v2-6",
+      "name": "Kling-V2 6",
+      "provider": "Qiniu",
+      "context_length": 99999999,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 99999999,
+      "supports_temperature": true
+    },
+    "glm-4.5": {
+      "id": "glm-4.5",
+      "name": "GLM 4.5",
+      "provider": "Qiniu",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 98304,
+      "supports_temperature": true
+    },
+    "claude-4.1-opus": {
+      "id": "claude-4.1-opus",
+      "name": "Claude 4.1 Opus",
+      "provider": "Qiniu",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "gemini-2.5-flash": {
+      "id": "gemini-2.5-flash",
+      "name": "Gemini 2.5 Flash",
+      "provider": "Qiniu",
+      "context_length": 1048576,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "qwen3-max": {
+      "id": "qwen3-max",
+      "name": "Qwen3 Max",
+      "provider": "Qiniu",
+      "context_length": 262144,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "doubao-seed-2.0-pro": {
+      "id": "doubao-seed-2.0-pro",
+      "name": "Doubao Seed 2.0 Pro",
+      "provider": "Qiniu",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "doubao-seed-1.6": {
+      "id": "doubao-seed-1.6",
+      "name": "Doubao-Seed 1.6",
+      "provider": "Qiniu",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "doubao-seed-1.6-thinking": {
+      "id": "doubao-seed-1.6-thinking",
+      "name": "Doubao-Seed 1.6 Thinking",
+      "provider": "Qiniu",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "gemini-2.0-flash": {
+      "id": "gemini-2.0-flash",
+      "name": "Gemini 2.0 Flash",
+      "provider": "Qiniu",
+      "context_length": 1048576,
+      "capabilities": [
+        "text",
+        "vision",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "qwen-max-2025-01-25": {
+      "id": "qwen-max-2025-01-25",
+      "name": "Qwen2.5-Max-2025-01-25",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "claude-4.0-sonnet": {
+      "id": "claude-4.0-sonnet",
+      "name": "Claude 4.0 Sonnet",
+      "provider": "Qiniu",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "doubao-1.5-pro-32k": {
+      "id": "doubao-1.5-pro-32k",
+      "name": "Doubao 1.5 Pro 32k",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 12000,
+      "supports_temperature": true
+    },
+    "qwen3-30b-a3b-instruct-2507": {
+      "id": "qwen3-30b-a3b-instruct-2507",
+      "name": "Qwen3 30b A3b Instruct 2507",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "qwen3-next-80b-a3b-thinking": {
+      "id": "qwen3-next-80b-a3b-thinking",
+      "name": "Qwen3 Next 80B A3B Thinking",
+      "provider": "Qiniu",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "qwen3-235b-a22b-thinking-2507": {
+      "id": "qwen3-235b-a22b-thinking-2507",
+      "name": "Qwen3 235B A22B Thinking 2507",
+      "provider": "Qiniu",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "deepseek-r1": {
+      "id": "deepseek-r1",
+      "name": "DeepSeek-R1",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "doubao-1.5-vision-pro": {
+      "id": "doubao-1.5-vision-pro",
+      "name": "Doubao 1.5 Vision Pro",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16000,
+      "supports_temperature": true
+    },
+    "gemini-3.0-pro-image-preview": {
+      "id": "gemini-3.0-pro-image-preview",
+      "name": "Gemini 3.0 Pro Image Preview",
+      "provider": "Qiniu",
+      "context_length": 32768,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "gemini-2.5-flash-image": {
+      "id": "gemini-2.5-flash-image",
+      "name": "Gemini 2.5 Flash Image",
+      "provider": "Qiniu",
+      "context_length": 32768,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "gemini-2.5-flash-lite": {
+      "id": "gemini-2.5-flash-lite",
+      "name": "Gemini 2.5 Flash Lite",
+      "provider": "Qiniu",
+      "context_length": 1048576,
+      "capabilities": [
+        "text",
+        "vision",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "claude-3.7-sonnet": {
+      "id": "claude-3.7-sonnet",
+      "name": "Claude 3.7 Sonnet",
+      "provider": "Qiniu",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "qwen3-30b-a3b-thinking-2507": {
+      "id": "qwen3-30b-a3b-thinking-2507",
+      "name": "Qwen3 30b A3b Thinking 2507",
+      "provider": "Qiniu",
+      "context_length": 126000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "qwen2.5-vl-72b-instruct": {
+      "id": "qwen2.5-vl-72b-instruct",
+      "name": "Qwen 2.5 VL 72B Instruct",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "gpt-oss-120b": {
+      "id": "gpt-oss-120b",
+      "name": "gpt-oss-120b",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "doubao-seed-1.6-flash": {
+      "id": "doubao-seed-1.6-flash",
+      "name": "Doubao-Seed 1.6 Flash",
+      "provider": "Qiniu",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "deepseek-v3.1": {
+      "id": "deepseek-v3.1",
+      "name": "DeepSeek-V3.1",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "qwen3-235b-a22b": {
+      "id": "qwen3-235b-a22b",
+      "name": "Qwen 3 235B A22B",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "qwen3-coder-480b-a35b-instruct": {
+      "id": "qwen3-coder-480b-a35b-instruct",
+      "name": "Qwen3 Coder 480B A35B Instruct",
+      "provider": "Qiniu",
+      "context_length": 262000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "qwen3.5-397b-a17b": {
+      "id": "qwen3.5-397b-a17b",
+      "name": "Qwen3.5 397B A17B",
+      "provider": "Qiniu",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "mimo-v2-flash": {
+      "id": "mimo-v2-flash",
+      "name": "Mimo-V2-Flash",
+      "provider": "Qiniu",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.1,
+        "output": 0.3,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 256000,
+      "supports_temperature": true
+    },
+    "qwen-vl-max-2025-01-25": {
+      "id": "qwen-vl-max-2025-01-25",
+      "name": "Qwen VL-MAX-2025-01-25",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "qwen2.5-vl-7b-instruct": {
+      "id": "qwen2.5-vl-7b-instruct",
+      "name": "Qwen 2.5 VL 7B Instruct",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "glm-4.5-air": {
+      "id": "glm-4.5-air",
+      "name": "GLM 4.5 Air",
+      "provider": "Qiniu",
+      "context_length": 131000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "claude-4.5-opus": {
+      "id": "claude-4.5-opus",
+      "name": "Claude 4.5 Opus",
+      "provider": "Qiniu",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 200000,
+      "supports_temperature": true
+    },
+    "gemini-3.0-pro-preview": {
+      "id": "gemini-3.0-pro-preview",
+      "name": "Gemini 3.0 Pro Preview",
+      "provider": "Qiniu",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "doubao-seed-2.0-mini": {
+      "id": "doubao-seed-2.0-mini",
+      "name": "Doubao Seed 2.0 Mini",
+      "provider": "Qiniu",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "claude-4.0-opus": {
+      "id": "claude-4.0-opus",
+      "name": "Claude 4.0 Opus",
+      "provider": "Qiniu",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "gpt-oss-20b": {
+      "id": "gpt-oss-20b",
+      "name": "gpt-oss-20b",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "gemini-3.0-flash-preview": {
+      "id": "gemini-3.0-flash-preview",
+      "name": "Gemini 3.0 Flash Preview",
+      "provider": "Qiniu",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "MiniMax-M1": {
+      "id": "MiniMax-M1",
+      "name": "MiniMax M1",
+      "provider": "Qiniu",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 80000,
+      "supports_temperature": true
+    },
+    "qwen-turbo": {
+      "id": "qwen-turbo",
+      "name": "Qwen-Turbo",
+      "provider": "Qiniu",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "qwen3-30b-a3b": {
+      "id": "qwen3-30b-a3b",
+      "name": "Qwen3 30B A3B",
+      "provider": "Qiniu",
+      "context_length": 40000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "claude-4.5-sonnet": {
+      "id": "claude-4.5-sonnet",
+      "name": "Claude 4.5 Sonnet",
+      "provider": "Qiniu",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "doubao-seed-2.0-lite": {
+      "id": "doubao-seed-2.0-lite",
+      "name": "Doubao Seed 2.0 Lite",
+      "provider": "Qiniu",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "gemini-2.0-flash-lite": {
+      "id": "gemini-2.0-flash-lite",
+      "name": "Gemini 2.0 Flash Lite",
+      "provider": "Qiniu",
+      "context_length": 1048576,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "doubao-seed-2.0-code": {
+      "id": "doubao-seed-2.0-code",
+      "name": "Doubao Seed 2.0 Code",
+      "provider": "Qiniu",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "moonshotai/kimi-k2-thinking": {
+      "id": "moonshotai/kimi-k2-thinking",
+      "name": "Kimi K2 Thinking",
+      "provider": "Qiniu",
+      "context_length": 256000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 100000,
+      "supports_temperature": true
+    },
+    "moonshotai/kimi-k2.5": {
+      "id": "moonshotai/kimi-k2.5",
+      "name": "Moonshotai/Kimi-K2.5",
+      "provider": "Qiniu",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 256000,
+      "supports_temperature": true
+    },
+    "moonshotai/kimi-k2-0905": {
+      "id": "moonshotai/kimi-k2-0905",
+      "name": "Kimi K2 0905",
+      "provider": "Qiniu",
+      "context_length": 256000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 100000,
+      "supports_temperature": true
+    },
+    "stepfun-ai/gelab-zero-4b-preview": {
+      "id": "stepfun-ai/gelab-zero-4b-preview",
+      "name": "Stepfun-Ai/Gelab Zero 4b Preview",
+      "provider": "Qiniu",
+      "context_length": 8192,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "x-ai/grok-code-fast-1": {
+      "id": "x-ai/grok-code-fast-1",
+      "name": "x-AI/Grok-Code-Fast 1",
+      "provider": "Qiniu",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 10000,
+      "supports_temperature": true
+    },
+    "x-ai/grok-4.1-fast-reasoning": {
+      "id": "x-ai/grok-4.1-fast-reasoning",
+      "name": "X-Ai/Grok 4.1 Fast Reasoning",
+      "provider": "Qiniu",
+      "context_length": 20000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 2000000,
+      "supports_temperature": true
+    },
+    "x-ai/grok-4.1-fast-non-reasoning": {
+      "id": "x-ai/grok-4.1-fast-non-reasoning",
+      "name": "X-Ai/Grok 4.1 Fast Non Reasoning",
+      "provider": "Qiniu",
+      "context_length": 2000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 2000000,
+      "supports_temperature": true
+    },
+    "x-ai/grok-4-fast-reasoning": {
+      "id": "x-ai/grok-4-fast-reasoning",
+      "name": "X-Ai/Grok-4-Fast-Reasoning",
+      "provider": "Qiniu",
+      "context_length": 2000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 2000000,
+      "supports_temperature": true
+    },
+    "x-ai/grok-4-fast": {
+      "id": "x-ai/grok-4-fast",
+      "name": "x-AI/Grok-4-Fast",
+      "provider": "Qiniu",
+      "context_length": 2000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 2000000,
+      "supports_temperature": true
+    },
+    "x-ai/grok-4-fast-non-reasoning": {
+      "id": "x-ai/grok-4-fast-non-reasoning",
+      "name": "X-Ai/Grok-4-Fast-Non-Reasoning",
+      "provider": "Qiniu",
+      "context_length": 2000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 2000000,
+      "supports_temperature": true
+    },
+    "x-ai/grok-4.1-fast": {
+      "id": "x-ai/grok-4.1-fast",
+      "name": "x-AI/Grok-4.1-Fast",
+      "provider": "Qiniu",
+      "context_length": 2000000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 2000000,
+      "supports_temperature": true
+    },
+    "z-ai/autoglm-phone-9b": {
+      "id": "z-ai/autoglm-phone-9b",
+      "name": "Z-Ai/Autoglm Phone 9b",
+      "provider": "Qiniu",
+      "context_length": 12800,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "z-ai/glm-4.7": {
+      "id": "z-ai/glm-4.7",
+      "name": "Z-Ai/GLM 4.7",
+      "provider": "Qiniu",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 200000,
+      "supports_temperature": true
+    },
+    "z-ai/glm-4.6": {
+      "id": "z-ai/glm-4.6",
+      "name": "Z-AI/GLM 4.6",
+      "provider": "Qiniu",
+      "context_length": 200000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 200000,
+      "supports_temperature": true
+    },
+    "z-ai/glm-5": {
+      "id": "z-ai/glm-5",
+      "name": "Z-Ai/GLM 5",
+      "provider": "Qiniu",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "openai/gpt-5": {
+      "id": "openai/gpt-5",
+      "name": "OpenAI/GPT-5",
+      "provider": "Qiniu",
+      "context_length": 400000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "openai/gpt-5.2": {
+      "id": "openai/gpt-5.2",
+      "name": "OpenAI/GPT-5.2",
+      "provider": "Qiniu",
+      "context_length": 400000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "xiaomi/mimo-v2-flash": {
+      "id": "xiaomi/mimo-v2-flash",
+      "name": "Xiaomi/Mimo-V2-Flash",
+      "provider": "Qiniu",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.1,
+        "output": 0.3,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 256000,
+      "supports_temperature": true
+    },
+    "stepfun/step-3.5-flash": {
+      "id": "stepfun/step-3.5-flash",
+      "name": "Stepfun/Step-3.5 Flash",
+      "provider": "Qiniu",
+      "context_length": 64000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "meituan/longcat-flash-lite": {
+      "id": "meituan/longcat-flash-lite",
+      "name": "Meituan/Longcat-Flash-Lite",
+      "provider": "Qiniu",
+      "context_length": 256000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 320000,
+      "supports_temperature": true
+    },
+    "meituan/longcat-flash-chat": {
+      "id": "meituan/longcat-flash-chat",
+      "name": "Meituan/Longcat-Flash-Chat",
+      "provider": "Qiniu",
+      "context_length": 131072,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "deepseek/deepseek-v3.1-terminus": {
+      "id": "deepseek/deepseek-v3.1-terminus",
+      "name": "DeepSeek/DeepSeek-V3.1-Terminus",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "deepseek/deepseek-v3.1-terminus-thinking": {
+      "id": "deepseek/deepseek-v3.1-terminus-thinking",
+      "name": "DeepSeek/DeepSeek-V3.1-Terminus-Thinking",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "deepseek/deepseek-v3.2-exp-thinking": {
+      "id": "deepseek/deepseek-v3.2-exp-thinking",
+      "name": "DeepSeek/DeepSeek-V3.2-Exp-Thinking",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "deepseek/deepseek-v3.2-exp": {
+      "id": "deepseek/deepseek-v3.2-exp",
+      "name": "DeepSeek/DeepSeek-V3.2-Exp",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "deepseek/deepseek-v3.2-251201": {
+      "id": "deepseek/deepseek-v3.2-251201",
+      "name": "Deepseek/DeepSeek-V3.2",
+      "provider": "Qiniu",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "deepseek/deepseek-math-v2": {
+      "id": "deepseek/deepseek-math-v2",
+      "name": "Deepseek/Deepseek-Math-V2",
+      "provider": "Qiniu",
+      "context_length": 160000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 160000,
+      "supports_temperature": true
+    },
+    "minimax/minimax-m2.5": {
+      "id": "minimax/minimax-m2.5",
+      "name": "Minimax/Minimax-M2.5",
+      "provider": "Qiniu",
+      "context_length": 204800,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "minimax/minimax-m2.1": {
+      "id": "minimax/minimax-m2.1",
+      "name": "Minimax/Minimax-M2.1",
+      "provider": "Qiniu",
+      "context_length": 204800,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "minimax/minimax-m2": {
+      "id": "minimax/minimax-m2",
+      "name": "Minimax/Minimax-M2",
+      "provider": "Qiniu",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "minimax/minimax-m2.5-highspeed": {
+      "id": "minimax/minimax-m2.5-highspeed",
+      "name": "Minimax/Minimax-M2.5 Highspeed",
+      "provider": "Qiniu",
+      "context_length": 204800,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    }
+  }
+}

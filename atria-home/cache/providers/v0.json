@@ -1,0 +1,66 @@
+{
+  "id": "v0",
+  "name": "v0",
+  "description": "v0 models",
+  "api_key_env": "V0_API_KEY",
+  "api_base_url": "",
+  "models": {
+    "v0-1.0-md": {
+      "id": "v0-1.0-md",
+      "name": "v0-1.0-md",
+      "provider": "v0",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 3.0,
+        "output": 15.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "v0-1.5-lg": {
+      "id": "v0-1.5-lg",
+      "name": "v0-1.5-lg",
+      "provider": "v0",
+      "context_length": 512000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 15.0,
+        "output": 75.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "v0-1.5-md": {
+      "id": "v0-1.5-md",
+      "name": "v0-1.5-md",
+      "provider": "v0",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 3.0,
+        "output": 15.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    }
+  }
+}

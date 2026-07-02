@@ -1,0 +1,10 @@
+{
+  "display_name": "World Cup",
+  "tooltip": "Explore the World Cup datasets",
+  "icon": "icon.svg",
+  "dashboard": {
+    "title": "World Cup \u00b7 data",
+    "default_height": 720,
+    "badge_color": "info"
+  }
+}

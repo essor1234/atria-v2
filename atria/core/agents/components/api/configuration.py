@@ -71,7 +71,9 @@ def build_temperature_param(model_id: str, temperature: float) -> dict[str, floa
     Returns:
         Dict with {"temperature": value} or empty dict for models that don't support it
     """
-    if _is_reasoning_model(model_id):
+    # Reasoning models (o1/o3/o4/codex) and the GPT-5 family only accept the
+    # default temperature (1); sending a custom value is a 400. Omit it for them.
+    if _is_reasoning_model(model_id) or uses_max_completion_tokens(model_id):
         return {}
 
     from atria.config.models import get_model_registry

@@ -1,0 +1,10 @@
+{
+  "display_name": "Logistics",
+  "tooltip": "Booking xe tải: tra cứu tài xế, chọn xe theo tải/CBM, check cấm tải/cấm giờ",
+  "icon": "icon.svg",
+  "dashboard": {
+    "title": "Logistics · Đội xe & Booking",
+    "default_height": 820,
+    "badge_color": "info"
+  }
+}

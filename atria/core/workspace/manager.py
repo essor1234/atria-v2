@@ -6,6 +6,8 @@ import re
 import unicodedata
 from pathlib import Path
 
+from atria.core.paths import atria_dir
+
 
 def slugify(text: str, max_length: int = 50) -> str:
     """Convert arbitrary text to a filesystem-safe slug."""
@@ -24,7 +26,7 @@ def slugify(text: str, max_length: int = 50) -> str:
 
 
 def workspace_base() -> Path:
-    return Path.home() / ".atria" / "workspaces"
+    return atria_dir() / "workspaces"
 
 
 def project_path(username: str, project_name: str) -> Path:

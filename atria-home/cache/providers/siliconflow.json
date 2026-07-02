@@ -1,0 +1,1234 @@
+{
+  "id": "siliconflow",
+  "name": "SiliconFlow",
+  "description": "SiliconFlow models",
+  "api_key_env": "SILICONFLOW_API_KEY",
+  "api_base_url": "https://api.siliconflow.com/v1",
+  "models": {
+    "moonshotai/Kimi-K2-Thinking": {
+      "id": "moonshotai/Kimi-K2-Thinking",
+      "name": "moonshotai/Kimi-K2-Thinking",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.55,
+        "output": 2.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "moonshotai/Kimi-K2-Instruct-0905": {
+      "id": "moonshotai/Kimi-K2-Instruct-0905",
+      "name": "moonshotai/Kimi-K2-Instruct-0905",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.4,
+        "output": 2.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "moonshotai/Kimi-K2-Instruct": {
+      "id": "moonshotai/Kimi-K2-Instruct",
+      "name": "moonshotai/Kimi-K2-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.58,
+        "output": 2.29,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131000,
+      "supports_temperature": true
+    },
+    "moonshotai/Kimi-K2.6": {
+      "id": "moonshotai/Kimi-K2.6",
+      "name": "moonshotai/Kimi-K2.6",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.77,
+        "output": 4.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "moonshotai/Kimi-K2.5": {
+      "id": "moonshotai/Kimi-K2.5",
+      "name": "moonshotai/Kimi-K2.5",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.45,
+        "output": 2.25,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "baidu/ERNIE-4.5-300B-A47B": {
+      "id": "baidu/ERNIE-4.5-300B-A47B",
+      "name": "baidu/ERNIE-4.5-300B-A47B",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.28,
+        "output": 1.1,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131000,
+      "supports_temperature": true
+    },
+    "ByteDance-Seed/Seed-OSS-36B-Instruct": {
+      "id": "ByteDance-Seed/Seed-OSS-36B-Instruct",
+      "name": "ByteDance-Seed/Seed-OSS-36B-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.21,
+        "output": 0.57,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "stepfun-ai/Step-3.5-Flash": {
+      "id": "stepfun-ai/Step-3.5-Flash",
+      "name": "stepfun-ai/Step-3.5-Flash",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.1,
+        "output": 0.3,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "google/gemma-4-31B-it": {
+      "id": "google/gemma-4-31B-it",
+      "name": "Gemma 4 31B IT",
+      "provider": "SiliconFlow",
+      "context_length": 262144,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.13,
+        "output": 0.4,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": true
+    },
+    "google/gemma-4-26B-A4B-it": {
+      "id": "google/gemma-4-26B-A4B-it",
+      "name": "Gemma 4 26B A4B IT",
+      "provider": "SiliconFlow",
+      "context_length": 262144,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.12,
+        "output": 0.4,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": true
+    },
+    "inclusionAI/Ling-flash-2.0": {
+      "id": "inclusionAI/Ling-flash-2.0",
+      "name": "inclusionAI/Ling-flash-2.0",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.14,
+        "output": 0.57,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-Omni-30B-A3B-Thinking": {
+      "id": "Qwen/Qwen3-Omni-30B-A3B-Thinking",
+      "name": "Qwen/Qwen3-Omni-30B-A3B-Thinking",
+      "provider": "SiliconFlow",
+      "context_length": 66000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.1,
+        "output": 0.4,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 66000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen2.5-VL-72B-Instruct": {
+      "id": "Qwen/Qwen2.5-VL-72B-Instruct",
+      "name": "Qwen/Qwen2.5-VL-72B-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.59,
+        "output": 0.59,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen2.5-VL-32B-Instruct": {
+      "id": "Qwen/Qwen2.5-VL-32B-Instruct",
+      "name": "Qwen/Qwen2.5-VL-32B-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.27,
+        "output": 0.27,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-30B-A3B-Thinking-2507": {
+      "id": "Qwen/Qwen3-30B-A3B-Thinking-2507",
+      "name": "Qwen/Qwen3-30B-A3B-Thinking-2507",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.09,
+        "output": 0.3,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen2.5-7B-Instruct": {
+      "id": "Qwen/Qwen2.5-7B-Instruct",
+      "name": "Qwen/Qwen2.5-7B-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 33000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.05,
+        "output": 0.05,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-VL-235B-A22B-Instruct": {
+      "id": "Qwen/Qwen3-VL-235B-A22B-Instruct",
+      "name": "Qwen/Qwen3-VL-235B-A22B-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.3,
+        "output": 1.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen2.5-32B-Instruct": {
+      "id": "Qwen/Qwen2.5-32B-Instruct",
+      "name": "Qwen/Qwen2.5-32B-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 33000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.18,
+        "output": 0.18,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-Next-80B-A3B-Instruct": {
+      "id": "Qwen/Qwen3-Next-80B-A3B-Instruct",
+      "name": "Qwen/Qwen3-Next-80B-A3B-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.14,
+        "output": 1.4,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-235B-A22B-Thinking-2507": {
+      "id": "Qwen/Qwen3-235B-A22B-Thinking-2507",
+      "name": "Qwen/Qwen3-235B-A22B-Thinking-2507",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.13,
+        "output": 0.6,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen2.5-72B-Instruct-128K": {
+      "id": "Qwen/Qwen2.5-72B-Instruct-128K",
+      "name": "Qwen/Qwen2.5-72B-Instruct-128K",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.59,
+        "output": 0.59,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-Coder-480B-A35B-Instruct": {
+      "id": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+      "name": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.25,
+        "output": 1.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-Coder-30B-A3B-Instruct": {
+      "id": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
+      "name": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.07,
+        "output": 0.28,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-30B-A3B-Instruct-2507": {
+      "id": "Qwen/Qwen3-30B-A3B-Instruct-2507",
+      "name": "Qwen/Qwen3-30B-A3B-Instruct-2507",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.09,
+        "output": 0.3,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-VL-30B-A3B-Thinking": {
+      "id": "Qwen/Qwen3-VL-30B-A3B-Thinking",
+      "name": "Qwen/Qwen3-VL-30B-A3B-Thinking",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.29,
+        "output": 1.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-VL-8B-Thinking": {
+      "id": "Qwen/Qwen3-VL-8B-Thinking",
+      "name": "Qwen/Qwen3-VL-8B-Thinking",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.18,
+        "output": 2.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-VL-8B-Instruct": {
+      "id": "Qwen/Qwen3-VL-8B-Instruct",
+      "name": "Qwen/Qwen3-VL-8B-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.18,
+        "output": 0.68,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "Qwen/QwQ-32B": {
+      "id": "Qwen/QwQ-32B",
+      "name": "Qwen/QwQ-32B",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.15,
+        "output": 0.58,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-VL-235B-A22B-Thinking": {
+      "id": "Qwen/Qwen3-VL-235B-A22B-Thinking",
+      "name": "Qwen/Qwen3-VL-235B-A22B-Thinking",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.45,
+        "output": 3.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-Next-80B-A3B-Thinking": {
+      "id": "Qwen/Qwen3-Next-80B-A3B-Thinking",
+      "name": "Qwen/Qwen3-Next-80B-A3B-Thinking",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.14,
+        "output": 0.57,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen2.5-Coder-32B-Instruct": {
+      "id": "Qwen/Qwen2.5-Coder-32B-Instruct",
+      "name": "Qwen/Qwen2.5-Coder-32B-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 33000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.18,
+        "output": 0.18,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen2.5-VL-7B-Instruct": {
+      "id": "Qwen/Qwen2.5-VL-7B-Instruct",
+      "name": "Qwen/Qwen2.5-VL-7B-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 33000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.05,
+        "output": 0.05,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-8B": {
+      "id": "Qwen/Qwen3-8B",
+      "name": "Qwen/Qwen3-8B",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.06,
+        "output": 0.06,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-235B-A22B-Instruct-2507": {
+      "id": "Qwen/Qwen3-235B-A22B-Instruct-2507",
+      "name": "Qwen/Qwen3-235B-A22B-Instruct-2507",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.09,
+        "output": 0.6,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-32B": {
+      "id": "Qwen/Qwen3-32B",
+      "name": "Qwen/Qwen3-32B",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.14,
+        "output": 0.57,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-VL-32B-Instruct": {
+      "id": "Qwen/Qwen3-VL-32B-Instruct",
+      "name": "Qwen/Qwen3-VL-32B-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.2,
+        "output": 0.6,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen2.5-14B-Instruct": {
+      "id": "Qwen/Qwen2.5-14B-Instruct",
+      "name": "Qwen/Qwen2.5-14B-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 33000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.1,
+        "output": 0.1,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-14B": {
+      "id": "Qwen/Qwen3-14B",
+      "name": "Qwen/Qwen3-14B",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.07,
+        "output": 0.28,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-235B-A22B": {
+      "id": "Qwen/Qwen3-235B-A22B",
+      "name": "Qwen/Qwen3-235B-A22B",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.35,
+        "output": 1.42,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen2.5-72B-Instruct": {
+      "id": "Qwen/Qwen2.5-72B-Instruct",
+      "name": "Qwen/Qwen2.5-72B-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 33000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.59,
+        "output": 0.59,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-Omni-30B-A3B-Instruct": {
+      "id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "name": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 66000,
+      "capabilities": [
+        "text",
+        "vision",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.1,
+        "output": 0.4,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 66000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-VL-30B-A3B-Instruct": {
+      "id": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "name": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.29,
+        "output": 1.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3-VL-32B-Thinking": {
+      "id": "Qwen/Qwen3-VL-32B-Thinking",
+      "name": "Qwen/Qwen3-VL-32B-Thinking",
+      "provider": "SiliconFlow",
+      "context_length": 262000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.2,
+        "output": 1.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    },
+    "openai/gpt-oss-120b": {
+      "id": "openai/gpt-oss-120b",
+      "name": "openai/gpt-oss-120b",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.05,
+        "output": 0.45,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8000,
+      "supports_temperature": true
+    },
+    "openai/gpt-oss-20b": {
+      "id": "openai/gpt-oss-20b",
+      "name": "openai/gpt-oss-20b",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.04,
+        "output": 0.18,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8000,
+      "supports_temperature": true
+    },
+    "tencent/Hy3-preview": {
+      "id": "tencent/Hy3-preview",
+      "name": "Hy3 preview",
+      "provider": "SiliconFlow",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.066,
+        "output": 0.26,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": true
+    },
+    "tencent/Hunyuan-A13B-Instruct": {
+      "id": "tencent/Hunyuan-A13B-Instruct",
+      "name": "tencent/Hunyuan-A13B-Instruct",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.14,
+        "output": 0.57,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131000,
+      "supports_temperature": true
+    },
+    "zai-org/GLM-5V-Turbo": {
+      "id": "zai-org/GLM-5V-Turbo",
+      "name": "zai-org/GLM-5V-Turbo",
+      "provider": "SiliconFlow",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.2,
+        "output": 4.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "zai-org/GLM-4.6": {
+      "id": "zai-org/GLM-4.6",
+      "name": "zai-org/GLM-4.6",
+      "provider": "SiliconFlow",
+      "context_length": 205000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.5,
+        "output": 1.9,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 205000,
+      "supports_temperature": true
+    },
+    "zai-org/GLM-4.6V": {
+      "id": "zai-org/GLM-4.6V",
+      "name": "zai-org/GLM-4.6V",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.3,
+        "output": 0.9,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131000,
+      "supports_temperature": true
+    },
+    "zai-org/GLM-5": {
+      "id": "zai-org/GLM-5",
+      "name": "zai-org/GLM-5",
+      "provider": "SiliconFlow",
+      "context_length": 205000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.95,
+        "output": 2.55,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 205000,
+      "supports_temperature": true
+    },
+    "zai-org/GLM-4.7": {
+      "id": "zai-org/GLM-4.7",
+      "name": "zai-org/GLM-4.7",
+      "provider": "SiliconFlow",
+      "context_length": 205000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.6,
+        "output": 2.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 205000,
+      "supports_temperature": true
+    },
+    "zai-org/GLM-4.5V": {
+      "id": "zai-org/GLM-4.5V",
+      "name": "zai-org/GLM-4.5V",
+      "provider": "SiliconFlow",
+      "context_length": 66000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.14,
+        "output": 0.86,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 66000,
+      "supports_temperature": true
+    },
+    "zai-org/GLM-5.2": {
+      "id": "zai-org/GLM-5.2",
+      "name": "GLM-5.2",
+      "provider": "SiliconFlow",
+      "context_length": 205000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.4,
+        "output": 4.4,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 205000,
+      "supports_temperature": true
+    },
+    "zai-org/GLM-4.5-Air": {
+      "id": "zai-org/GLM-4.5-Air",
+      "name": "zai-org/GLM-4.5-Air",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.14,
+        "output": 0.86,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131000,
+      "supports_temperature": true
+    },
+    "zai-org/GLM-5.1": {
+      "id": "zai-org/GLM-5.1",
+      "name": "zai-org/GLM-5.1",
+      "provider": "SiliconFlow",
+      "context_length": 205000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.4,
+        "output": 4.4,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 205000,
+      "supports_temperature": true
+    },
+    "zai-org/GLM-4.5": {
+      "id": "zai-org/GLM-4.5",
+      "name": "zai-org/GLM-4.5",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.4,
+        "output": 2.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131000,
+      "supports_temperature": true
+    },
+    "deepseek-ai/deepseek-v4-flash": {
+      "id": "deepseek-ai/deepseek-v4-flash",
+      "name": "DeepSeek V4 Flash",
+      "provider": "SiliconFlow",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.14,
+        "output": 0.28,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 384000,
+      "supports_temperature": true
+    },
+    "deepseek-ai/DeepSeek-R1": {
+      "id": "deepseek-ai/DeepSeek-R1",
+      "name": "deepseek-ai/DeepSeek-R1",
+      "provider": "SiliconFlow",
+      "context_length": 164000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.5,
+        "output": 2.18,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 164000,
+      "supports_temperature": true
+    },
+    "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B": {
+      "id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+      "name": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.18,
+        "output": 0.18,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131000,
+      "supports_temperature": true
+    },
+    "deepseek-ai/DeepSeek-V3.1-Terminus": {
+      "id": "deepseek-ai/DeepSeek-V3.1-Terminus",
+      "name": "deepseek-ai/DeepSeek-V3.1-Terminus",
+      "provider": "SiliconFlow",
+      "context_length": 164000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.27,
+        "output": 1.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 164000,
+      "supports_temperature": true
+    },
+    "deepseek-ai/deepseek-v4-pro": {
+      "id": "deepseek-ai/deepseek-v4-pro",
+      "name": "DeepSeek V4 Pro",
+      "provider": "SiliconFlow",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.74,
+        "output": 3.48,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 384000,
+      "supports_temperature": true
+    },
+    "deepseek-ai/DeepSeek-V3.1": {
+      "id": "deepseek-ai/DeepSeek-V3.1",
+      "name": "deepseek-ai/DeepSeek-V3.1",
+      "provider": "SiliconFlow",
+      "context_length": 164000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.27,
+        "output": 1.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 164000,
+      "supports_temperature": true
+    },
+    "deepseek-ai/DeepSeek-V3.2-Exp": {
+      "id": "deepseek-ai/DeepSeek-V3.2-Exp",
+      "name": "deepseek-ai/DeepSeek-V3.2-Exp",
+      "provider": "SiliconFlow",
+      "context_length": 164000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.27,
+        "output": 0.41,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 164000,
+      "supports_temperature": true
+    },
+    "deepseek-ai/deepseek-vl2": {
+      "id": "deepseek-ai/deepseek-vl2",
+      "name": "deepseek-ai/deepseek-vl2",
+      "provider": "SiliconFlow",
+      "context_length": 4000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.15,
+        "output": 0.15,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4000,
+      "supports_temperature": true
+    },
+    "deepseek-ai/DeepSeek-V3.2": {
+      "id": "deepseek-ai/DeepSeek-V3.2",
+      "name": "deepseek-ai/DeepSeek-V3.2",
+      "provider": "SiliconFlow",
+      "context_length": 164000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.27,
+        "output": 0.42,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 164000,
+      "supports_temperature": true
+    },
+    "deepseek-ai/DeepSeek-V3": {
+      "id": "deepseek-ai/DeepSeek-V3",
+      "name": "deepseek-ai/DeepSeek-V3",
+      "provider": "SiliconFlow",
+      "context_length": 164000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.25,
+        "output": 1.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 164000,
+      "supports_temperature": true
+    },
+    "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B": {
+      "id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
+      "name": "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
+      "provider": "SiliconFlow",
+      "context_length": 131000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.1,
+        "output": 0.1,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131000,
+      "supports_temperature": true
+    },
+    "MiniMaxAI/MiniMax-M2.5": {
+      "id": "MiniMaxAI/MiniMax-M2.5",
+      "name": "MiniMaxAI/MiniMax-M2.5",
+      "provider": "SiliconFlow",
+      "context_length": 197000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.3,
+        "output": 1.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131000,
+      "supports_temperature": true
+    }
+  }
+}

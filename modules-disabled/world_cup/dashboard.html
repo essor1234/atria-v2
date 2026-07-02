@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Data</title>
+  <link rel="stylesheet" href="__base.css" />
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 16px; }
+    .kpis { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+    .kpi { border: 1px solid rgba(127,127,127,.25); border-radius: 10px; padding: 10px 14px; min-width: 110px; }
+    .kpi .label { font-size: 11px; opacity: .6; text-transform: uppercase; letter-spacing: .04em; }
+    .kpi .value { font-size: 22px; font-weight: 600; margin-top: 2px; }
+    .controls { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+    select, input { padding: 6px 8px; border: 1px solid rgba(127,127,127,.35); border-radius: 8px; background: transparent; color: inherit; font: inherit; }
+    input { flex: 1; min-width: 160px; }
+    .table-wrap { overflow: auto; border: 1px solid rgba(127,127,127,.2); border-radius: 10px; max-height: 70vh; }
+    table { border-collapse: collapse; width: 100%; font-size: 13px; }
+    th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid rgba(127,127,127,.15); white-space: nowrap; }
+    th { position: sticky; top: 0; background: rgba(127,127,127,.10); cursor: pointer; user-select: none; }
+    th .arrow { opacity: .55; font-size: 10px; }
+    .empty { padding: 24px; opacity: .6; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="kpis">
+    <div class="kpi"><div class="label">Datasets</div><div class="value" id="kpi-datasets">-</div></div>
+    <div class="kpi"><div class="label">Rows</div><div class="value" id="kpi-rows">-</div></div>
+    <div class="kpi"><div class="label">Columns</div><div class="value" id="kpi-cols">-</div></div>
+  </div>
+  <div class="controls">
+    <select id="dataset"></select>
+    <input id="filter" type="text" placeholder="Filter rows..." />
+  </div>
+  <div class="table-wrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+  <div class="empty" id="empty" style="display:none">No data yet. Upload files to this module.</div>
+
+  <script src="__bridge.js"></script>
+  <script>
+  (function () {
+    var datasets = [];
+    var current = null;          // {file, columns, rows}
+    var sortCol = -1, sortDir = 1;
+    function $(id){ return document.getElementById(id); }
+    function resize(){ try { AtriaDash.resize(document.body.scrollHeight + 24); } catch(e){} }
+
+    function renderTable(){
+      var thead = $('thead'), tbody = $('tbody');
+      thead.innerHTML = ''; tbody.innerHTML = '';
+      if (!current || !current.columns || current.columns.length === 0){
+        $('empty').style.display = 'block';
+        $('kpi-rows').textContent = '0'; $('kpi-cols').textContent = '0';
+        resize(); return;
+      }
+      $('empty').style.display = 'none';
+      var trh = document.createElement('tr');
+      current.columns.forEach(function(c, i){
+        var th = document.createElement('th');
+        th.textContent = c;
+        if (i === sortCol){ var a = document.createElement('span'); a.className='arrow'; a.textContent = sortDir>0?' ^':' v'; th.appendChild(a); }
+        th.onclick = function(){ if (sortCol===i){ sortDir=-sortDir; } else { sortCol=i; sortDir=1; } applyView(); };
+        trh.appendChild(th);
+      });
+      thead.appendChild(trh);
+      var rows = current.rows || [];
+      var frag = document.createDocumentFragment();
+      rows.forEach(function(r){
+        var tr = document.createElement('tr');
+        for (var i=0;i<current.columns.length;i++){
+          var td = document.createElement('td');
+          td.textContent = (r[i]==null?'':r[i]);
+          tr.appendChild(td);
+        }
+        frag.appendChild(tr);
+      });
+      tbody.appendChild(frag);
+      $('kpi-rows').textContent = String(rows.length);
+      $('kpi-cols').textContent = String(current.columns.length);
+      resize();
+    }
+
+    function applyView(){
+      if (sortCol >= 0 && current && current.rows){
+        current.rows.sort(function(a,b){
+          var x=(a[sortCol]==null?'':a[sortCol]), y=(b[sortCol]==null?'':b[sortCol]);
+          var nx=parseFloat(x), ny=parseFloat(y);
+          if(!isNaN(nx)&&!isNaN(ny)) return (nx-ny)*sortDir;
+          return String(x).localeCompare(String(y))*sortDir;
+        });
+      }
+      renderTable();
+    }
+
+    function loadDataset(file, filter){
+      var args = filter ? ['query','--file',file,'--filter',filter,'--limit','2000']
+                        : ['preview','--file',file,'--limit','2000'];
+      return AtriaDash.json('data.py', args).then(function(res){
+        current = res; sortCol=-1; sortDir=1; applyView();
+      }).catch(function(){ current={columns:[],rows:[]}; renderTable(); });
+    }
+
+    function refresh(){
+      return AtriaDash.json('data.py', ['list','--json']).then(function(res){
+        datasets = (res && res.datasets) || [];
+        var sel = $('dataset'); var prev = sel.value; sel.innerHTML='';
+        datasets.forEach(function(d){
+          var o=document.createElement('option'); o.value=d.name; o.textContent=d.name+' ('+d.rows+' rows)'; sel.appendChild(o);
+        });
+        $('kpi-datasets').textContent = String(datasets.length);
+        try { AtriaDash.setBadge(datasets.length || null); } catch(e){}
+        if (datasets.length){
+          var pick = datasets.some(function(d){return d.name===prev;}) ? prev : datasets[0].name;
+          sel.value = pick; return loadDataset(pick, $('filter').value.trim());
+        } else { current=null; renderTable(); }
+      }).catch(function(){ datasets=[]; $('kpi-datasets').textContent='0'; current=null; renderTable(); });
+    }
+
+    var ft;
+    $('filter').addEventListener('input', function(){
+      clearTimeout(ft); var v = $('filter').value.trim();
+      ft = setTimeout(function(){ if ($('dataset').value) loadDataset($('dataset').value, v); }, 250);
+    });
+    $('dataset').addEventListener('change', function(){ loadDataset($('dataset').value, $('filter').value.trim()); });
+
+    if (window.AtriaDash){
+      AtriaDash.ready();
+      AtriaDash.onChange(function(){ refresh(); });
+      AtriaDash.onVisibility(function(v){ if(v) resize(); });
+    }
+    refresh();
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,621 @@
+{
+  "id": "synthetic",
+  "name": "Synthetic",
+  "description": "Synthetic models",
+  "api_key_env": "SYNTHETIC_API_KEY",
+  "api_base_url": "https://api.synthetic.new/openai/v1",
+  "models": {
+    "hf:meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8": {
+      "id": "hf:meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
+      "name": "Llama-4-Maverick-17B-128E-Instruct-FP8",
+      "provider": "Synthetic",
+      "context_length": 524000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.22,
+        "output": 0.88,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "hf:meta-llama/Llama-4-Scout-17B-16E-Instruct": {
+      "id": "hf:meta-llama/Llama-4-Scout-17B-16E-Instruct",
+      "name": "Llama-4-Scout-17B-16E-Instruct",
+      "provider": "Synthetic",
+      "context_length": 328000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.15,
+        "output": 0.6,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "hf:meta-llama/Llama-3.3-70B-Instruct": {
+      "id": "hf:meta-llama/Llama-3.3-70B-Instruct",
+      "name": "Llama-3.3-70B-Instruct",
+      "provider": "Synthetic",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.9,
+        "output": 0.9,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "hf:meta-llama/Llama-3.1-70B-Instruct": {
+      "id": "hf:meta-llama/Llama-3.1-70B-Instruct",
+      "name": "Llama-3.1-70B-Instruct",
+      "provider": "Synthetic",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.9,
+        "output": 0.9,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "hf:meta-llama/Llama-3.1-405B-Instruct": {
+      "id": "hf:meta-llama/Llama-3.1-405B-Instruct",
+      "name": "Llama-3.1-405B-Instruct",
+      "provider": "Synthetic",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 3.0,
+        "output": 3.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "hf:meta-llama/Llama-3.1-8B-Instruct": {
+      "id": "hf:meta-llama/Llama-3.1-8B-Instruct",
+      "name": "Llama-3.1-8B-Instruct",
+      "provider": "Synthetic",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.2,
+        "output": 0.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "hf:deepseek-ai/DeepSeek-R1": {
+      "id": "hf:deepseek-ai/DeepSeek-R1",
+      "name": "DeepSeek R1",
+      "provider": "Synthetic",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.55,
+        "output": 2.19,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "hf:deepseek-ai/DeepSeek-V3-0324": {
+      "id": "hf:deepseek-ai/DeepSeek-V3-0324",
+      "name": "DeepSeek V3 (0324)",
+      "provider": "Synthetic",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 1.2,
+        "output": 1.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "hf:deepseek-ai/DeepSeek-V3.1-Terminus": {
+      "id": "hf:deepseek-ai/DeepSeek-V3.1-Terminus",
+      "name": "DeepSeek V3.1 Terminus",
+      "provider": "Synthetic",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.2,
+        "output": 1.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "hf:deepseek-ai/DeepSeek-R1-0528": {
+      "id": "hf:deepseek-ai/DeepSeek-R1-0528",
+      "name": "DeepSeek R1 (0528)",
+      "provider": "Synthetic",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 3.0,
+        "output": 8.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "hf:deepseek-ai/DeepSeek-V3.1": {
+      "id": "hf:deepseek-ai/DeepSeek-V3.1",
+      "name": "DeepSeek V3.1",
+      "provider": "Synthetic",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.56,
+        "output": 1.68,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "hf:deepseek-ai/DeepSeek-V3.2": {
+      "id": "hf:deepseek-ai/DeepSeek-V3.2",
+      "name": "DeepSeek V3.2",
+      "provider": "Synthetic",
+      "context_length": 162816,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.27,
+        "output": 0.4,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8000,
+      "supports_temperature": true
+    },
+    "hf:deepseek-ai/DeepSeek-V3": {
+      "id": "hf:deepseek-ai/DeepSeek-V3",
+      "name": "DeepSeek V3",
+      "provider": "Synthetic",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.25,
+        "output": 1.25,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "hf:moonshotai/Kimi-K2-Thinking": {
+      "id": "hf:moonshotai/Kimi-K2-Thinking",
+      "name": "Kimi K2 Thinking",
+      "provider": "Synthetic",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.55,
+        "output": 2.19,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": true
+    },
+    "hf:moonshotai/Kimi-K2-Instruct-0905": {
+      "id": "hf:moonshotai/Kimi-K2-Instruct-0905",
+      "name": "Kimi K2 0905",
+      "provider": "Synthetic",
+      "context_length": 262144,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 1.2,
+        "output": 1.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "hf:moonshotai/Kimi-K2.6": {
+      "id": "hf:moonshotai/Kimi-K2.6",
+      "name": "Kimi K2.6",
+      "provider": "Synthetic",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.95,
+        "output": 4.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "hf:moonshotai/Kimi-K2.5": {
+      "id": "hf:moonshotai/Kimi-K2.5",
+      "name": "Kimi K2.5",
+      "provider": "Synthetic",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.55,
+        "output": 2.19,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "hf:zai-org/GLM-4.7-Flash": {
+      "id": "hf:zai-org/GLM-4.7-Flash",
+      "name": "GLM-4.7-Flash",
+      "provider": "Synthetic",
+      "context_length": 196608,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.06,
+        "output": 0.4,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "hf:zai-org/GLM-4.6": {
+      "id": "hf:zai-org/GLM-4.6",
+      "name": "GLM 4.6",
+      "provider": "Synthetic",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.55,
+        "output": 2.19,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "hf:zai-org/GLM-5": {
+      "id": "hf:zai-org/GLM-5",
+      "name": "GLM-5",
+      "provider": "Synthetic",
+      "context_length": 196608,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.0,
+        "output": 3.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "hf:zai-org/GLM-4.7": {
+      "id": "hf:zai-org/GLM-4.7",
+      "name": "GLM 4.7",
+      "provider": "Synthetic",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.55,
+        "output": 2.19,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "hf:zai-org/GLM-5.1": {
+      "id": "hf:zai-org/GLM-5.1",
+      "name": "GLM 5.1",
+      "provider": "Synthetic",
+      "context_length": 196608,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.0,
+        "output": 3.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "hf:MiniMaxAI/MiniMax-M2.1": {
+      "id": "hf:MiniMaxAI/MiniMax-M2.1",
+      "name": "MiniMax-M2.1",
+      "provider": "Synthetic",
+      "context_length": 204800,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.55,
+        "output": 2.19,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "hf:MiniMaxAI/MiniMax-M2": {
+      "id": "hf:MiniMaxAI/MiniMax-M2",
+      "name": "MiniMax-M2",
+      "provider": "Synthetic",
+      "context_length": 196608,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.55,
+        "output": 2.19,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131000,
+      "supports_temperature": true
+    },
+    "hf:MiniMaxAI/MiniMax-M2.5": {
+      "id": "hf:MiniMaxAI/MiniMax-M2.5",
+      "name": "MiniMax-M2.5",
+      "provider": "Synthetic",
+      "context_length": 191488,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.6,
+        "output": 3.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "hf:MiniMaxAI/MiniMax-M3": {
+      "id": "hf:MiniMaxAI/MiniMax-M3",
+      "name": "MiniMax-M3",
+      "provider": "Synthetic",
+      "context_length": 524288,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.6,
+        "output": 1.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "hf:openai/gpt-oss-120b": {
+      "id": "hf:openai/gpt-oss-120b",
+      "name": "GPT OSS 120B",
+      "provider": "Synthetic",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.1,
+        "output": 0.1,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "hf:Qwen/Qwen3.5-397B-A17B": {
+      "id": "hf:Qwen/Qwen3.5-397B-A17B",
+      "name": "Qwen3.5-97B-A17B",
+      "provider": "Synthetic",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.6,
+        "output": 3.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "hf:Qwen/Qwen3-235B-A22B-Thinking-2507": {
+      "id": "hf:Qwen/Qwen3-235B-A22B-Thinking-2507",
+      "name": "Qwen3 235B A22B Thinking 2507",
+      "provider": "Synthetic",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.65,
+        "output": 3.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "hf:Qwen/Qwen3-Coder-480B-A35B-Instruct": {
+      "id": "hf:Qwen/Qwen3-Coder-480B-A35B-Instruct",
+      "name": "Qwen 3 Coder 480B",
+      "provider": "Synthetic",
+      "context_length": 256000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 2.0,
+        "output": 2.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "hf:Qwen/Qwen2.5-Coder-32B-Instruct": {
+      "id": "hf:Qwen/Qwen2.5-Coder-32B-Instruct",
+      "name": "Qwen2.5-Coder-32B-Instruct",
+      "provider": "Synthetic",
+      "context_length": 32768,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.8,
+        "output": 0.8,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "hf:Qwen/Qwen3-235B-A22B-Instruct-2507": {
+      "id": "hf:Qwen/Qwen3-235B-A22B-Instruct-2507",
+      "name": "Qwen 3 235B Instruct",
+      "provider": "Synthetic",
+      "context_length": 256000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.2,
+        "output": 0.6,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "hf:nvidia/Kimi-K2.5-NVFP4": {
+      "id": "hf:nvidia/Kimi-K2.5-NVFP4",
+      "name": "Kimi K2.5 (NVFP4)",
+      "provider": "Synthetic",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.55,
+        "output": 2.19,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "hf:nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4": {
+      "id": "hf:nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4",
+      "name": "Nemotron 3 Super 120B",
+      "provider": "Synthetic",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.3,
+        "output": 1.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    }
+  }
+}

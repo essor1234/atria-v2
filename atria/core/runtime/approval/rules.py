@@ -17,6 +17,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from atria.core.paths import atria_dir
+
 logger = logging.getLogger(__name__)
 
 
@@ -105,7 +107,7 @@ class ApprovalRulesManager:
     """
 
     # Default persistence paths
-    USER_PERMISSIONS_PATH = Path.home() / ".atria" / "permissions.json"
+    USER_PERMISSIONS_PATH = atria_dir() / "permissions.json"
 
     def __init__(self, project_dir: Optional[str] = None) -> None:
         self.rules: List[ApprovalRule] = []

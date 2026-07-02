@@ -1,0 +1,27 @@
+{
+  "id": "tencent-tokenhub",
+  "name": "Tencent TokenHub",
+  "description": "Tencent TokenHub models",
+  "api_key_env": "TENCENT_TOKENHUB_API_KEY",
+  "api_base_url": "https://tokenhub.tencentmaas.com/v1",
+  "models": {
+    "hy3-preview": {
+      "id": "hy3-preview",
+      "name": "Hy3 preview",
+      "provider": "Tencent TokenHub",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    }
+  }
+}

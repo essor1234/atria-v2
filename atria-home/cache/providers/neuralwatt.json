@@ -1,0 +1,244 @@
+{
+  "id": "neuralwatt",
+  "name": "Neuralwatt",
+  "description": "Neuralwatt models",
+  "api_key_env": "NEURALWATT_API_KEY",
+  "api_base_url": "https://api.neuralwatt.com/v1",
+  "models": {
+    "kimi-k2.5-fast": {
+      "id": "kimi-k2.5-fast",
+      "name": "Kimi K2.5 Fast",
+      "provider": "Neuralwatt",
+      "context_length": 262128,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.52,
+        "output": 2.59,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 262128,
+      "supports_temperature": true
+    },
+    "glm-5-fast": {
+      "id": "glm-5-fast",
+      "name": "GLM 5 Fast",
+      "provider": "Neuralwatt",
+      "context_length": 202736,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 1.1,
+        "output": 3.6,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 202736,
+      "supports_temperature": true
+    },
+    "glm-5.2": {
+      "id": "glm-5.2",
+      "name": "GLM 5.2",
+      "provider": "Neuralwatt",
+      "context_length": 1048560,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.45,
+        "output": 4.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 1048560,
+      "supports_temperature": true
+    },
+    "qwen3.5-397b-fast": {
+      "id": "qwen3.5-397b-fast",
+      "name": "Qwen3.5 397B Fast",
+      "provider": "Neuralwatt",
+      "context_length": 262128,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.69,
+        "output": 4.14,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262128,
+      "supports_temperature": true
+    },
+    "glm-5.1-fast": {
+      "id": "glm-5.1-fast",
+      "name": "GLM 5.1 Fast",
+      "provider": "Neuralwatt",
+      "context_length": 202736,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 1.1,
+        "output": 3.6,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 202736,
+      "supports_temperature": true
+    },
+    "kimi-k2.6-fast": {
+      "id": "kimi-k2.6-fast",
+      "name": "Kimi K2.6 Fast",
+      "provider": "Neuralwatt",
+      "context_length": 262128,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.69,
+        "output": 3.22,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262128,
+      "supports_temperature": true
+    },
+    "qwen3.6-35b-fast": {
+      "id": "qwen3.6-35b-fast",
+      "name": "Qwen3.6 35B Fast",
+      "provider": "Neuralwatt",
+      "context_length": 131056,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.29,
+        "output": 1.15,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131056,
+      "supports_temperature": true
+    },
+    "moonshotai/Kimi-K2.6": {
+      "id": "moonshotai/Kimi-K2.6",
+      "name": "Kimi K2.6",
+      "provider": "Neuralwatt",
+      "context_length": 262128,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.69,
+        "output": 3.22,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262128,
+      "supports_temperature": true
+    },
+    "moonshotai/Kimi-K2.5": {
+      "id": "moonshotai/Kimi-K2.5",
+      "name": "Kimi K2.5",
+      "provider": "Neuralwatt",
+      "context_length": 262128,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.52,
+        "output": 2.59,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262128,
+      "supports_temperature": true
+    },
+    "moonshotai/Kimi-K2.7-Code": {
+      "id": "moonshotai/Kimi-K2.7-Code",
+      "name": "Kimi K2.7 Code",
+      "provider": "Neuralwatt",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.95,
+        "output": 4.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": false
+    },
+    "Qwen/Qwen3.6-35B-A3B": {
+      "id": "Qwen/Qwen3.6-35B-A3B",
+      "name": "Qwen3.6 35B A3B",
+      "provider": "Neuralwatt",
+      "context_length": 131056,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.29,
+        "output": 1.15,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131056,
+      "supports_temperature": true
+    },
+    "Qwen/Qwen3.5-397B-A17B-FP8": {
+      "id": "Qwen/Qwen3.5-397B-A17B-FP8",
+      "name": "Qwen3.5 397B A17B FP8",
+      "provider": "Neuralwatt",
+      "context_length": 262128,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.69,
+        "output": 4.14,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262128,
+      "supports_temperature": true
+    },
+    "zai-org/GLM-5.1-FP8": {
+      "id": "zai-org/GLM-5.1-FP8",
+      "name": "GLM 5.1 FP8",
+      "provider": "Neuralwatt",
+      "context_length": 202736,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.1,
+        "output": 3.6,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 202736,
+      "supports_temperature": true
+    }
+  }
+}

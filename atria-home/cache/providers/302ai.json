@@ -1,0 +1,1777 @@
+{
+  "id": "302ai",
+  "name": "302.AI",
+  "description": "302.AI models",
+  "api_key_env": "302AI_API_KEY",
+  "api_base_url": "https://api.302.ai/v1",
+  "models": {
+    "gpt-5.4-mini-2026-03-17": {
+      "id": "gpt-5.4-mini-2026-03-17",
+      "name": "gpt-5.4-mini-2026-03-17",
+      "provider": "302.AI",
+      "context_length": 400000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.75,
+        "output": 4.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 128000,
+      "supports_temperature": false
+    },
+    "chatgpt-4o-latest": {
+      "id": "chatgpt-4o-latest",
+      "name": "chatgpt-4o-latest",
+      "provider": "302.AI",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 5.0,
+        "output": 15.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "gpt-5.4-nano-2026-03-17": {
+      "id": "gpt-5.4-nano-2026-03-17",
+      "name": "gpt-5.4-nano-2026-03-17",
+      "provider": "302.AI",
+      "context_length": 400000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.2,
+        "output": 1.25,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": false
+    },
+    "kimi-k2-0905-preview": {
+      "id": "kimi-k2-0905-preview",
+      "name": "kimi-k2-0905-preview",
+      "provider": "302.AI",
+      "context_length": 262144,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.632,
+        "output": 2.53,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": true
+    },
+    "grok-4.20-beta-0309-non-reasoning": {
+      "id": "grok-4.20-beta-0309-non-reasoning",
+      "name": "grok-4.20-beta-0309-non-reasoning",
+      "provider": "302.AI",
+      "context_length": 2000000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 2.0,
+        "output": 6.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 30000,
+      "supports_temperature": true
+    },
+    "gemini-2.5-flash-nothink": {
+      "id": "gemini-2.5-flash-nothink",
+      "name": "gemini-2.5-flash-nothink",
+      "provider": "302.AI",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.3,
+        "output": 2.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "qwen-plus": {
+      "id": "qwen-plus",
+      "name": "Qwen-Plus",
+      "provider": "302.AI",
+      "context_length": 1000000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.12,
+        "output": 1.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "glm-4.7": {
+      "id": "glm-4.7",
+      "name": "glm-4.7",
+      "provider": "302.AI",
+      "context_length": 204800,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.286,
+        "output": 1.142,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "qwen3-235b-a22b-instruct-2507": {
+      "id": "qwen3-235b-a22b-instruct-2507",
+      "name": "qwen3-235b-a22b-instruct-2507",
+      "provider": "302.AI",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.29,
+        "output": 1.143,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "glm-4.5v": {
+      "id": "glm-4.5v",
+      "name": "GLM-4.5V",
+      "provider": "302.AI",
+      "context_length": 64000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.29,
+        "output": 0.86,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "claude-opus-4-5": {
+      "id": "claude-opus-4-5",
+      "name": "claude-opus-4-5",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 5.0,
+        "output": 25.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "gemini-2.5-pro": {
+      "id": "gemini-2.5-pro",
+      "name": "gemini-2.5-pro",
+      "provider": "302.AI",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 1.25,
+        "output": 10.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "gpt-5": {
+      "id": "gpt-5",
+      "name": "gpt-5",
+      "provider": "302.AI",
+      "context_length": 400000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.25,
+        "output": 10.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": false
+    },
+    "claude-haiku-4-5-20251001": {
+      "id": "claude-haiku-4-5-20251001",
+      "name": "claude-haiku-4-5-20251001",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.0,
+        "output": 5.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "kimi-k2-thinking-turbo": {
+      "id": "kimi-k2-thinking-turbo",
+      "name": "kimi-k2-thinking-turbo",
+      "provider": "302.AI",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.265,
+        "output": 9.119,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": true
+    },
+    "claude-3-5-haiku-20241022": {
+      "id": "claude-3-5-haiku-20241022",
+      "name": "claude-3-5-haiku-20241022",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.8,
+        "output": 4.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "glm-4.5": {
+      "id": "glm-4.5",
+      "name": "GLM-4.5",
+      "provider": "302.AI",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.286,
+        "output": 1.142,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 98304,
+      "supports_temperature": true
+    },
+    "gpt-5-pro": {
+      "id": "gpt-5-pro",
+      "name": "gpt-5-pro",
+      "provider": "302.AI",
+      "context_length": 400000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 15.0,
+        "output": 120.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 272000,
+      "supports_temperature": false
+    },
+    "grok-4.20-beta-0309-reasoning": {
+      "id": "grok-4.20-beta-0309-reasoning",
+      "name": "grok-4.20-beta-0309-reasoning",
+      "provider": "302.AI",
+      "context_length": 2000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 2.0,
+        "output": 6.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 30000,
+      "supports_temperature": true
+    },
+    "gemini-2.5-flash": {
+      "id": "gemini-2.5-flash",
+      "name": "gemini-2.5-flash",
+      "provider": "302.AI",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.3,
+        "output": 2.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "gpt-4o": {
+      "id": "gpt-4o",
+      "name": "gpt-4o",
+      "provider": "302.AI",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 2.5,
+        "output": 10.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "MiniMax-M2.1": {
+      "id": "MiniMax-M2.1",
+      "name": "MiniMax-M2.1",
+      "provider": "302.AI",
+      "context_length": 1000000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.3,
+        "output": 1.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "gemini-2.5-flash-lite-preview-09-2025": {
+      "id": "gemini-2.5-flash-lite-preview-09-2025",
+      "name": "gemini-2.5-flash-lite-preview-09-2025",
+      "provider": "302.AI",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.1,
+        "output": 0.4,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "doubao-seed-1-6-vision-250815": {
+      "id": "doubao-seed-1-6-vision-250815",
+      "name": "doubao-seed-1-6-vision-250815",
+      "provider": "302.AI",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.114,
+        "output": 1.143,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "claude-opus-4-1-20250805": {
+      "id": "claude-opus-4-1-20250805",
+      "name": "claude-opus-4-1-20250805",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 15.0,
+        "output": 75.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "qwen3-max-2025-09-23": {
+      "id": "qwen3-max-2025-09-23",
+      "name": "qwen3-max-2025-09-23",
+      "provider": "302.AI",
+      "context_length": 258048,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.86,
+        "output": 3.43,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "glm-4.7-flashx": {
+      "id": "glm-4.7-flashx",
+      "name": "glm-4.7-flashx",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0715,
+        "output": 0.429,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "glm-5.1": {
+      "id": "glm-5.1",
+      "name": "glm-5.1",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.86,
+        "output": 3.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "glm-4.6": {
+      "id": "glm-4.6",
+      "name": "glm-4.6",
+      "provider": "302.AI",
+      "context_length": 204800,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.286,
+        "output": 1.142,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "kimi-k2-thinking": {
+      "id": "kimi-k2-thinking",
+      "name": "kimi-k2-thinking",
+      "provider": "302.AI",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.575,
+        "output": 2.3,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": true
+    },
+    "claude-sonnet-4-5": {
+      "id": "claude-sonnet-4-5",
+      "name": "claude-sonnet-4-5",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 3.0,
+        "output": 15.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "glm-4.5-x": {
+      "id": "glm-4.5-x",
+      "name": "glm-4.5-x",
+      "provider": "302.AI",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 1.143,
+        "output": 2.29,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "deepseek-v3.2-thinking": {
+      "id": "deepseek-v3.2-thinking",
+      "name": "DeepSeek-V3.2-Thinking",
+      "provider": "302.AI",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.29,
+        "output": 0.43,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "claude-sonnet-4-6-thinking": {
+      "id": "claude-sonnet-4-6-thinking",
+      "name": "claude-sonnet-4-6-thinking",
+      "provider": "302.AI",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 3.0,
+        "output": 15.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "claude-opus-4-7": {
+      "id": "claude-opus-4-7",
+      "name": "claude-opus-4-7",
+      "provider": "302.AI",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 5.0,
+        "output": 25.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "grok-4-1-fast-non-reasoning": {
+      "id": "grok-4-1-fast-non-reasoning",
+      "name": "grok-4-1-fast-non-reasoning",
+      "provider": "302.AI",
+      "context_length": 2000000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.2,
+        "output": 0.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 30000,
+      "supports_temperature": true
+    },
+    "gpt-5.4-nano": {
+      "id": "gpt-5.4-nano",
+      "name": "gpt-5.4-nano",
+      "provider": "302.AI",
+      "context_length": 400000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.2,
+        "output": 1.25,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": false
+    },
+    "claude-opus-4-1-20250805-thinking": {
+      "id": "claude-opus-4-1-20250805-thinking",
+      "name": "claude-opus-4-1-20250805-thinking",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 15.0,
+        "output": 75.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "glm-4.5-airx": {
+      "id": "glm-4.5-airx",
+      "name": "glm-4.5-airx",
+      "provider": "302.AI",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.572,
+        "output": 1.714,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "grok-4.1": {
+      "id": "grok-4.1",
+      "name": "grok-4.1",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 2.0,
+        "output": 10.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "gemini-2.5-flash-preview-09-2025": {
+      "id": "gemini-2.5-flash-preview-09-2025",
+      "name": "gemini-2.5-flash-preview-09-2025",
+      "provider": "302.AI",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.3,
+        "output": 2.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "claude-opus-4-5-20251101": {
+      "id": "claude-opus-4-5-20251101",
+      "name": "claude-opus-4-5-20251101",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 5.0,
+        "output": 25.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "claude-opus-4-20250514": {
+      "id": "claude-opus-4-20250514",
+      "name": "claude-opus-4-20250514",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 15.0,
+        "output": 75.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "gemini-3-pro-image-preview": {
+      "id": "gemini-3-pro-image-preview",
+      "name": "gemini-3-pro-image-preview",
+      "provider": "302.AI",
+      "context_length": 32768,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 2.0,
+        "output": 120.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "gemini-2.5-flash-image": {
+      "id": "gemini-2.5-flash-image",
+      "name": "gemini-2.5-flash-image",
+      "provider": "302.AI",
+      "context_length": 32768,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.3,
+        "output": 30.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "glm-for-coding": {
+      "id": "glm-for-coding",
+      "name": "glm-for-coding",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.086,
+        "output": 0.343,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "gpt-5.2": {
+      "id": "gpt-5.2",
+      "name": "gpt-5.2",
+      "provider": "302.AI",
+      "context_length": 400000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.75,
+        "output": 14.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": false
+    },
+    "qwen-flash": {
+      "id": "qwen-flash",
+      "name": "Qwen-Flash",
+      "provider": "302.AI",
+      "context_length": 1000000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.022,
+        "output": 0.22,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "claude-opus-4-6-thinking": {
+      "id": "claude-opus-4-6-thinking",
+      "name": "claude-opus-4-6-thinking",
+      "provider": "302.AI",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 5.0,
+        "output": 25.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "claude-sonnet-4-20250514": {
+      "id": "claude-sonnet-4-20250514",
+      "name": "claude-sonnet-4-20250514",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 3.0,
+        "output": 15.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "gpt-5.1-chat-latest": {
+      "id": "gpt-5.1-chat-latest",
+      "name": "gpt-5.1-chat-latest",
+      "provider": "302.AI",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.25,
+        "output": 10.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": false
+    },
+    "gpt-5.2-chat-latest": {
+      "id": "gpt-5.2-chat-latest",
+      "name": "gpt-5.2-chat-latest",
+      "provider": "302.AI",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.75,
+        "output": 14.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": false
+    },
+    "grok-4-fast-reasoning": {
+      "id": "grok-4-fast-reasoning",
+      "name": "grok-4-fast-reasoning",
+      "provider": "302.AI",
+      "context_length": 2000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.2,
+        "output": 0.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 30000,
+      "supports_temperature": true
+    },
+    "gpt-4.1-nano": {
+      "id": "gpt-4.1-nano",
+      "name": "gpt-4.1-nano",
+      "provider": "302.AI",
+      "context_length": 1047576,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.1,
+        "output": 0.4,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "claude-sonnet-4-5-20250929-thinking": {
+      "id": "claude-sonnet-4-5-20250929-thinking",
+      "name": "claude-sonnet-4-5-20250929-thinking",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 3.0,
+        "output": 15.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "MiniMax-M2.7-highspeed": {
+      "id": "MiniMax-M2.7-highspeed",
+      "name": "MiniMax-M2.7-highspeed",
+      "provider": "302.AI",
+      "context_length": 204800,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.6,
+        "output": 4.8,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "MiniMax-M2": {
+      "id": "MiniMax-M2",
+      "name": "MiniMax-M2",
+      "provider": "302.AI",
+      "context_length": 1000000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.33,
+        "output": 1.32,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "gemini-3.1-flash-image-preview": {
+      "id": "gemini-3.1-flash-image-preview",
+      "name": "gemini-3.1-flash-image-preview",
+      "provider": "302.AI",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.5,
+        "output": 60.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "qwen3-235b-a22b": {
+      "id": "qwen3-235b-a22b",
+      "name": "Qwen3-235B-A22B",
+      "provider": "302.AI",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.29,
+        "output": 2.86,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "ministral-14b-2512": {
+      "id": "ministral-14b-2512",
+      "name": "ministral-14b-2512",
+      "provider": "302.AI",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.33,
+        "output": 0.33,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "glm-4.6v": {
+      "id": "glm-4.6v",
+      "name": "GLM-4.6V",
+      "provider": "302.AI",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.145,
+        "output": 0.43,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "claude-haiku-4-5": {
+      "id": "claude-haiku-4-5",
+      "name": "claude-haiku-4-5",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.0,
+        "output": 5.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "gpt-5.4": {
+      "id": "gpt-5.4",
+      "name": "gpt-5.4",
+      "provider": "302.AI",
+      "context_length": 1050000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 2.5,
+        "output": 15.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": false
+    },
+    "doubao-seed-1-6-thinking-250715": {
+      "id": "doubao-seed-1-6-thinking-250715",
+      "name": "doubao-seed-1-6-thinking-250715",
+      "provider": "302.AI",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.121,
+        "output": 1.21,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16000,
+      "supports_temperature": true
+    },
+    "gpt-5.4-mini": {
+      "id": "gpt-5.4-mini",
+      "name": "gpt-5.4-mini",
+      "provider": "302.AI",
+      "context_length": 400000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.75,
+        "output": 4.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": false
+    },
+    "gpt-4.1": {
+      "id": "gpt-4.1",
+      "name": "gpt-4.1",
+      "provider": "302.AI",
+      "context_length": 1047576,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 2.0,
+        "output": 8.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "doubao-seed-code-preview-251028": {
+      "id": "doubao-seed-code-preview-251028",
+      "name": "doubao-seed-code-preview-251028",
+      "provider": "302.AI",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.17,
+        "output": 1.14,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "claude-opus-4-6": {
+      "id": "claude-opus-4-6",
+      "name": "claude-opus-4-6",
+      "provider": "302.AI",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 5.0,
+        "output": 25.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "qwen3-coder-480b-a35b-instruct": {
+      "id": "qwen3-coder-480b-a35b-instruct",
+      "name": "qwen3-coder-480b-a35b-instruct",
+      "provider": "302.AI",
+      "context_length": 262144,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.86,
+        "output": 3.43,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "claude-sonnet-4-5-20250929": {
+      "id": "claude-sonnet-4-5-20250929",
+      "name": "claude-sonnet-4-5-20250929",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 3.0,
+        "output": 15.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "deepseek-reasoner": {
+      "id": "deepseek-reasoner",
+      "name": "Deepseek-Reasoner",
+      "provider": "302.AI",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.29,
+        "output": 0.43,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "grok-4-1-fast-reasoning": {
+      "id": "grok-4-1-fast-reasoning",
+      "name": "grok-4-1-fast-reasoning",
+      "provider": "302.AI",
+      "context_length": 2000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.2,
+        "output": 0.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 30000,
+      "supports_temperature": true
+    },
+    "gemini-3-pro-preview": {
+      "id": "gemini-3-pro-preview",
+      "name": "gemini-3-pro-preview",
+      "provider": "302.AI",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 2.0,
+        "output": 12.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "gpt-5-thinking": {
+      "id": "gpt-5-thinking",
+      "name": "gpt-5-thinking",
+      "provider": "302.AI",
+      "context_length": 400000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.25,
+        "output": 10.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "gpt-5-mini": {
+      "id": "gpt-5-mini",
+      "name": "gpt-5-mini",
+      "provider": "302.AI",
+      "context_length": 400000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.25,
+        "output": 2.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": false
+    },
+    "gpt-4.1-mini": {
+      "id": "gpt-4.1-mini",
+      "name": "gpt-4.1-mini",
+      "provider": "302.AI",
+      "context_length": 1047576,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.4,
+        "output": 1.6,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "glm-5v-turbo": {
+      "id": "glm-5v-turbo",
+      "name": "GLM-5V-Turbo",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.72,
+        "output": 3.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "gpt-5.4-pro": {
+      "id": "gpt-5.4-pro",
+      "name": "gpt-5.4-pro",
+      "provider": "302.AI",
+      "context_length": 1050000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 30.0,
+        "output": 180.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": false
+    },
+    "glm-4.5-air": {
+      "id": "glm-4.5-air",
+      "name": "glm-4.5-air",
+      "provider": "302.AI",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.1143,
+        "output": 0.286,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 98304,
+      "supports_temperature": true
+    },
+    "claude-sonnet-4-6": {
+      "id": "claude-sonnet-4-6",
+      "name": "claude-sonnet-4-6",
+      "provider": "302.AI",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 3.0,
+        "output": 15.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "grok-4-fast-non-reasoning": {
+      "id": "grok-4-fast-non-reasoning",
+      "name": "grok-4-fast-non-reasoning",
+      "provider": "302.AI",
+      "context_length": 2000000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.2,
+        "output": 0.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 30000,
+      "supports_temperature": true
+    },
+    "gemini-3-flash-preview": {
+      "id": "gemini-3-flash-preview",
+      "name": "gemini-3-flash-preview",
+      "provider": "302.AI",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.5,
+        "output": 3.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "deepseek-chat": {
+      "id": "deepseek-chat",
+      "name": "Deepseek-Chat",
+      "provider": "302.AI",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.29,
+        "output": 0.43,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "MiniMax-M1": {
+      "id": "MiniMax-M1",
+      "name": "MiniMax-M1",
+      "provider": "302.AI",
+      "context_length": 1000000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.132,
+        "output": 1.254,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": true
+    },
+    "grok-4.20-multi-agent-beta-0309": {
+      "id": "grok-4.20-multi-agent-beta-0309",
+      "name": "grok-4.20-multi-agent-beta-0309",
+      "provider": "302.AI",
+      "context_length": 2000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 2.0,
+        "output": 6.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 30000,
+      "supports_temperature": true
+    },
+    "glm-5": {
+      "id": "glm-5",
+      "name": "glm-5",
+      "provider": "302.AI",
+      "context_length": 204800,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.6,
+        "output": 2.6,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "qwen-max-latest": {
+      "id": "qwen-max-latest",
+      "name": "Qwen-Max-Latest",
+      "provider": "302.AI",
+      "context_length": 131072,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.343,
+        "output": 1.372,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "mistral-large-2512": {
+      "id": "mistral-large-2512",
+      "name": "mistral-large-2512",
+      "provider": "302.AI",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 1.1,
+        "output": 3.3,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": true
+    },
+    "MiniMax-M2.7": {
+      "id": "MiniMax-M2.7",
+      "name": "MiniMax-M2.7",
+      "provider": "302.AI",
+      "context_length": 204800,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.3,
+        "output": 1.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "claude-3-5-haiku-latest": {
+      "id": "claude-3-5-haiku-latest",
+      "name": "claude-3-5-haiku-latest",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.8,
+        "output": 4.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "qwen3-30b-a3b": {
+      "id": "qwen3-30b-a3b",
+      "name": "Qwen3-30B-A3B",
+      "provider": "302.AI",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.11,
+        "output": 1.08,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "deepseek-v3.2": {
+      "id": "deepseek-v3.2",
+      "name": "deepseek-v3.2",
+      "provider": "302.AI",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.29,
+        "output": 0.43,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "doubao-seed-1-8-251215": {
+      "id": "doubao-seed-1-8-251215",
+      "name": "doubao-seed-1-8-251215",
+      "provider": "302.AI",
+      "context_length": 224000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.114,
+        "output": 0.286,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "claude-opus-4-5-20251101-thinking": {
+      "id": "claude-opus-4-5-20251101-thinking",
+      "name": "claude-opus-4-5-20251101-thinking",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 5.0,
+        "output": 25.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "gemini-2.0-flash-lite": {
+      "id": "gemini-2.0-flash-lite",
+      "name": "gemini-2.0-flash-lite",
+      "provider": "302.AI",
+      "context_length": 2000000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.075,
+        "output": 0.3,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "glm-5-turbo": {
+      "id": "glm-5-turbo",
+      "name": "glm-5-turbo",
+      "provider": "302.AI",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.72,
+        "output": 3.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "gpt-5.1": {
+      "id": "gpt-5.1",
+      "name": "gpt-5.1",
+      "provider": "302.AI",
+      "context_length": 400000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.25,
+        "output": 10.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 128000,
+      "supports_temperature": false
+    }
+  }
+}

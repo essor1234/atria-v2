@@ -1,0 +1,28 @@
+{
+  "id": "firepass",
+  "name": "Fireworks (Firepass)",
+  "description": "Fireworks (Firepass) models",
+  "api_key_env": "FIREPASS_API_KEY",
+  "api_base_url": "https://api.fireworks.ai/inference/v1/",
+  "models": {
+    "accounts/fireworks/routers/kimi-k2p6-turbo": {
+      "id": "accounts/fireworks/routers/kimi-k2p6-turbo",
+      "name": "Kimi K2.6 Turbo",
+      "provider": "Fireworks (Firepass)",
+      "context_length": 262000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 262000,
+      "supports_temperature": true
+    }
+  }
+}

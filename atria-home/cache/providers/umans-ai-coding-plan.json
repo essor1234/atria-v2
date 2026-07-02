@@ -1,0 +1,123 @@
+{
+  "id": "umans-ai-coding-plan",
+  "name": "Umans AI Coding Plan",
+  "description": "Umans AI Coding Plan models",
+  "api_key_env": "UMANS_AI_CODING_PLAN_API_KEY",
+  "api_base_url": "https://api.code.umans.ai/v1",
+  "models": {
+    "umans-kimi-k2.7": {
+      "id": "umans-kimi-k2.7",
+      "name": "Kimi K2.7 Code",
+      "provider": "Umans AI Coding Plan",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 262144,
+      "supports_temperature": false
+    },
+    "umans-glm-5.1": {
+      "id": "umans-glm-5.1",
+      "name": "GLM 5.1",
+      "provider": "Umans AI Coding Plan",
+      "context_length": 204800,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "umans-coder": {
+      "id": "umans-coder",
+      "name": "Umans Coder",
+      "provider": "Umans AI Coding Plan",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": false
+    },
+    "umans-flash": {
+      "id": "umans-flash",
+      "name": "Umans Flash",
+      "provider": "Umans AI Coding Plan",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": false
+    },
+    "umans-glm-5.2": {
+      "id": "umans-glm-5.2",
+      "name": "GLM 5.2",
+      "provider": "Umans AI Coding Plan",
+      "context_length": 405504,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "umans-qwen3.6-35b-a3b": {
+      "id": "umans-qwen3.6-35b-a3b",
+      "name": "Qwen3.6 35B A3B",
+      "provider": "Umans AI Coding Plan",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": false
+    }
+  }
+}

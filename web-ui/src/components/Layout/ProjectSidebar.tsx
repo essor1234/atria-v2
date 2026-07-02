@@ -10,6 +10,9 @@ import {
   Trash2,
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
+import { useEffect, useState } from "react";
+import { useLocalStorage } from "usehooks-ts";
+import { ResizeHandle } from "../ui/ResizeHandle";
 import { useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { useChatStore } from "../../stores/chat";
@@ -75,6 +78,7 @@ export function ProjectSidebar() {
     projectId?: string;
   } | null>(null);
   const [creatingChat, setCreatingChat] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useLocalStorage<number>("sidebar.width", 256);
 
   // Project switcher: which project's conversations are shown in the flat CHATS list.
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);

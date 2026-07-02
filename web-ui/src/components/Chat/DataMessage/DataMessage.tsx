@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useCopyToClipboard } from 'usehooks-ts';
 import type { DataColumn, Message } from '../../../types';
 import { apiClient } from '../../../api/client';
+import { EditableDataTable } from './EditableDataTable';
 
 function SqlDisclosure({ sql }: { sql: string }) {
   const [open, setOpen] = useState(false);
@@ -43,6 +44,23 @@ function SqlDisclosure({ sql }: { sql: string }) {
 }
 
 export function DataMessage({ message }: { message: Message }) {
+  // Editable variant (send_editable_table): render an inline editable grid bound
+  // to the module CSV. Falls through to the read-only renderer if the binding is
+  // malformed, so a bad payload never breaks the chat.
+  const src = message.data_source;
+  if (message.data_editable && src && src.module && src.file) {
+    return (
+      <EditableDataTable
+        messageId={message.data_message_id ?? ''}
+        title={message.data_title || 'Data'}
+        columns={message.data_columns ?? []}
+        rows={message.data_rows ?? []}
+        source={src}
+        warning={message.data_warning}
+      />
+    );
+  }
+
   const messageId = message.data_message_id ?? '';
 
   const [fetchedColumns, setFetchedColumns] = useState<DataColumn[]>(message.data_columns ?? []);

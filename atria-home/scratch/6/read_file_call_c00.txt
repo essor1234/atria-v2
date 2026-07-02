@@ -1,0 +1,208 @@
+Note: recommend.py is in .gitignore (not tracked by git).
+
+  1	#!/usr/bin/env python
+  2	"""Truck recommender for the logistics module.
+  3	
+  4	Ranks and SURFACES candidate trucks for a booking — it deliberately does NOT
+  5	hard-filter on capacity, so a near-boundary truck (e.g. a TTĐK 4.9T truck for a
+  6	5T order, used because Biên Hoà bans TTĐK >5T in the daytime) still reaches the
+  7	caller with a flag rather than being silently dropped. The LLM picks the final
+  8	truck and explains the capacity / ban / upsell tradeoff.
+  9	
+  10	Deterministic here: CBM resolution by (weight_class, brand), capacity-vs-TTĐK
+  11	comparison, the numeric 8T->15T 80% upsell flags, and (if --zone/--time given)
+  12	per-truck ban status. Judgment (offer the upsell? wait vs defer?) is the LLM's.
+  13	
+  14	Subcommand: match --weight <t> --cbm <m3> [--zone <z>] [--time HH:MM] [--new-customer]
+  15	"""
+  16	
+  17	from __future__ import annotations
+  18	
+  19	import argparse
+  20	import csv
+  21	import json
+  22	import sys
+  23	from pathlib import Path
+  24	
+  25	ROOT = Path(__file__).resolve().parent.parent
+  26	DATA_DIR = ROOT / "data"
+  27	FLEET_PATHS = {"dki": DATA_DIR / "dki.csv", "dki2": DATA_DIR / "dki2.csv"}
+  28	SPECS_PATH = DATA_DIR / "truck_specs.csv"
+  29	
+  30	# Reuse the ban-evaluation helpers so ranking and the standalone checker agree.
+  31	sys.path.insert(0, str(Path(__file__).resolve().parent))
+  32	import bans  # noqa: E402
+  33	
+  34	NEAR_BOUNDARY_RATIO = 0.95   # TTĐK within 5% under the order -> surface as near_boundary
+  35	UPSELL_CLASS_RATIO = 1.4     # truck class this much bigger than the order -> upsell candidate
+  36	
+  37	
+  38	def _class_to_t(weight_class: str) -> float | None:
+  39	    s = (weight_class or "").strip().upper().rstrip("T").strip()
+  40	    try:
+  41	        return float(s)
+  42	    except ValueError:
+  43	        return None
+  44	
+  45	
+  46	def _load_specs() -> dict[tuple[str, str], str]:
+  47	    specs: dict[tuple[str, str], str] = {}
+  48	    if not SPECS_PATH.exists():
+  49	        return specs
+  50	    with SPECS_PATH.open("r", newline="", encoding="utf-8") as fh:
+  51	        for r in csv.DictReader(fh):
+  52	            specs[(r["weight_class"].strip(), r["brand"].strip())] = (r.get("cbm") or "").strip()
+  53	    return specs
+  54	
+  55	
+  56	def _cbm_for(specs: dict, weight_class: str, brand: str) -> float | None:
+  57	    raw = specs.get((weight_class.strip(), brand.strip()))
+  58	    if raw is None:
+  59	        raw = specs.get((weight_class.strip(), "*"))  # brand-agnostic fallback
+  60	    if not raw:
+  61	        return None
+  62	    try:
+  63	        return float(raw)
+  64	    except ValueError:
+  65	        return None
+  66	
+  67	
+  68	def _load_fleet() -> list[dict]:
+  69	    rows: list[dict] = []
+  70	    for source, path in FLEET_PATHS.items():
+  71	        if not path.exists():
+  72	            continue
+  73	        with path.open("r", newline="", encoding="utf-8") as fh:
+  74	            for r in csv.DictReader(fh):
+  75	                r["_source"] = source
+  76	                rows.append(r)
+  77	    return rows
+  78	
+  79	
+  80	def cmd_match(args: argparse.Namespace) -> int:
+  81	    specs = _load_specs()
+  82	    fleet = _load_fleet()
+  83	    weight = args.weight
+  84	
+  85	    # Pre-load ban rules once if a zone is supplied.
+  86	    ban_rows = bans._load_rows() if args.zone else []
+  87	    zone_applicable = None
+  88	    if args.zone:
+  89	        zone_applicable, _ = bans._match_zone(args.zone, ban_rows)
+  90	    t_min = bans._to_min(args.time) if (args.zone and args.time) else None
+  91	
+  92	    candidates = []
+  93	    for r in fleet:
+  94	        try:
+  95	            ttdk = float(r.get("ttdk_capacity") or 0)
+  96	        except ValueError:
+  97	            ttdk = 0.0
+  98	        class_t = _class_to_t(r.get("weight_class", ""))
+  99	        cbm = _cbm_for(specs, r.get("weight_class", ""), r.get("brand", ""))
+  100	
+  101	        # Capacity fit keys off TTĐK (registration capacity), not the rated class.
+  102	        if ttdk >= weight:
+  103	            capacity_fit = "fits"
+  104	        elif ttdk >= weight * NEAR_BOUNDARY_RATIO:
+  105	            capacity_fit = "near_boundary"
+  106	        else:
+  107	            capacity_fit = "under"
+  108	
+  109	        if cbm is None:
+  110	            cbm_fit = "unknown"
+  111	        elif args.cbm is None:
+  112	            cbm_fit = "unknown"
+  113	        elif args.cbm <= cbm:
+  114	            cbm_fit = "fits"
+  115	        else:
+  116	            cbm_fit = "insufficient"
+  117	
+  118	        flags: list[str] = []
+  119	        upsell = None
+  120	        if capacity_fit == "near_boundary":
+  121	            flags.append("ban_tradeoff_candidate")
+  122	        if class_t is not None and weight > 0 and class_t >= weight * UPSELL_CLASS_RATIO:
+  123	            flags.append("upsell_bigger_truck")
+  124	            upsell = {
+  125	                "offer": True,
+  126	                "use_pct_limit": 80,
+  127	                "overflow_price_class": r.get("weight_class"),
+  128	                "new_customer_only": True,
+  129	                "note": "Cho khách dùng tối đa 80% tải; nếu dùng 100% tính giá theo "
+  130	                        f"{r.get('weight_class')} (chỉ áp dụng khách mới).",
+  131	            }
+  132	        if r.get("status", "").lower() == "busy":
+  133	            flags.append("busy")
+  134	
+  135	        ban_status = None
+  136	        if zone_applicable is not None:
+  137	            appl = [row for row in zone_applicable if bans._applies(row, ttdk)]
+  138	            if t_min is not None:
+  139	                allowed = bans._is_allowed(t_min, appl)
+  140	                ban_status = {"zone": args.zone, "time": args.time, "allowed": allowed}
+  141	                if not allowed:
+  142	                    flags.append("banned_at_time")
+  143	            else:
+  144	                ban_status = {"zone": args.zone, "rules_apply": len(appl)}
+  145	
+  146	        # Ranking score: prefer allowed, free, capacity fit, cbm fit, least excess.
+  147	        excess = (ttdk - weight) if ttdk >= weight else 999  # under-capacity sinks
+  148	        score = (
+  149	            0 if (ban_status and ban_status.get("allowed") is False) else 1,
+  150	            1 if r.get("status", "").lower() == "free" else 0,
+  151	            {"fits": 2, "near_boundary": 1, "under": 0}[capacity_fit],
+  152	            0 if cbm_fit == "insufficient" else 1,
+  153	            -excess,
+  154	        )
+  155	
+  156	        candidates.append((score, {
+  157	            "vehicle_number": r.get("vehicle_number"),
+  158	            "driver_name": r.get("driver_name"),
+  159	            "source": r.get("_source"),
+  160	            "weight_class": r.get("weight_class"),
+  161	            "brand": r.get("brand"),
+  162	            "ttdk_capacity": ttdk,
+  163	            "status": r.get("status"),
+  164	            "cbm": cbm,
+  165	            "capacity_fit": capacity_fit,
+  166	            "cbm_fit": cbm_fit,
+  167	            "flags": flags,
+  168	            "upsell": upsell,
+  169	            "ban_status": ban_status,
+  170	        }))
+  171	
+  172	    candidates.sort(key=lambda c: c[0], reverse=True)
+  173	    ranked = [c[1] for c in candidates]
+  174	    recommended = [c["vehicle_number"] for c in ranked
+  175	                   if c["capacity_fit"] in ("fits", "near_boundary")
+  176	                   and c["cbm_fit"] != "insufficient"
+  177	                   and "busy" not in c["flags"]
+  178	                   and "banned_at_time" not in c["flags"]]
+  179	
+  180	    print(json.dumps({
+  181	        "request": {"weight_t": weight, "cbm": args.cbm, "zone": args.zone,
+  182	                    "time": args.time, "new_customer": args.new_customer},
+  183	        "recommended": recommended,
+  184	        "candidates": ranked,
+  185	    }, ensure_ascii=False))
+  186	    return 0
+  187	
+  188	
+  189	def main(argv: list[str]) -> int:
+  190	    parser = argparse.ArgumentParser(description="Logistics truck recommender.")
+  191	    sub = parser.add_subparsers(dest="cmd", required=True)
+  192	
+  193	    p = sub.add_parser("match", help="rank candidate trucks for a booking")
+  194	    p.add_argument("--weight", type=float, required=True, help="requested load in tonnes")
+  195	    p.add_argument("--cbm", type=float, help="requested volume in CBM (optional)")
+  196	    p.add_argument("--zone", help="destination zone (enables ban check)")
+  197	    p.add_argument("--time", help="delivery time HH:MM (with --zone, checks ban at time)")
+  198	    p.add_argument("--new-customer", dest="new_customer", action="store_true")
+  199	    p.set_defaults(fn=cmd_match)
+  200	
+  201	    args = parser.parse_args(argv[1:])
+  202	    return args.fn(args)
+  203	
+  204	
+  205	if __name__ == "__main__":
+  206	    raise SystemExit(main(sys.argv))

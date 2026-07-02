@@ -1,0 +1,226 @@
+{
+  "id": "clarifai",
+  "name": "Clarifai",
+  "description": "Clarifai models",
+  "api_key_env": "CLARIFAI_PAT",
+  "api_base_url": "https://api.clarifai.com/v2/ext/openai/v1",
+  "models": {
+    "moonshotai/chat-completion/models/Kimi-K2_6": {
+      "id": "moonshotai/chat-completion/models/Kimi-K2_6",
+      "name": "Kimi K2.6",
+      "provider": "Clarifai",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.95,
+        "output": 4.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 262144,
+      "supports_temperature": true
+    },
+    "minimaxai/chat-completion/models/MiniMax-M2_5-high-throughput": {
+      "id": "minimaxai/chat-completion/models/MiniMax-M2_5-high-throughput",
+      "name": "MiniMax-M2.5 High Throughput",
+      "provider": "Clarifai",
+      "context_length": 204800,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.3,
+        "output": 1.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "openai/chat-completion/models/gpt-oss-120b-high-throughput": {
+      "id": "openai/chat-completion/models/gpt-oss-120b-high-throughput",
+      "name": "GPT OSS 120B High Throughput",
+      "provider": "Clarifai",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.09,
+        "output": 0.36,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "openai/chat-completion/models/gpt-oss-20b": {
+      "id": "openai/chat-completion/models/gpt-oss-20b",
+      "name": "GPT OSS 20B",
+      "provider": "Clarifai",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.045,
+        "output": 0.18,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "mistralai/completion/models/Ministral-3-14B-Reasoning-2512": {
+      "id": "mistralai/completion/models/Ministral-3-14B-Reasoning-2512",
+      "name": "Ministral 3 14B Reasoning 2512",
+      "provider": "Clarifai",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 2.5,
+        "output": 1.7,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": true
+    },
+    "mistralai/completion/models/Ministral-3-3B-Reasoning-2512": {
+      "id": "mistralai/completion/models/Ministral-3-3B-Reasoning-2512",
+      "name": "Ministral 3 3B Reasoning 2512",
+      "provider": "Clarifai",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.039,
+        "output": 0.54825,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": true
+    },
+    "deepseek-ai/deepseek-ocr/models/DeepSeek-OCR": {
+      "id": "deepseek-ai/deepseek-ocr/models/DeepSeek-OCR",
+      "name": "DeepSeek OCR",
+      "provider": "Clarifai",
+      "context_length": 8192,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.2,
+        "output": 0.7,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "qwen/qwenLM/models/Qwen3-30B-A3B-Thinking-2507": {
+      "id": "qwen/qwenLM/models/Qwen3-30B-A3B-Thinking-2507",
+      "name": "Qwen3 30B A3B Thinking 2507",
+      "provider": "Clarifai",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.36,
+        "output": 1.3,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "qwen/qwenLM/models/Qwen3-30B-A3B-Instruct-2507": {
+      "id": "qwen/qwenLM/models/Qwen3-30B-A3B-Instruct-2507",
+      "name": "Qwen3 30B A3B Instruct 2507",
+      "provider": "Clarifai",
+      "context_length": 262144,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.3,
+        "output": 0.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": true
+    },
+    "qwen/qwenCoder/models/Qwen3-Coder-30B-A3B-Instruct": {
+      "id": "qwen/qwenCoder/models/Qwen3-Coder-30B-A3B-Instruct",
+      "name": "Qwen3 Coder 30B A3B Instruct",
+      "provider": "Clarifai",
+      "context_length": 262144,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.11458,
+        "output": 0.74812,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "arcee_ai/AFM/models/trinity-mini": {
+      "id": "arcee_ai/AFM/models/trinity-mini",
+      "name": "Trinity Mini",
+      "provider": "Clarifai",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.045,
+        "output": 0.15,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "clarifai/main/models/mm-poly-8b": {
+      "id": "clarifai/main/models/mm-poly-8b",
+      "name": "MM Poly 8B",
+      "provider": "Clarifai",
+      "context_length": 32768,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.658,
+        "output": 1.11,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    }
+  }
+}

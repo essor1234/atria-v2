@@ -4,6 +4,7 @@ import hashlib
 import logging
 import os
 import queue as queue_mod
+import tempfile
 import threading
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor
@@ -30,18 +31,20 @@ MAX_REACT_ITERATIONS = 200
 
 _ctx_logger = logging.getLogger("swecli.context_debug")
 _ctx_logger.setLevel(logging.DEBUG)
-_fh = logging.FileHandler("/tmp/context_debug.log", mode="w")
+# Use the OS temp dir so this works cross-platform (Windows has no /tmp).
+_ctx_debug_path = os.path.join(tempfile.gettempdir(), "context_debug.log")
+_fh = logging.FileHandler(_ctx_debug_path, mode="w")
 _fh.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
 _ctx_logger.addHandler(_fh)
 
 
 def _debug_log(message: str) -> None:
-    """Write debug message to /tmp/swecli_react_debug.log."""
+    """Write a debug message to the OS temp dir (cross-platform; Windows has no /tmp)."""
     from datetime import datetime
 
-    log_file = "/tmp/swecli_react_debug.log"
+    log_file = os.path.join(tempfile.gettempdir(), "swecli_react_debug.log")
     timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
-    with open(log_file, "a") as f:
+    with open(log_file, "a", encoding="utf-8") as f:
         f.write(f"[{timestamp}] {message}\n")
 
 

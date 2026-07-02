@@ -150,6 +150,51 @@ SCHEMAS: list[dict[str, Any]] = [
             },
         },
     },
+    # ===== Send Editable Table Tool (web UI) =====
+    {
+        "type": "function",
+        "function": {
+            "name": "send_editable_table",
+            "description": (
+                "Send a module dataset to the web UI as an INTERACTIVE, EDITABLE table. "
+                "Use this (instead of send_data) when the user wants to view AND change "
+                "data — edit cells, add or delete rows — and save it. The grid is bound to "
+                "the module's CSV; when the user clicks Save, the edits are written back to "
+                "the dataset and the module/dashboard refreshes. Provide `module` (the data "
+                "module name) and `file` (the dataset path relative to the module's data/ "
+                "dir, e.g. 'worldcups.csv'). Only works in the web UI."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "module": {
+                        "type": "string",
+                        "description": "Name of the data module that owns the dataset.",
+                    },
+                    "file": {
+                        "type": "string",
+                        "description": (
+                            "Dataset path relative to the module's data/ dir "
+                            "(e.g. 'worldcups.csv' or 'sub/dir/x.csv'). Must be a .csv."
+                        ),
+                    },
+                    "title": {
+                        "type": "string",
+                        "description": "Title shown above the editable table.",
+                    },
+                    "editable_columns": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": (
+                            "Optional whitelist of editable column names. Omit to make "
+                            "every column editable."
+                        ),
+                    },
+                },
+                "required": ["module", "file", "title"],
+            },
+        },
+    },
     # Skill-owned schemas live in their skill folders and are merged in via
     # ToolSchemaBuilder(extra_schemas=...).
     {

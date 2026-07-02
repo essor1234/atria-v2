@@ -20,7 +20,18 @@ export interface Module {
   manifest?: ModuleManifest | null;
 }
 
-export type ModuleTemplate = 'blank' | 'skill' | 'skill_script' | 'skill_dashboard';
+export type ModuleTemplate = 'blank' | 'skill' | 'skill_script' | 'skill_dashboard' | 'data';
+
+export interface UploadFileEntry {
+  file: File;
+  relPath: string;
+}
+
+export interface DataUploadResult {
+  written: string[];
+  converted: string[];
+  skipped: { file: string; error: string }[];
+}
 
 const BASE = '/api/modules';
 
@@ -51,5 +62,28 @@ export const ModulesApi = {
       credentials: 'include',
     });
     if (!r.ok && r.status !== 204) throw new Error(`delete module: ${r.status}`);
+  },
+  async uploadData(
+    name: string,
+    files: UploadFileEntry[],
+    convertXlsx = true,
+  ): Promise<DataUploadResult> {
+    const fd = new FormData();
+    for (const { file, relPath } of files) {
+      fd.append('files', file, file.name);
+      fd.append('rel_paths', relPath || file.name);
+    }
+    fd.append('convert_xlsx', convertXlsx ? 'true' : 'false');
+    const r = await fetch(`${BASE}/${encodeURIComponent(name)}/data/upload`, {
+      method: 'POST',
+      credentials: 'include',
+      body: fd,
+    });
+    if (!r.ok) {
+      let detail = `${r.status}`;
+      try { detail = (await r.json()).detail ?? detail; } catch { /* ignore */ }
+      throw new Error(`upload data: ${detail}`);
+    }
+    return r.json();
   },
 };

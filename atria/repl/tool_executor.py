@@ -2,6 +2,7 @@
 
 import json
 import os
+import tempfile
 from datetime import datetime
 from typing import Iterable, TYPE_CHECKING
 
@@ -42,7 +43,9 @@ class ToolExecutor:
         self._last_error = None
         self._last_agent_response = None
         self._execution_count = 0
-        self.PLAYBOOK_DEBUG_PATH = "/tmp/swecli_debug/playbook_evolution.log"
+        self.PLAYBOOK_DEBUG_PATH = os.path.join(
+            tempfile.gettempdir(), "swecli_debug", "playbook_evolution.log"
+        )
 
     def set_ace_components(self, reflector, curator):
         """Set ACE components for learning.

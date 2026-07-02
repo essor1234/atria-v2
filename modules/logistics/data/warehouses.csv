@@ -1,0 +1,15 @@
+customer,warehouse_name,location_detail,entry_cutoff,notes
+Pana Internal Sales,ICD Sóng Thần (kho 19 & 16),Sóng Thần Bình Dương,16:00,Vô trước 16h + theo timeslot đăng ký
+Pana Internal Sales,Coyote,QL13,16:00,
+Daikin,ITL,Thuộc ICD Sóng Thần,16:00,
+Electrolux,ITL,Thuộc ICD Sóng Thần,16:00,
+FM,KC,Thuộc ICD Sóng Thần,,Theo giờ khách yêu cầu
+Hoà Phát,Hoà Phát Cát Lái,Cát Lái,,
+Hoà Phát,Hoà Phát Phú Mỹ,Phú Mỹ,,
+Mitsu,Logitem Tân Đông Hiệp,Tân Đông Hiệp,16:00,
+Việt Á,An Phú,An Phú Bình Dương,,Hàng rượu của ITL
+Nhựa Tiền Phong,Bến Cát,Bến Cát,,
+Nhựa Qui Phúc,Tân Tạo,Tân Tạo,06:00,Xe đóng sáng phải vô trước 6h (kho cấm 6-9h)
+Pana Electric Works,Bến Cát VSIP2,Bến Cát VSIP2,,Bóng đèn & quạt
+Daphaco,Phan Văn Hớn Q.12,Phan Văn Hớn Quận 12,15:00,Chỉ xe ≤2.5T; vô trước 15h để ra trước giờ cấm 16h
+Daphaco,KCN Xuyên Á,Đức Hoà Long An,,

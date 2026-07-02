@@ -28,6 +28,8 @@ import logging
 from pathlib import Path
 from typing import Any, Optional, Protocol
 
+from atria.core.paths import atria_dir
+
 logger = logging.getLogger(__name__)
 
 
@@ -98,7 +100,7 @@ class PluginHookManager:
             Number of hooks loaded.
         """
         plugin_dirs = [
-            Path.home() / ".atria" / "plugins",
+            atria_dir() / "plugins",
             self._working_dir / ".atria" / "plugins",
         ]
 

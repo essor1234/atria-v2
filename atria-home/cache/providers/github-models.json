@@ -1,0 +1,1012 @@
+{
+  "id": "github-models",
+  "name": "GitHub Models",
+  "description": "GitHub Models models",
+  "api_key_env": "GITHUB_TOKEN",
+  "api_base_url": "https://models.github.ai/inference",
+  "models": {
+    "ai21-labs/ai21-jamba-1.5-mini": {
+      "id": "ai21-labs/ai21-jamba-1.5-mini",
+      "name": "AI21 Jamba 1.5 Mini",
+      "provider": "GitHub Models",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "ai21-labs/ai21-jamba-1.5-large": {
+      "id": "ai21-labs/ai21-jamba-1.5-large",
+      "name": "AI21 Jamba 1.5 Large",
+      "provider": "GitHub Models",
+      "context_length": 256000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "core42/jais-30b-chat": {
+      "id": "core42/jais-30b-chat",
+      "name": "JAIS 30b Chat",
+      "provider": "GitHub Models",
+      "context_length": 8192,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 2048,
+      "supports_temperature": true
+    },
+    "xai/grok-3-mini": {
+      "id": "xai/grok-3-mini",
+      "name": "Grok 3 Mini",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "xai/grok-3": {
+      "id": "xai/grok-3",
+      "name": "Grok 3",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "microsoft/phi-3.5-moe-instruct": {
+      "id": "microsoft/phi-3.5-moe-instruct",
+      "name": "Phi-3.5-MoE instruct (128k)",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "microsoft/phi-3-small-128k-instruct": {
+      "id": "microsoft/phi-3-small-128k-instruct",
+      "name": "Phi-3-small instruct (128k)",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "microsoft/phi-3.5-mini-instruct": {
+      "id": "microsoft/phi-3.5-mini-instruct",
+      "name": "Phi-3.5-mini instruct (128k)",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "microsoft/phi-3-medium-128k-instruct": {
+      "id": "microsoft/phi-3-medium-128k-instruct",
+      "name": "Phi-3-medium instruct (128k)",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "microsoft/phi-3-small-8k-instruct": {
+      "id": "microsoft/phi-3-small-8k-instruct",
+      "name": "Phi-3-small instruct (8k)",
+      "provider": "GitHub Models",
+      "context_length": 8192,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 2048,
+      "supports_temperature": true
+    },
+    "microsoft/phi-4-reasoning": {
+      "id": "microsoft/phi-4-reasoning",
+      "name": "Phi-4-Reasoning",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "microsoft/mai-ds-r1": {
+      "id": "microsoft/mai-ds-r1",
+      "name": "MAI-DS-R1",
+      "provider": "GitHub Models",
+      "context_length": 65536,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "microsoft/phi-4-mini-instruct": {
+      "id": "microsoft/phi-4-mini-instruct",
+      "name": "Phi-4-mini-instruct",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "microsoft/phi-4": {
+      "id": "microsoft/phi-4",
+      "name": "Phi-4",
+      "provider": "GitHub Models",
+      "context_length": 16000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "microsoft/phi-3.5-vision-instruct": {
+      "id": "microsoft/phi-3.5-vision-instruct",
+      "name": "Phi-3.5-vision instruct (128k)",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "microsoft/phi-3-medium-4k-instruct": {
+      "id": "microsoft/phi-3-medium-4k-instruct",
+      "name": "Phi-3-medium instruct (4k)",
+      "provider": "GitHub Models",
+      "context_length": 4096,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 1024,
+      "supports_temperature": true
+    },
+    "microsoft/phi-4-multimodal-instruct": {
+      "id": "microsoft/phi-4-multimodal-instruct",
+      "name": "Phi-4-multimodal-instruct",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "microsoft/phi-4-mini-reasoning": {
+      "id": "microsoft/phi-4-mini-reasoning",
+      "name": "Phi-4-mini-reasoning",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "microsoft/phi-3-mini-128k-instruct": {
+      "id": "microsoft/phi-3-mini-128k-instruct",
+      "name": "Phi-3-mini instruct (128k)",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "microsoft/phi-3-mini-4k-instruct": {
+      "id": "microsoft/phi-3-mini-4k-instruct",
+      "name": "Phi-3-mini instruct (4k)",
+      "provider": "GitHub Models",
+      "context_length": 4096,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 1024,
+      "supports_temperature": true
+    },
+    "openai/o3": {
+      "id": "openai/o3",
+      "name": "OpenAI o3",
+      "provider": "GitHub Models",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 100000,
+      "supports_temperature": false
+    },
+    "openai/o1-mini": {
+      "id": "openai/o1-mini",
+      "name": "OpenAI o1-mini",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": false
+    },
+    "openai/gpt-4o": {
+      "id": "openai/gpt-4o",
+      "name": "GPT-4o",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "openai/o4-mini": {
+      "id": "openai/o4-mini",
+      "name": "OpenAI o4-mini",
+      "provider": "GitHub Models",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 100000,
+      "supports_temperature": false
+    },
+    "openai/o1-preview": {
+      "id": "openai/o1-preview",
+      "name": "OpenAI o1-preview",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": false
+    },
+    "openai/o3-mini": {
+      "id": "openai/o3-mini",
+      "name": "OpenAI o3-mini",
+      "provider": "GitHub Models",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 100000,
+      "supports_temperature": false
+    },
+    "openai/gpt-4.1-nano": {
+      "id": "openai/gpt-4.1-nano",
+      "name": "GPT-4.1-nano",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "openai/o1": {
+      "id": "openai/o1",
+      "name": "OpenAI o1",
+      "provider": "GitHub Models",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 100000,
+      "supports_temperature": false
+    },
+    "openai/gpt-4.1": {
+      "id": "openai/gpt-4.1",
+      "name": "GPT-4.1",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "openai/gpt-4.1-mini": {
+      "id": "openai/gpt-4.1-mini",
+      "name": "GPT-4.1-mini",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "openai/gpt-4o-mini": {
+      "id": "openai/gpt-4o-mini",
+      "name": "GPT-4o mini",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 16384,
+      "supports_temperature": true
+    },
+    "mistral-ai/mistral-small-2503": {
+      "id": "mistral-ai/mistral-small-2503",
+      "name": "Mistral Small 3.1",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "mistral-ai/mistral-nemo": {
+      "id": "mistral-ai/mistral-nemo",
+      "name": "Mistral Nemo",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "mistral-ai/mistral-medium-2505": {
+      "id": "mistral-ai/mistral-medium-2505",
+      "name": "Mistral Medium 3 (25.05)",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "mistral-ai/mistral-large-2411": {
+      "id": "mistral-ai/mistral-large-2411",
+      "name": "Mistral Large 24.11",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "mistral-ai/ministral-3b": {
+      "id": "mistral-ai/ministral-3b",
+      "name": "Ministral 3B",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "mistral-ai/codestral-2501": {
+      "id": "mistral-ai/codestral-2501",
+      "name": "Codestral 25.01",
+      "provider": "GitHub Models",
+      "context_length": 32000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "cohere/cohere-command-a": {
+      "id": "cohere/cohere-command-a",
+      "name": "Cohere Command A",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "cohere/cohere-command-r-08-2024": {
+      "id": "cohere/cohere-command-r-08-2024",
+      "name": "Cohere Command R 08-2024",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "cohere/cohere-command-r-plus": {
+      "id": "cohere/cohere-command-r-plus",
+      "name": "Cohere Command R+",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "cohere/cohere-command-r-plus-08-2024": {
+      "id": "cohere/cohere-command-r-plus-08-2024",
+      "name": "Cohere Command R+ 08-2024",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "cohere/cohere-command-r": {
+      "id": "cohere/cohere-command-r",
+      "name": "Cohere Command R",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "meta/meta-llama-3-8b-instruct": {
+      "id": "meta/meta-llama-3-8b-instruct",
+      "name": "Meta-Llama-3-8B-Instruct",
+      "provider": "GitHub Models",
+      "context_length": 8192,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 2048,
+      "supports_temperature": true
+    },
+    "meta/llama-3.2-11b-vision-instruct": {
+      "id": "meta/llama-3.2-11b-vision-instruct",
+      "name": "Llama-3.2-11B-Vision-Instruct",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "meta/meta-llama-3.1-405b-instruct": {
+      "id": "meta/meta-llama-3.1-405b-instruct",
+      "name": "Meta-Llama-3.1-405B-Instruct",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "meta/llama-4-scout-17b-16e-instruct": {
+      "id": "meta/llama-4-scout-17b-16e-instruct",
+      "name": "Llama 4 Scout 17B 16E Instruct",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "meta/llama-3.3-70b-instruct": {
+      "id": "meta/llama-3.3-70b-instruct",
+      "name": "Llama-3.3-70B-Instruct",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "meta/meta-llama-3.1-70b-instruct": {
+      "id": "meta/meta-llama-3.1-70b-instruct",
+      "name": "Meta-Llama-3.1-70B-Instruct",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "meta/meta-llama-3.1-8b-instruct": {
+      "id": "meta/meta-llama-3.1-8b-instruct",
+      "name": "Meta-Llama-3.1-8B-Instruct",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "meta/llama-3.2-90b-vision-instruct": {
+      "id": "meta/llama-3.2-90b-vision-instruct",
+      "name": "Llama-3.2-90B-Vision-Instruct",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning",
+        "audio"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "meta/llama-4-maverick-17b-128e-instruct-fp8": {
+      "id": "meta/llama-4-maverick-17b-128e-instruct-fp8",
+      "name": "Llama 4 Maverick 17B 128E Instruct FP8",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "meta/meta-llama-3-70b-instruct": {
+      "id": "meta/meta-llama-3-70b-instruct",
+      "name": "Meta-Llama-3-70B-Instruct",
+      "provider": "GitHub Models",
+      "context_length": 8192,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 2048,
+      "supports_temperature": true
+    },
+    "deepseek/deepseek-r1-0528": {
+      "id": "deepseek/deepseek-r1-0528",
+      "name": "DeepSeek-R1-0528",
+      "provider": "GitHub Models",
+      "context_length": 65536,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "deepseek/deepseek-v3-0324": {
+      "id": "deepseek/deepseek-v3-0324",
+      "name": "DeepSeek-V3-0324",
+      "provider": "GitHub Models",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "deepseek/deepseek-r1": {
+      "id": "deepseek/deepseek-r1",
+      "name": "DeepSeek-R1",
+      "provider": "GitHub Models",
+      "context_length": 65536,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    }
+  }
+}

@@ -21,11 +21,13 @@ _ctx_logger = logging.getLogger("swecli.context_debug")
 
 def _debug_log(message: str) -> None:
     """Write debug message to /tmp/swecli_react_debug.log."""
+    import os
+    import tempfile
     from datetime import datetime
 
-    log_file = "/tmp/swecli_react_debug.log"
+    log_file = os.path.join(tempfile.gettempdir(), "swecli_react_debug.log")
     timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
-    with open(log_file, "a") as f:
+    with open(log_file, "a", encoding="utf-8") as f:
         f.write(f"[{timestamp}] {message}\n")
 
 

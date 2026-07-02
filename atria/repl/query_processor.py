@@ -1,5 +1,7 @@
 """Query processing for REPL."""
 
+import os
+import tempfile
 from typing import TYPE_CHECKING, Iterable
 
 from atria.core.context_engineering.memory import (
@@ -43,7 +45,9 @@ class QueryProcessor:
 
     REFLECTION_WINDOW_SIZE = 10
     MAX_PLAYBOOK_STRATEGIES = 30
-    PLAYBOOK_DEBUG_PATH = "/tmp/swecli_debug/playbook_evolution.log"
+    PLAYBOOK_DEBUG_PATH = os.path.join(
+        tempfile.gettempdir(), "swecli_debug", "playbook_evolution.log"
+    )
 
     def __init__(
         self,

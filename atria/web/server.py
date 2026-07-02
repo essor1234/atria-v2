@@ -33,6 +33,7 @@ from atria.web.routes import (
     modules_router,
     blocks_router,
     module_dashboard_router,
+    connect_router,
     me_router,
     admin_tenants_router,
     admin_tenant_users_router,
@@ -140,6 +141,18 @@ async def lifespan(app: FastAPI):
         set_bus(None)
         app.state.bus = None
 
+    # Start the "Connect" channel adapters (Telegram bots) for enabled connections.
+    # Telegram long-polling is single-consumer per token, so this must run in a
+    # single-worker, no-reload process (run-backend.ps1); duplicate pollers get 409.
+    try:
+        from atria.web.connect_runtime import get_connect_manager
+
+        await get_connect_manager().start_all()
+    except Exception:
+        import logging
+
+        logging.getLogger(__name__).exception("Connect: start_all failed")
+
     # Start the TaskIQ client for background subagents (server side only).
     from atria.core.tasks.broker import broker as _task_broker
     from atria.core.tasks.lifecycle import make_task_client
@@ -200,6 +213,12 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         stop_global_watcher()
+        try:
+            from atria.web.connect_runtime import get_connect_manager
+
+            await get_connect_manager().stop_all()
+        except Exception:
+            pass
         _task_client = getattr(app.state, "task_client", None)
         if _task_client is not None:
             try:
@@ -265,6 +284,7 @@ def create_app() -> FastAPI:
     app.include_router(modules_router)
     app.include_router(blocks_router)
     app.include_router(module_dashboard_router)
+    app.include_router(connect_router)
     app.include_router(me_router)
     app.include_router(admin_tenants_router)
     app.include_router(admin_tenant_users_router)

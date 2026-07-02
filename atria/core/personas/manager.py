@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 
+from atria.core.paths import atria_dir
+
 
 @dataclass
 class Persona:
@@ -36,7 +38,7 @@ class PersonaManager:
             personas_dir: Directory to store personas. Defaults to ~/.atria/personas/
         """
         if personas_dir is None:
-            personas_dir = Path.home() / ".atria" / "personas"
+            personas_dir = atria_dir() / "personas"
         self.personas_dir = personas_dir
         self.personas_dir.mkdir(parents=True, exist_ok=True)
 

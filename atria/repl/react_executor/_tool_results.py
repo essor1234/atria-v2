@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import json
 import logging
-from pathlib import Path
 
+from atria.core.paths import atria_dir
 from atria.core.runtime.monitoring import TaskMonitor
 from atria.db.sync import run_sync
 from atria.core.utils.tool_display import format_tool_call
@@ -98,7 +98,7 @@ class ToolResultsMixin:
         # Determine session ID for file path
         session = run_sync(self.session_manager.get_current_session())
         session_id = session.id if session else "unknown"
-        scratch_dir = Path.home() / ".atria" / "scratch" / session_id
+        scratch_dir = atria_dir() / "scratch" / session_id
 
         try:
             scratch_dir.mkdir(parents=True, exist_ok=True)

@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, Sparkles, CheckCircle2, AlertCircle, FilePlus2, FolderPlus, Trash2 } from 'lucide-react';
 import { useModulesStore } from '../../stores/modules';
 import { useToastStore } from '../../stores/toast';
-import type { ModuleTemplate } from '../../api/modules';
+import { ModulesApi, type ModuleTemplate, type UploadFileEntry } from '../../api/modules';
 
 interface Props {
   open: boolean;
@@ -55,16 +55,29 @@ const TEMPLATES: Record<ModuleTemplate, { label: string; hint: string }> = {
     label: 'Skill + dashboard',
     hint: 'SKILL.md, scripts/main.py, and templates/dashboard.html.',
   },
+  data: {
+    label: 'From data',
+    hint: 'Upload files/folders → CSV-backed module with a dashboard.',
+  },
 };
 
+function humanSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export function NewModuleSheet({ open, onClose, onCreated }: Props) {
-  const { modules, create } = useModulesStore();
+  const { modules, create, refresh } = useModulesStore();
   const addToast = useToastStore(s => s.addToast);
   const inputRef = useRef<HTMLInputElement>(null);
+  const filesInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState('');
   const [summary, setSummary] = useState('');
   const [template, setTemplate] = useState<ModuleTemplate>('skill');
+  const [picked, setPicked] = useState<UploadFileEntry[]>([]);
   const [busy, setBusy] = useState(false);
   const [nameTouched, setNameTouched] = useState(false);
   const [summaryTouched, setSummaryTouched] = useState(false);
@@ -75,6 +88,7 @@ export function NewModuleSheet({ open, onClose, onCreated }: Props) {
       setName('');
       setSummary('');
       setTemplate('skill');
+      setPicked([]);
       setBusy(false);
       setNameTouched(false);
       setSummaryTouched(false);
@@ -82,6 +96,30 @@ export function NewModuleSheet({ open, onClose, onCreated }: Props) {
       setTimeout(() => inputRef.current?.focus(), 0);
     }
   }, [open]);
+
+  // The directory-picker attributes aren't in React's input typings; set them
+  // on the element directly whenever the folder input is rendered.
+  useEffect(() => {
+    const el = folderInputRef.current;
+    if (el) {
+      el.setAttribute('webkitdirectory', '');
+      el.setAttribute('directory', '');
+    }
+  }, [template]);
+
+  const addPicked = (list: FileList | null) => {
+    if (!list || list.length === 0) return;
+    const incoming: UploadFileEntry[] = Array.from(list).map(f => ({
+      file: f,
+      // webkitRelativePath is set for folder picks (e.g. "FIFA World Cup/x.xlsx").
+      relPath: (f as File & { webkitRelativePath?: string }).webkitRelativePath || f.name,
+    }));
+    setPicked(prev => {
+      const byPath = new Map(prev.map(e => [e.relPath, e]));
+      for (const e of incoming) byPath.set(e.relPath, e);
+      return Array.from(byPath.values());
+    });
+  };
 
   const existingNames = useMemo(() => modules.map(m => m.name), [modules]);
   const nameCheck = useMemo(() => validateName(name, existingNames), [name, existingNames]);
@@ -112,10 +150,24 @@ export function NewModuleSheet({ open, onClose, onCreated }: Props) {
       if (!nameCheck.ok) inputRef.current?.focus();
       return;
     }
+    if (template === 'data' && picked.length === 0) {
+      addToast('Add at least one file or a folder to build a data module.', 'warning');
+      return;
+    }
     setBusy(true);
     try {
       await create(name, template, summary.trim());
-      addToast(`Module “${name}” created.`, 'success');
+      if (template === 'data') {
+        const res = await ModulesApi.uploadData(name, picked, true);
+        await refresh(); // pick up the regenerated SKILL/dashboard (WS also refreshes)
+        const conv = res.converted.length ? ` (${res.converted.length} sheet${res.converted.length > 1 ? 's' : ''} → CSV)` : '';
+        addToast(`Module “${name}” created with ${res.written.length} file(s)${conv}.`, 'success');
+        if (res.skipped.length) {
+          addToast(`${res.skipped.length} file(s) could not be processed.`, 'warning');
+        }
+      } else {
+        addToast(`Module “${name}” created.`, 'success');
+      }
       onCreated(name);
       onClose();
     } catch (e: unknown) {
@@ -244,6 +296,69 @@ export function NewModuleSheet({ open, onClose, onCreated }: Props) {
               })}
             </div>
           </div>
+
+          {template === 'data' && (
+            <div>
+              <span className="block text-[11px] uppercase tracking-wide text-ink/50 mb-2">Data files</span>
+              <input
+                ref={filesInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={e => { addPicked(e.currentTarget.files); e.currentTarget.value = ''; }}
+              />
+              <input
+                ref={folderInputRef}
+                type="file"
+                className="hidden"
+                onChange={e => { addPicked(e.currentTarget.files); e.currentTarget.value = ''; }}
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => filesInputRef.current?.click()}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] rounded-md border border-hairline-soft hover:bg-surface-soft/60 cursor-pointer transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-sky-400/60"
+                >
+                  <FilePlus2 className="w-4 h-4" /> Add files
+                </button>
+                <button
+                  type="button"
+                  onClick={() => folderInputRef.current?.click()}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] rounded-md border border-hairline-soft hover:bg-surface-soft/60 cursor-pointer transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-sky-400/60"
+                >
+                  <FolderPlus className="w-4 h-4" /> Add folder
+                </button>
+              </div>
+              {picked.length > 0 ? (
+                <>
+                  <div className="mt-2 max-h-44 overflow-auto rounded-md border border-hairline-soft divide-y divide-hairline-soft/50">
+                    {picked.map(e => (
+                      <div key={e.relPath} className="flex items-center gap-2 px-2.5 py-1.5 text-[12px]">
+                        <span className="font-mono truncate flex-1" title={e.relPath}>{e.relPath}</span>
+                        <span className="text-ink/40 tabular-nums flex-shrink-0">{humanSize(e.file.size)}</span>
+                        <button
+                          type="button"
+                          aria-label={`Remove ${e.relPath}`}
+                          onClick={() => setPicked(prev => prev.filter(p => p.relPath !== e.relPath))}
+                          className="p-0.5 rounded text-ink/40 hover:text-semantic-danger hover:bg-surface-soft cursor-pointer flex-shrink-0"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-1.5 flex items-center justify-between text-[11px] text-ink/45">
+                    <span>{picked.length} file{picked.length > 1 ? 's' : ''} selected · .xlsx auto-converts to CSV</span>
+                    <button type="button" onClick={() => setPicked([])} className="hover:text-ink cursor-pointer">Clear all</button>
+                  </div>
+                </>
+              ) : (
+                <p className="mt-2 text-[11px] text-ink/45">
+                  Add individual files or a whole folder. Excel files (.xlsx) are auto-converted to CSV; folders keep their structure.
+                </p>
+              )}
+            </div>
+          )}
 
         </div>
 

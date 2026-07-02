@@ -11,7 +11,16 @@ import mimetypes
 from contextlib import contextmanager
 from typing import Iterator, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+)
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -29,6 +38,7 @@ from atria.web.dependencies import get_modules_registry
 router = APIRouter(prefix="/api/modules", tags=["modules"])
 
 _STREAM_CHUNK = 16 * 1024
+_MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MB per file, matching artifact uploads
 
 
 class ModuleDashboardManifestOut(BaseModel):
@@ -136,6 +146,91 @@ def create_endpoint(body: ModuleCreate, reg: ModuleRegistry = Depends(get_module
         )
     reg.reload_one(body.name)
     return ModuleOut.model_validate(m)
+
+
+@router.post("/{name}/data/upload")
+async def data_upload_endpoint(
+    name: str,
+    files: List[UploadFile] = File(...),
+    rel_paths: List[str] = Form(default=[]),
+    convert_xlsx: bool = Form(True),
+    reg: ModuleRegistry = Depends(get_modules_registry),
+):
+    """Upload data files/folders into a module's data/ dir.
+
+    ``rel_paths`` is a parallel array to ``files`` carrying each file's
+    folder-relative path (e.g. from a webkitdirectory pick); when absent the
+    bare filename is used. Excel files are also converted to CSV when
+    ``convert_xlsx`` is set. SKILL.md is regenerated to describe the datasets.
+    """
+    plan: list[tuple[str, bytes]] = []
+    converted: list[str] = []
+    skipped: list[dict] = []
+
+    for i, uf in enumerate(files):
+        data = await uf.read()
+        if len(data) > _MAX_UPLOAD_BYTES:
+            raise HTTPException(413, f"{uf.filename!r} exceeds the {_MAX_UPLOAD_BYTES} byte limit")
+        rel = (rel_paths[i] if i < len(rel_paths) and rel_paths[i] else None) or uf.filename or f"file_{i}"
+        plan.append((rel, data))
+
+        if convert_xlsx and rel.lower().endswith((".xlsx", ".xlsm")):
+            try:
+                from atria.core.modules.xlsx_convert import xlsx_to_csvs
+
+                head, _, tail = rel.replace("\\", "/").rpartition("/")
+                folder = f"{head}/" if head else ""
+                stem = tail.rsplit(".", 1)[0]
+                for fname, cdata in xlsx_to_csvs(data, stem):
+                    plan.append((f"{folder}{fname}", cdata))
+                    converted.append(f"{folder}{fname}")
+            except Exception as exc:  # noqa: BLE001 — convert failure shouldn't abort the upload
+                skipped.append({"file": rel, "error": f"xlsx conversion failed: {exc}"})
+
+    with _store_errors(name):
+        written = store.write_data_files(reg.root, name, plan)
+        store.regenerate_data_skill(reg.root, name)
+    reg.reload_one(name)
+    return {"written": written, "converted": converted, "skipped": skipped}
+
+
+@router.get("/{name}/data/read")
+def data_read_endpoint(
+    name: str,
+    file: str = Query(..., min_length=1),
+    reg: ModuleRegistry = Depends(get_modules_registry),
+):
+    """Read a module CSV dataset as ``{file, columns, rows}`` (for the editable grid)."""
+    with _store_errors(name):
+        return store.read_dataset(reg.root, name, file)
+
+
+class DatasetWrite(BaseModel):
+    file: str = Field(..., min_length=1)
+    columns: list = Field(default_factory=list)
+    rows: list = Field(default_factory=list)
+
+
+@router.put("/{name}/data/write")
+def data_write_endpoint(
+    name: str,
+    body: DatasetWrite,
+    reg: ModuleRegistry = Depends(get_modules_registry),
+):
+    """Write edited rows back to a module CSV dataset, then refresh the module.
+
+    Validation/containment failures surface as 4xx JSON (never a 500) via
+    ``_store_errors``; the CSV is replaced atomically with a single ``.bak``.
+    """
+    with _store_errors(name):
+        result = store.write_dataset(reg.root, name, body.file, body.columns, body.rows)
+        # Only refresh the auto-generated SKILL.md for generic data-template
+        # modules (which own scripts/data.py). Custom modules (e.g. warehouse,
+        # with their own scripts) keep their hand-authored SKILL.md untouched.
+        if (reg.root / name / "scripts" / "data.py").is_file():
+            store.regenerate_data_skill(reg.root, name)
+    reg.reload_one(name)
+    return {"ok": True, **result}
 
 
 @router.delete("/{name}", status_code=204)

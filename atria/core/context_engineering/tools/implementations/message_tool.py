@@ -7,13 +7,15 @@ import logging
 from pathlib import Path
 from typing import Any, Optional
 
+from atria.core.paths import atria_dir
+
 logger = logging.getLogger(__name__)
 
 
 def _load_channel_config() -> dict[str, Any]:
     """Load channel configuration from settings."""
     config_paths = [
-        Path.home() / ".atria" / "settings.json",
+        atria_dir() / "settings.json",
         Path(".atria") / "settings.json",
     ]
     channels: dict[str, Any] = {}

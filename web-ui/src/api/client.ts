@@ -88,6 +88,28 @@ class APIClient {
     );
   }
 
+  // Editable module datasets (send_editable_table)
+  readDataset(module: string, file: string) {
+    return request<{
+      file: string;
+      columns: import('../types').DataColumn[];
+      rows: Record<string, any>[];
+      warning?: string;
+    }>(`/modules/${encodeURIComponent(module)}/data/read`, { query: { file } });
+  }
+
+  writeDataset(
+    module: string,
+    file: string,
+    columns: import('../types').DataColumn[],
+    rows: Record<string, any>[],
+  ) {
+    return request<{ ok: boolean; written: string; rows: number; columns: string[] }>(
+      `/modules/${encodeURIComponent(module)}/data/write`,
+      { method: 'PUT', body: { file, columns, rows } },
+    );
+  }
+
   // Generic GET method for any endpoint
   get<T = any>(endpoint: string) {
     return request<T>(endpoint);

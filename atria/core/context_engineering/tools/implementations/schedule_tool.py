@@ -8,9 +8,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from atria.core.paths import atria_dir
+
 logger = logging.getLogger(__name__)
 
-_SCHEDULES_FILE = Path.home() / ".atria" / "schedules.json"
+_SCHEDULES_FILE = atria_dir() / "schedules.json"
 
 
 def _load_schedules() -> list[dict[str, Any]]:

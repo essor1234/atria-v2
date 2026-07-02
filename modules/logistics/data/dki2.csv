@@ -1,0 +1,5 @@
+vehicle_number,driver_name,phone,national_id,license_id,weight_class,brand,ttdk_capacity,status
+51D-111.22,Vũ Văn Phong,0906789012,079090006789,FC-0066,15T,HOWO,14.8,free
+51D-222.33,Đặng Văn Giang,0907890123,079090007890,C-0077,3.5T,TERACO,3.4,free
+51D-333.44,Bùi Văn Hải,0908901234,079090008901,FC-0088,5T,HINO,4.9,returning
+51D-444.55,Ngô Văn Khoa,0909012345,079090009012,FC-0099,8T,ISUZU,7.9,free

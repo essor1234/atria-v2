@@ -1,0 +1,62 @@
+{
+  "id": "drun",
+  "name": "D.Run (China)",
+  "description": "D.Run (China) models",
+  "api_key_env": "DRUN_API_KEY",
+  "api_base_url": "https://chat.d.run/v1",
+  "models": {
+    "public/deepseek-v3": {
+      "id": "public/deepseek-v3",
+      "name": "DeepSeek V3",
+      "provider": "D.Run (China)",
+      "context_length": 131072,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.28,
+        "output": 1.1,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "public/deepseek-r1": {
+      "id": "public/deepseek-r1",
+      "name": "DeepSeek R1",
+      "provider": "D.Run (China)",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.55,
+        "output": 2.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32000,
+      "supports_temperature": true
+    },
+    "public/minimax-m25": {
+      "id": "public/minimax-m25",
+      "name": "MiniMax M2.5",
+      "provider": "D.Run (China)",
+      "context_length": 204800,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.29,
+        "output": 1.16,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    }
+  }
+}

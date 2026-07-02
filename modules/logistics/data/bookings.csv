@@ -1,0 +1,2 @@
+booking_id,customer,created_at,status,destination_zone,requested_weight_t,vehicle_number,driver_name,delivery_time,notes
+BK-0001,Electrolux,2026-06-25T14:56:51,open,Bien Hoa,5.0,51C-123.45,Nguyễn Văn An,14:00,

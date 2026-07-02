@@ -378,6 +378,11 @@ function ListFooter({ context }: { context?: ListContext }) {
   );
 }
 
+// Stable top spacer. Defined at module scope (not inline) so Virtuoso doesn't
+// see a new component type on every render and remount/re-measure it — that
+// remounting was a source of scroll flicker.
+const ListHeader = () => <div className="h-8 md:h-10" aria-hidden="true" />;
+
 // ─── main component ───────────────────────────────────────────────────────────
 
 export function MessageList() {
@@ -394,12 +399,16 @@ export function MessageList() {
     return sid ? state.sessionStates[sid]?.progressMessage ?? null : null;
   });
   const thinkingLevel = useChatStore(state => state.thinkingLevel);
+  const currentSessionId = useChatStore(state => state.currentSessionId);
 
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   // Ref for synchronous reads inside effects/events — avoids stale closure issues
   const atBottomRef = useRef(true);
   const [atBottom, setAtBottom] = useState(true);
   const scrollerRef = useRef<HTMLElement | null>(null);
+  // True while the user is actively scrolling — used to suppress auto-follow so
+  // we never yank the viewport while they're trying to read.
+  const isScrollingRef = useRef(false);
 
   // Exclude thinking messages when the user has thinking display turned off
   const messages = useMemo(
@@ -430,13 +439,48 @@ export function MessageList() {
     [isLoading, progressMessage, messages.length, turnByIndex, actions]
   );
 
-  // Keep viewport pinned to bottom during streaming (item content grows, no new
-  // array entry added, so Virtuoso's followOutput alone won't fire).
+  // Stable references for Virtuoso. Passing fresh inline objects/functions every
+  // render makes Virtuoso re-create Header/Footer/items and re-measure them,
+  // which jumps the scroll position (the flicker).
+  const itemContent = useCallback(
+    (index: number, message: Message, ctx: ListContext) => (
+      <div
+        // flow-root establishes a block formatting context so the markdown's
+        // child margins are CONTAINED and counted in the measured height.
+        // react-virtuoso mis-measures items whose content margins escape, which
+        // caused the scroll flicker / "can't reach the end".
+        className="flow-root max-w-4.5xl mx-auto px-4 md:px-8 pb-5 md:pb-6"
+        style={message.depth ? { paddingLeft: `calc(${message.depth * 1.5}rem + 1rem)` } : undefined}
+      >
+        <MessageItem message={message} index={index} context={ctx} />
+      </div>
+    ),
+    [],
+  );
+  const components = useMemo(() => ({ Header: ListHeader, Footer: ListFooter }), []);
+
+  // On conversation switch, jump to the latest message once. The component does
+  // not remount between conversations, so initialTopMostItemIndex (mount-only)
+  // isn't enough. After this, Virtuoso's followOutput keeps the viewport pinned
+  // during streaming as long as the user stays at the bottom — we deliberately
+  // do NOT scroll on every message update, which previously fought the user's
+  // own scrolling and made the view jump.
   useEffect(() => {
-    if (atBottomRef.current && messages.length > 0) {
+    atBottomRef.current = true;
+    setAtBottom(true);
+    const id = requestAnimationFrame(() => {
       virtuosoRef.current?.scrollToIndex({ index: 'LAST', align: 'end', behavior: 'auto' });
-    }
-  }, [messages]);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [currentSessionId]);
+
+  // Auto-follow is handled SOLELY by Virtuoso's own `followOutput` (see the prop
+  // below). We deliberately do NOT run a manual scroll effect here: a manual
+  // scrollToIndex/scrollTo fired per streamed token reads the last item's
+  // *previous* (smaller) height while it's still growing, so its target lands
+  // above the current position and the view visibly jumps UP — the flicker.
+  // `followOutput` scrolls only after Virtuoso has re-measured, so it sticks to
+  // the bottom smoothly during streaming without the bounce.
 
   // PageUp / PageDown keyboard scrolling
   useEffect(() => {
@@ -459,14 +503,26 @@ export function MessageList() {
         style={{ height: '100%' }}
         data={renderItems}
         context={context}
-        // followOutput: auto-scroll to bottom only when already pinned there.
-        // Covers new message arrivals; the useEffect above covers streaming growth.
-        followOutput={(isAtBottom) => isAtBottom ? 'auto' : false}
-        alignToBottom
+        // Sole auto-follow authority. Sticks to the bottom (instant, no animation
+        // bounce) while at the bottom — for both new messages AND the last
+        // message growing during streaming — and stops the moment the user
+        // scrolls up. No competing manual scroll effect (that caused the flicker).
+        followOutput={(isAtBottom) => (isAtBottom ? 'auto' : false)}
         atBottomStateChange={(bottom) => {
           atBottomRef.current = bottom;
           setAtBottom(bottom);
         }}
+        isScrolling={(scrolling) => { isScrollingRef.current = scrolling; }}
+        // Generous threshold so fast streaming growth doesn't briefly flip
+        // "at bottom" off (which would stop the follow mid-stream).
+        atBottomThreshold={100}
+        increaseViewportBy={{ top: 400, bottom: 400 }}
+        initialTopMostItemIndex={messages.length - 1}
+        // Stable per-item identity so re-renders don't remount/re-measure items.
+        computeItemKey={(index, m) => m.tool_call_id ?? m.data_message_id ?? `${m.role}:${index}`}
+        scrollerRef={(el) => { scrollerRef.current = el as HTMLElement | null; }}
+        itemContent={itemContent}
+        components={components}
         atBottomThreshold={50}
         initialTopMostItemIndex={renderItems.length - 1}
         scrollerRef={(el) => { scrollerRef.current = el as HTMLElement | null; }}

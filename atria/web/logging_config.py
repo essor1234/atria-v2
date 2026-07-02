@@ -3,6 +3,17 @@
 import logging
 import sys
 
+# On Windows the default stdout/stderr encoding is cp1252, which cannot encode
+# characters used in some log messages (e.g. the "✓"/"❌" status marks, "→").
+# Writing them would raise UnicodeEncodeError mid-request and abort the turn.
+# Force UTF-8 and replace anything unmappable so logging can never crash a
+# request. No-op on streams already UTF-8 or not reconfigurable.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+    except (AttributeError, ValueError):
+        pass
+
 # Create a custom logger for Atria web
 logger = logging.getLogger("atria.web")
 logger.setLevel(logging.DEBUG)

@@ -18,6 +18,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.dialects.postgresql import JSON
@@ -113,6 +114,37 @@ class Message(Base):
     blocks: Mapped[dict] = mapped_column(JSON, nullable=False)
 
     conversation: Mapped["Conversation"] = relationship(back_populates="messages")
+
+
+class ChannelSession(Base):
+    """Maps a channel conversation (channel + user + thread) to a session.
+
+    Lets repeat messages from the same chat reuse one conversation. A NEW table is
+    used deliberately: ``Base.metadata.create_all()`` creates missing tables on
+    startup but does not ALTER existing ones, so adding columns to ``conversations``
+    would not have applied. ``thread_id`` is normalised to "" (never NULL) so the
+    uniqueness constraint behaves (Postgres treats NULLs as distinct).
+    """
+
+    __tablename__ = "channel_sessions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    channel: Mapped[str] = mapped_column(String(64), nullable=False)
+    channel_user_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    thread_id: Mapped[str] = mapped_column(String(128), nullable=False, default="")
+    conversation_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("conversations.id"), nullable=False
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "channel", "channel_user_id", "thread_id", name="uq_channel_user_thread"
+        ),
+    )
 
 
 class Artifact(Base):

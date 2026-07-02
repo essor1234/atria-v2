@@ -1,0 +1,134 @@
+{
+  "id": "vultr",
+  "name": "Vultr",
+  "description": "Vultr models",
+  "api_key_env": "VULTR_API_KEY",
+  "api_base_url": "https://api.vultrinference.com/v1",
+  "models": {
+    "moonshotai/Kimi-K2.6": {
+      "id": "moonshotai/Kimi-K2.6",
+      "name": "Kimi K2.6",
+      "provider": "Vultr",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.15,
+        "output": 0.6,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "nvidia/Llama-3.1-Nemotron-Safety-Guard-8B-v3": {
+      "id": "nvidia/Llama-3.1-Nemotron-Safety-Guard-8B-v3",
+      "name": "Llama 3.1 Nemotron Safety Guard",
+      "provider": "Vultr",
+      "context_length": 8192,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.01,
+        "output": 0.01,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 4096,
+      "supports_temperature": true
+    },
+    "nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16": {
+      "id": "nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16",
+      "name": "NVIDIA Nemotron 3 Nano Omni",
+      "provider": "Vultr",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.13,
+        "output": 0.38,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "nvidia/DeepSeek-V3.2-NVFP4": {
+      "id": "nvidia/DeepSeek-V3.2-NVFP4",
+      "name": "DeepSeek V3.2",
+      "provider": "Vultr",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.55,
+        "output": 1.65,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "nvidia/Nemotron-Cascade-2-30B-A3B": {
+      "id": "nvidia/Nemotron-Cascade-2-30B-A3B",
+      "name": "NVIDIA Nemotron Cascade 2",
+      "provider": "Vultr",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.15,
+        "output": 0.6,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "zai-org/GLM-5.1-FP8": {
+      "id": "zai-org/GLM-5.1-FP8",
+      "name": "GLM-5.1",
+      "provider": "Vultr",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.85,
+        "output": 3.1,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "MiniMaxAI/MiniMax-M2.7": {
+      "id": "MiniMaxAI/MiniMax-M2.7",
+      "name": "MiniMax-M2.7",
+      "provider": "Vultr",
+      "context_length": 204800,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.3,
+        "output": 1.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    }
+  }
+}

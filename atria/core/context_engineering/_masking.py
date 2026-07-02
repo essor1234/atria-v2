@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from pathlib import Path
 from typing import Any
+
+from atria.core.paths import atria_dir
 
 from .stages import PRUNE_PROTECTED_TOKENS, PROTECTED_TOOL_TYPES, OptimizationLevel
 
@@ -205,7 +206,7 @@ class MaskingMixin:
             Path to the archive file, or None if archival failed.
         """
         sid = session_id or self._session_id or "unknown"
-        scratch_dir = Path.home() / ".atria" / "scratch" / sid
+        scratch_dir = atria_dir() / "scratch" / sid
         try:
             scratch_dir.mkdir(parents=True, exist_ok=True)
         except OSError:

@@ -46,6 +46,7 @@ class MessageRouter:
         self,
         session_manager: SessionManager,
         agent_executor: Optional[Callable[[Session, str], Any]] = None,
+        default_workspace: Optional[str] = None,
     ):
         """Initialize message router.
 
@@ -53,9 +54,12 @@ class MessageRouter:
             session_manager: Session manager for session CRUD
             agent_executor: Optional callable to execute agent
                            (session, message_text) -> response_text
+            default_workspace: If set, channel sessions use this workspace and the
+                interactive workspace-selection prompt is skipped (easy setup).
         """
         self._session_manager = session_manager
         self._agent_executor = agent_executor
+        self._default_workspace = default_workspace
         self._workspace_selector = WorkspaceSelector(session_manager)
 
         # Track adapters by channel name
@@ -131,6 +135,22 @@ class MessageRouter:
                 delivery_context=delivery_context,
                 workspace_confirmed=False,
             )
+
+        # Always refresh delivery_context from the live inbound message. A
+        # DB-reloaded session does not restore delivery_context, so without this
+        # the reply could not be routed back to the right chat.
+        session.delivery_context = {
+            "channel": message.channel,
+            "user_id": message.user_id,
+            "thread_id": message.thread_id,
+            **message.metadata,
+        }
+
+        # Easy-setup: when a default workspace is configured, skip the interactive
+        # workspace-selection prompt and treat the session as confirmed.
+        if self._default_workspace and not session.workspace_confirmed:
+            session.working_directory = session.working_directory or self._default_workspace
+            session.workspace_confirmed = True
 
         # Check if workspace selection is pending
         if not session.workspace_confirmed:

@@ -1,0 +1,478 @@
+{
+  "id": "routing-run",
+  "name": "routing.run",
+  "description": "routing.run models",
+  "api_key_env": "ROUTING_RUN_API_KEY",
+  "api_base_url": "https://ai.routing.sh/v1",
+  "models": {
+    "route/deepseek-v4-flash": {
+      "id": "route/deepseek-v4-flash",
+      "name": "DeepSeek V4 Flash",
+      "provider": "routing.run",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.4928,
+        "output": 0.7392,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "route/deepseek-v4-flash-6bit": {
+      "id": "route/deepseek-v4-flash-6bit",
+      "name": "DeepSeek V4 Flash 6bit",
+      "provider": "routing.run",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.4928,
+        "output": 0.7392,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "route/minimax-m2.7-highspeed": {
+      "id": "route/minimax-m2.7-highspeed",
+      "name": "MiniMax M2.7 Highspeed",
+      "provider": "routing.run",
+      "context_length": 100000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.33,
+        "output": 1.32,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "route/glm-5.1-6bit": {
+      "id": "route/glm-5.1-6bit",
+      "name": "GLM 5.1 6bit",
+      "provider": "routing.run",
+      "context_length": 202752,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.0,
+        "output": 3.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "route/minimax-m2.5": {
+      "id": "route/minimax-m2.5",
+      "name": "MiniMax M2.5",
+      "provider": "routing.run",
+      "context_length": 100000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.193,
+        "output": 1.238,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "route/mistral-small-2503": {
+      "id": "route/mistral-small-2503",
+      "name": "Mistral Small 2503",
+      "provider": "routing.run",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.15,
+        "output": 0.6,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "route/gemma-4-31b-it": {
+      "id": "route/gemma-4-31b-it",
+      "name": "Gemma 4 31B IT",
+      "provider": "routing.run",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.1,
+        "output": 0.3,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "route/step-3.5-flash-2603": {
+      "id": "route/step-3.5-flash-2603",
+      "name": "Step 3.5 Flash 2603",
+      "provider": "routing.run",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.1,
+        "output": 0.3,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "route/glm-5.1": {
+      "id": "route/glm-5.1",
+      "name": "GLM 5.1",
+      "provider": "routing.run",
+      "context_length": 202752,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 1.0,
+        "output": 3.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "route/deepseek-v4-pro": {
+      "id": "route/deepseek-v4-pro",
+      "name": "DeepSeek V4 Pro",
+      "provider": "routing.run",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.4928,
+        "output": 0.7392,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "route/mistral-large-3": {
+      "id": "route/mistral-large-3",
+      "name": "Mistral Large 3",
+      "provider": "routing.run",
+      "context_length": 128000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.5,
+        "output": 1.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "route/deepseek-v4-pro-6bit": {
+      "id": "route/deepseek-v4-pro-6bit",
+      "name": "DeepSeek V4 Pro 6bit",
+      "provider": "routing.run",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.4928,
+        "output": 0.7392,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "route/mistral-medium-2505": {
+      "id": "route/mistral-medium-2505",
+      "name": "Mistral Medium 2505",
+      "provider": "routing.run",
+      "context_length": 128000,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.4,
+        "output": 2.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "route/minimax-m2.7": {
+      "id": "route/minimax-m2.7",
+      "name": "MiniMax M2.7",
+      "provider": "routing.run",
+      "context_length": 100000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.33,
+        "output": 1.32,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "route/qwen3.6-27b-202k": {
+      "id": "route/qwen3.6-27b-202k",
+      "name": "Qwen3.6 27B 202K",
+      "provider": "routing.run",
+      "context_length": 202000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 1.1,
+        "output": 3.3,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "route/kimi-k2.5": {
+      "id": "route/kimi-k2.5",
+      "name": "Kimi K2.5",
+      "provider": "routing.run",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.462,
+        "output": 2.42,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": false
+    },
+    "route/minimax-m2.5-highspeed": {
+      "id": "route/minimax-m2.5-highspeed",
+      "name": "MiniMax M2.5 Highspeed",
+      "provider": "routing.run",
+      "context_length": 100000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.193,
+        "output": 1.238,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "route/kimi-k2.6-6bit": {
+      "id": "route/kimi-k2.6-6bit",
+      "name": "Kimi K2.6 6bit",
+      "provider": "routing.run",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.462,
+        "output": 2.42,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": true
+    },
+    "route/mimo-v2.5": {
+      "id": "route/mimo-v2.5",
+      "name": "MiMo V2.5",
+      "provider": "routing.run",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.45,
+        "output": 1.35,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": true
+    },
+    "route/kimi-k2.6": {
+      "id": "route/kimi-k2.6",
+      "name": "Kimi K2.6",
+      "provider": "routing.run",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.462,
+        "output": 2.42,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": true
+    },
+    "route/qwen3.6-27b": {
+      "id": "route/qwen3.6-27b",
+      "name": "Qwen3.6 27B",
+      "provider": "routing.run",
+      "context_length": 202000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 1.1,
+        "output": 3.3,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "route/mimo-v2.5-pro-6bit": {
+      "id": "route/mimo-v2.5-pro-6bit",
+      "name": "MiMo V2.5 Pro 6bit",
+      "provider": "routing.run",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.45,
+        "output": 1.35,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": true
+    },
+    "route/stepfun-3.5-flash": {
+      "id": "route/stepfun-3.5-flash",
+      "name": "StepFun 3.5 Flash",
+      "provider": "routing.run",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.096,
+        "output": 0.288,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "route/mimo-v2.5-pro": {
+      "id": "route/mimo-v2.5-pro",
+      "name": "MiMo V2.5 Pro",
+      "provider": "routing.run",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.45,
+        "output": 1.35,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 262144,
+      "supports_temperature": true
+    },
+    "route/step-3.5-flash": {
+      "id": "route/step-3.5-flash",
+      "name": "Step 3.5 Flash",
+      "provider": "routing.run",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.096,
+        "output": 0.288,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "route/deepseek-v3.2": {
+      "id": "route/deepseek-v3.2",
+      "name": "DeepSeek V3.2",
+      "provider": "routing.run",
+      "context_length": 163840,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.4928,
+        "output": 0.7392,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 163840,
+      "supports_temperature": true
+    }
+  }
+}

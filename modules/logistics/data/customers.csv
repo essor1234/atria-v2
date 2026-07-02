@@ -1,0 +1,13 @@
+customer,booking_channel,pack_time_rule,progress_update_rule,returns_rule,notes
+Daikin,message,Vô kho trước 16h để không bị OT,Theo dõi bình thường,Hàng điện tử: tuyệt đối không cho khách mở vỏ thùng; nếu đòi mở phải chụp 4 mặt + báo hãng + quay clip,Kho ITL (ICD Sóng Thần)
+Electrolux,file_plan,Vô kho trước 16h để không bị OT,Theo dõi bình thường,Hàng điện tử NG: chụp 4 mặt vỏ thùng + 4 mặt trong; ĐMX/CP có hoá đơn cấn trừ công nợ,Kho ITL (ICD Sóng Thần); book qua file kế hoạch
+FM,file_plan,Theo giờ khách yêu cầu,Giao xong điểm nào báo điểm đó + chụp PGH đã ký gửi khách check OK rồi mới đi tiếp,Theo quy trình hàng return chung,Kho KC (ICD Sóng Thần); cập nhật tiến độ liên tục
+Mitsu,email,Vô kho trước 16h để không bị OT,Theo dõi bình thường,Theo quy trình hàng return chung,Kho Logitem Tân Đông Hiệp
+Pana Internal Sales,email,Vô kho trước 16h + theo timeslot đăng ký,Theo dõi qua TMS,Pana: nhờ chú Hưng lấy phiếu nhập kho hàng return,Kho ICD Sóng Thần (kho 19 & 16) & Coyote QL13
+Pana Electric Works,email,Theo giờ khách yêu cầu (PEWVN),Theo dõi qua TMS,Theo quy trình hàng return chung,Bóng đèn & quạt; kho Bến Cát VSIP2
+Hoà Phát,message,Theo giờ khách yêu cầu,Theo dõi bình thường,Theo quy trình hàng return chung,Kho Hoà Phát Cát Lái & Phú Mỹ
+Nhựa Tiền Phong,message,Theo giờ khách yêu cầu,Theo dõi bình thường,Theo quy trình hàng return chung,Kho Bến Cát
+Nhựa Qui Phúc,message,Xe đóng sáng phải vô kho trước 6h sáng (kho cấm 6-9h),Theo dõi bình thường,Theo quy trình hàng return chung,Kho Tân Tạo
+Daphaco,message,Kho Q.12 vô trước 15h để ra trước giờ cấm 16h; chỉ xe ≤2.5T đóng được ở kho Q.12,Theo dõi bình thường,Theo quy trình hàng return chung,Phan Văn Hớn Q.12 & KCN Xuyên Á Đức Hoà Long An
+LK,message,Theo giờ khách yêu cầu,Theo dõi bình thường,Theo quy trình hàng return chung,
+Việt Á,message,Theo giờ khách yêu cầu,Giao xong điểm nào báo điểm đó + chụp PGH đã ký gửi khách check OK rồi mới đi tiếp,Theo quy trình hàng return chung,Hàng rượu của ITL; kho An Phú Bình Dương; cập nhật tiến độ liên tục

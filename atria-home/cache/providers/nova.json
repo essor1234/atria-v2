@@ -1,0 +1,47 @@
+{
+  "id": "nova",
+  "name": "Nova",
+  "description": "Nova models",
+  "api_key_env": "NOVA_API_KEY",
+  "api_base_url": "https://api.nova.amazon.com/v1",
+  "models": {
+    "nova-2-pro-v1": {
+      "id": "nova-2-pro-v1",
+      "name": "Nova 2 Pro",
+      "provider": "Nova",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    },
+    "nova-2-lite-v1": {
+      "id": "nova-2-lite-v1",
+      "name": "Nova 2 Lite",
+      "provider": "Nova",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 64000,
+      "supports_temperature": true
+    }
+  }
+}

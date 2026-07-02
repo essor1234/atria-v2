@@ -69,6 +69,21 @@ ENV_ATRIA_CACHE_DIR = "ATRIA_CACHE_DIR"
 # ============================================================================
 
 
+def atria_dir() -> Path:
+    """Return the global Atria home directory (default ``~/.atria``).
+
+    Honors the ``ATRIA_DIR`` environment variable so the entire app-data home
+    (cache, sessions, workspaces, modules, snapshots, etc.) can be relocated off
+    the user's home drive. This is the single source of truth for the global
+    home; prefer it over ``Path.home() / ".atria"`` so every storage location
+    moves together when ``ATRIA_DIR`` is set.
+    """
+    env_override = os.environ.get(ENV_ATRIA_DIR)
+    if env_override:
+        return Path(env_override).expanduser()
+    return Path.home() / APP_DIR_NAME
+
+
 def encode_project_path(path: Path) -> str:
     """Encode an absolute path into a directory-safe string.
 

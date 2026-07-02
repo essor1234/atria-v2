@@ -1,0 +1,84 @@
+{
+  "id": "kimi-for-coding",
+  "name": "Kimi For Coding",
+  "description": "Kimi For Coding models",
+  "api_key_env": "KIMI_API_KEY",
+  "api_base_url": "https://api.kimi.com/coding/v1",
+  "models": {
+    "k2p7": {
+      "id": "k2p7",
+      "name": "Kimi K2.7 Code",
+      "provider": "Kimi For Coding",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 32768,
+      "supports_temperature": false
+    },
+    "kimi-k2-thinking": {
+      "id": "kimi-k2-thinking",
+      "name": "Kimi K2 Thinking",
+      "provider": "Kimi For Coding",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "k2p5": {
+      "id": "k2p5",
+      "name": "Kimi K2.5",
+      "provider": "Kimi For Coding",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "k2p6": {
+      "id": "k2p6",
+      "name": "Kimi K2.6",
+      "provider": "Kimi For Coding",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    }
+  }
+}

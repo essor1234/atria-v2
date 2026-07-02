@@ -1,0 +1,118 @@
+{
+  "id": "zai-coding-plan",
+  "name": "Z.AI Coding Plan",
+  "description": "Z.AI Coding Plan models",
+  "api_key_env": "ZHIPU_API_KEY",
+  "api_base_url": "https://api.z.ai/api/coding/paas/v4",
+  "models": {
+    "glm-4.7": {
+      "id": "glm-4.7",
+      "name": "GLM-4.7",
+      "provider": "Z.AI Coding Plan",
+      "context_length": 204800,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "glm-5.1": {
+      "id": "glm-5.1",
+      "name": "GLM-5.1",
+      "provider": "Z.AI Coding Plan",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "glm-5.2": {
+      "id": "glm-5.2",
+      "name": "GLM-5.2",
+      "provider": "Z.AI Coding Plan",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "glm-5v-turbo": {
+      "id": "glm-5v-turbo",
+      "name": "GLM-5V-Turbo",
+      "provider": "Z.AI Coding Plan",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "glm-4.5-air": {
+      "id": "glm-4.5-air",
+      "name": "GLM-4.5-Air",
+      "provider": "Z.AI Coding Plan",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 98304,
+      "supports_temperature": true
+    },
+    "glm-5-turbo": {
+      "id": "glm-5-turbo",
+      "name": "GLM-5-Turbo",
+      "provider": "Z.AI Coding Plan",
+      "context_length": 200000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "kuae-cloud-coding-plan",
+  "name": "KUAE Cloud Coding Plan",
+  "description": "KUAE Cloud Coding Plan models",
+  "api_key_env": "KUAE_API_KEY",
+  "api_base_url": "https://coding-plan-endpoint.kuaecloud.net/v1",
+  "models": {
+    "GLM-4.7": {
+      "id": "GLM-4.7",
+      "name": "GLM-4.7",
+      "provider": "KUAE Cloud Coding Plan",
+      "context_length": 204800,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    }
+  }
+}

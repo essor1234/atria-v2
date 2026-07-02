@@ -1,0 +1,235 @@
+{
+  "id": "groq",
+  "name": "Groq",
+  "description": "Groq models",
+  "api_key_env": "GROQ_API_KEY",
+  "api_base_url": "",
+  "models": {
+    "llama-3.3-70b-versatile": {
+      "id": "llama-3.3-70b-versatile",
+      "name": "Llama 3.3 70B",
+      "provider": "Groq",
+      "context_length": 131072,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.59,
+        "output": 0.79,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "llama-3.1-8b-instant": {
+      "id": "llama-3.1-8b-instant",
+      "name": "Llama 3.1 8B",
+      "provider": "Groq",
+      "context_length": 131072,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.05,
+        "output": 0.08,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    },
+    "meta-llama/llama-prompt-guard-2-86m": {
+      "id": "meta-llama/llama-prompt-guard-2-86m",
+      "name": "Prompt Guard 2 86M",
+      "provider": "Groq",
+      "context_length": 512,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.04,
+        "output": 0.04,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 512,
+      "supports_temperature": false
+    },
+    "meta-llama/llama-prompt-guard-2-22m": {
+      "id": "meta-llama/llama-prompt-guard-2-22m",
+      "name": "Llama Prompt Guard 2 22M",
+      "provider": "Groq",
+      "context_length": 512,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.03,
+        "output": 0.03,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 512,
+      "supports_temperature": false
+    },
+    "meta-llama/llama-4-scout-17b-16e-instruct": {
+      "id": "meta-llama/llama-4-scout-17b-16e-instruct",
+      "name": "Llama 4 Scout 17B 16E",
+      "provider": "Groq",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "vision"
+      ],
+      "pricing": {
+        "input": 0.11,
+        "output": 0.34,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "openai/gpt-oss-safeguard-20b": {
+      "id": "openai/gpt-oss-safeguard-20b",
+      "name": "Safety GPT OSS 20B",
+      "provider": "Groq",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.075,
+        "output": 0.3,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "openai/gpt-oss-120b": {
+      "id": "openai/gpt-oss-120b",
+      "name": "GPT OSS 120B",
+      "provider": "Groq",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.15,
+        "output": 0.6,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "openai/gpt-oss-20b": {
+      "id": "openai/gpt-oss-20b",
+      "name": "GPT OSS 20B",
+      "provider": "Groq",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.075,
+        "output": 0.3,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 65536,
+      "supports_temperature": true
+    },
+    "canopylabs/orpheus-v1-english": {
+      "id": "canopylabs/orpheus-v1-english",
+      "name": "Canopy Labs Orpheus V1 English",
+      "provider": "Groq",
+      "context_length": 4000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 50000,
+      "supports_temperature": false
+    },
+    "canopylabs/orpheus-arabic-saudi": {
+      "id": "canopylabs/orpheus-arabic-saudi",
+      "name": "Canopy Labs Orpheus Arabic Saudi",
+      "provider": "Groq",
+      "context_length": 4000,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 50000,
+      "supports_temperature": false
+    },
+    "groq/compound": {
+      "id": "groq/compound",
+      "name": "Compound",
+      "provider": "Groq",
+      "context_length": 131072,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "groq/compound-mini": {
+      "id": "groq/compound-mini",
+      "name": "Compound Mini",
+      "provider": "Groq",
+      "context_length": 131072,
+      "capabilities": [
+        "text"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 8192,
+      "supports_temperature": true
+    },
+    "qwen/qwen3-32b": {
+      "id": "qwen/qwen3-32b",
+      "name": "Qwen3-32B",
+      "provider": "Groq",
+      "context_length": 131072,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.29,
+        "output": 0.59,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 40960,
+      "supports_temperature": true
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "id": "poolside",
+  "name": "Poolside",
+  "description": "Poolside models",
+  "api_key_env": "POOLSIDE_API_KEY",
+  "api_base_url": "https://inference.poolside.ai/v1",
+  "models": {
+    "poolside/laguna-xs.2": {
+      "id": "poolside/laguna-xs.2",
+      "name": "Laguna XS.2",
+      "provider": "Poolside",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    },
+    "poolside/laguna-m.1": {
+      "id": "poolside/laguna-m.1",
+      "name": "Laguna M.1",
+      "provider": "Poolside",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.0,
+        "output": 0.0,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 32768,
+      "supports_temperature": true
+    }
+  }
+}

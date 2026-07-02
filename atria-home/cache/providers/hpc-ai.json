@@ -1,0 +1,64 @@
+{
+  "id": "hpc-ai",
+  "name": "HPC-AI",
+  "description": "HPC-AI models",
+  "api_key_env": "HPC_AI_API_KEY",
+  "api_base_url": "https://api.hpc-ai.com/inference/v1",
+  "models": {
+    "moonshotai/kimi-k2.5": {
+      "id": "moonshotai/kimi-k2.5",
+      "name": "Kimi K2.5",
+      "provider": "HPC-AI",
+      "context_length": 262144,
+      "capabilities": [
+        "text",
+        "vision",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.3,
+        "output": 1.5,
+        "unit": "per 1M tokens"
+      },
+      "recommended": true,
+      "max_tokens": 262144,
+      "supports_temperature": false
+    },
+    "zai-org/glm-5.1": {
+      "id": "zai-org/glm-5.1",
+      "name": "GLM 5.1",
+      "provider": "HPC-AI",
+      "context_length": 202000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.615,
+        "output": 2.46,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 202000,
+      "supports_temperature": true
+    },
+    "minimax/minimax-m2.5": {
+      "id": "minimax/minimax-m2.5",
+      "name": "MiniMax M2.5",
+      "provider": "HPC-AI",
+      "context_length": 1000000,
+      "capabilities": [
+        "text",
+        "reasoning"
+      ],
+      "pricing": {
+        "input": 0.3,
+        "output": 1.2,
+        "unit": "per 1M tokens"
+      },
+      "recommended": false,
+      "max_tokens": 131072,
+      "supports_temperature": true
+    }
+  }
+}
