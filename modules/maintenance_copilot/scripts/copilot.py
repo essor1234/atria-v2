@@ -246,7 +246,8 @@ def _cmd_ingest(samples: str) -> int:
     return 0
 
 
-def _cmd_query(text: str, k: int, ata: str | None, revision: str) -> int:
+def _cmd_query(text: str, k: int, ata: str | None, revision: str,
+               with_graph: bool = False) -> int:
     """Retrieve top cited passages for *text*.
 
     Args:
@@ -254,6 +255,8 @@ def _cmd_query(text: str, k: int, ata: str | None, revision: str) -> int:
         k: Maximum number of hits.
         ata: Optional ATA chapter filter.
         revision: Revision filter string, or ``"none"`` to disable.
+        with_graph: When ``True``, attach related knowledge-graph entities for the
+            top hit's ATA chapter (or ``ata`` if provided). Requires Neo4j.
 
     Returns:
         ``0`` on success.
@@ -261,7 +264,12 @@ def _cmd_query(text: str, k: int, ata: str | None, revision: str) -> int:
     rev: str | None = None if revision.lower() == "none" else revision
     store = _build_store()
     hits = store.query(text, k=k, ata_chapter=ata, revision=rev)
-    print(json.dumps({"query": text, "hits": hits}, indent=2))
+    payload: dict = {"query": text, "hits": hits}
+    if with_graph and hits:
+        chapter = ata or hits[0].get("ata_chapter")
+        related = _build_graph_store().neighbors(chapter, hops=1) if chapter else []
+        payload["graph_context"] = {"ata_chapter": chapter, "related": related}
+    print(json.dumps(payload, indent=2))
     return 0
 
 
@@ -307,6 +315,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--revision", default="current",
         help="'current' (default), a revision string, or 'none'.",
     )
+    p_query.add_argument("--graph", action="store_true",
+                         help="Attach related knowledge-graph entities (needs Neo4j).")
     sub.add_parser("list", help="Show index stats.")
     sub.add_parser("reset", help="Delete the index collection.")
     p_graph = sub.add_parser("graph", help="Knowledge-graph build/query/verify.")
@@ -343,7 +353,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command in ("ingest", "index"):
         return _cmd_ingest(args.samples if getattr(args, "samples", None) else _samples_dir())
     if args.command == "query":
-        return _cmd_query(args.text, args.k, args.ata, args.revision)
+        return _cmd_query(args.text, args.k, args.ata, args.revision, args.graph)
     if args.command == "list":
         return _cmd_list()
     if args.command == "reset":
