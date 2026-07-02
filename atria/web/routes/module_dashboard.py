@@ -8,6 +8,7 @@ router.
 
 from __future__ import annotations
 
+import json
 import mimetypes
 import os
 import subprocess
@@ -71,6 +72,12 @@ class RunResponse(BaseModel):
     duration_ms: int
 
 
+class RpcBody(BaseModel):
+    method: str = Field(min_length=1)
+    payload: dict = Field(default_factory=dict)
+    timeout_ms: int = Field(default=30000, ge=1, le=120000)
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 
@@ -104,6 +111,63 @@ def _resolve_script(module_dir: Path, script: str) -> Path:
             },
         ) from None
     return candidate
+
+
+def run_module_rpc(
+    reg: ModuleRegistry,
+    name: str,
+    method: str,
+    payload: dict,
+    session_id: str,
+    timeout_ms: int = 30000,
+) -> dict:
+    """Run a module's ``scripts/rpc.py`` with the given method/payload/session_id on stdin.
+
+    Returns ``{"ok": True, "data": ...}`` on success, ``{"ok": False, "error": ...}`` on
+    failure. Raises ``HTTPException`` for unknown module / missing handler.
+    """
+    try:
+        module = reg.get(name)
+    except KeyError:
+        raise HTTPException(
+            status_code=404,
+            detail={"kind": "unknown-module", "message": f"module {name!r} not found"},
+        ) from None
+
+    module_dir = module.dir.resolve()
+    target = _resolve_script(module_dir, "rpc.py")
+    if not target.is_file():
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "kind": "unknown-rpc-handler",
+                "message": f"module {name!r} has no scripts/rpc.py",
+            },
+        )
+
+    env = os.environ.copy()
+    env["ATRIA_SESSION_ID"] = session_id
+    env["ATRIA_MODULE_ROOT"] = str(module_dir)
+    env.setdefault("ATRIA_API_BASE", "http://127.0.0.1:8000")
+    stdin = json.dumps({"method": method, "payload": payload, "session_id": session_id})
+    try:
+        proc = subprocess.run(
+            [sys.executable, str(target)],
+            input=stdin,
+            capture_output=True,
+            text=True,
+            timeout=timeout_ms / 1000.0,
+            env=env,
+            cwd=str(module_dir),
+        )
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "error": f"rpc timeout after {timeout_ms} ms"}
+    if proc.returncode != 0:
+        return {"ok": False, "error": (proc.stderr or "non-zero exit").strip()}
+    try:
+        return {"ok": True, "data": json.loads(proc.stdout or "null")}
+    except json.JSONDecodeError as exc:
+        return {"ok": False, "error": f"rpc stdout not valid JSON: {exc}"}
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
@@ -202,6 +266,25 @@ def run_script(
                 stderr=stderr,
                 duration_ms=duration_ms,
             )
+    finally:
+        _release(session_id, name)
+
+
+@router.post("/{name}/rpc")
+def module_rpc(
+    name: str,
+    body: RpcBody,
+    request: Request,
+    reg: ModuleRegistry = Depends(get_modules_registry),
+) -> dict:
+    session_id = _resolve_session_id(request)
+    if not _try_acquire(session_id, name):
+        raise HTTPException(
+            status_code=429,
+            detail={"kind": "rate-limited", "message": "too many in-flight runs"},
+        )
+    try:
+        return run_module_rpc(reg, name, body.method, body.payload, session_id, body.timeout_ms)
     finally:
         _release(session_id, name)
 

@@ -635,6 +635,35 @@ class WebSocketManager:
                     await _reply(False, error=str(exc))
                 return
 
+            if method == "module.rpc":
+                from atria.core.modules.registry import get_registry
+                from atria.web.routes.module_dashboard import run_module_rpc
+
+                module_name = args.get("module")
+                rpc_method = args.get("rpc_method")
+                rpc_payload = args.get("payload") or {}
+                if not module_name:
+                    await _reply(False, error="module.rpc requires 'module'")
+                    return
+                if not rpc_method:
+                    await _reply(False, error="module.rpc requires 'rpc_method'")
+                    return
+                reg = get_registry()
+                try:
+                    result = await _asyncio.to_thread(
+                        run_module_rpc,
+                        reg,
+                        module_name,
+                        rpc_method,
+                        rpc_payload,
+                        session_id or "default",
+                    )
+                    await _reply(result.get("ok", False), data=result.get("data"),
+                                 error=result.get("error", ""))
+                except Exception as exc:  # noqa: BLE001
+                    await _reply(False, error=str(exc))
+                return
+
             # tool.invoke and artifact.read run synchronously off-thread
             try:
                 result = await _asyncio.wait_for(_asyncio.to_thread(_run_sync), timeout=5.0)
