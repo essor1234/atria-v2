@@ -20,6 +20,7 @@ from .process_tools import SCHEMAS as _PROCESS
 from .symbol_tools import SCHEMAS as _SYMBOL
 from .system_tools import SCHEMAS as _SYSTEM
 from .web_tools import SCHEMAS as _WEB
+from .component_tools import SCHEMAS as _COMPONENT
 
 # Order preserved from the original monolithic definition.
 BUILTIN_TOOL_SCHEMAS: list[dict[str, Any]] = [
@@ -34,6 +35,7 @@ BUILTIN_TOOL_SCHEMAS: list[dict[str, Any]] = [
     *_AGENT,
     *_ORCHESTRATION,
     *_ARTIFACT,
+    *_COMPONENT,
 ]
 
 __all__ = ["BUILTIN_TOOL_SCHEMAS"]
