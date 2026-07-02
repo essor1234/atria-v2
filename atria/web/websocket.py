@@ -636,8 +636,13 @@ class WebSocketManager:
                 return
 
             if method == "module.rpc":
+                from fastapi import HTTPException as _HTTPException
                 from atria.core.modules.registry import get_registry
-                from atria.web.routes.module_dashboard import run_module_rpc
+                from atria.web.routes.module_dashboard import (
+                    run_module_rpc,
+                    _try_acquire,
+                    _release,
+                )
 
                 module_name = args.get("module")
                 rpc_method = args.get("rpc_method")
@@ -648,7 +653,11 @@ class WebSocketManager:
                 if not rpc_method:
                     await _reply(False, error="module.rpc requires 'rpc_method'")
                     return
+                sid = session_id or "default"
                 reg = get_registry()
+                if not _try_acquire(sid, module_name):
+                    await _reply(False, error="rate-limited")
+                    return
                 try:
                     result = await _asyncio.to_thread(
                         run_module_rpc,
@@ -656,12 +665,23 @@ class WebSocketManager:
                         module_name,
                         rpc_method,
                         rpc_payload,
-                        session_id or "default",
+                        sid,
                     )
-                    await _reply(result.get("ok", False), data=result.get("data"),
-                                 error=result.get("error", ""))
+                    if result.get("ok"):
+                        await _reply(True, data=result.get("data"))
+                    else:
+                        await _reply(False, error=result.get("error") or "module rpc failed")
+                except _HTTPException as exc:  # noqa: BLE001
+                    detail = exc.detail
+                    if isinstance(detail, str):
+                        err_msg = detail
+                    else:
+                        err_msg = detail.get("message", str(detail))
+                    await _reply(False, error=err_msg)
                 except Exception as exc:  # noqa: BLE001
                     await _reply(False, error=str(exc))
+                finally:
+                    _release(sid, module_name)
                 return
 
             # tool.invoke and artifact.read run synchronously off-thread
