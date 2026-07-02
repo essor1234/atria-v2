@@ -189,3 +189,12 @@ The agent has access to two tools for managing uploaded files and images:
 - Line length: 100 characters (Black + Ruff)
 - Type hints required on public APIs (mypy strict mode)
 - Google-style docstrings
+
+## Repo Hygiene — What NOT to Commit
+
+Keep the repo to source only. Do not commit runtime data or work artifacts.
+
+- **App-data home is never tracked.** The runtime home (provider cache, sessions, snapshots, scratch, workspaces) lives at `ATRIA_DIR` (see `.env`, e.g. `D:\atria-home`) and is regenerated automatically. Both `atria-home/` and the legacy `.atria/` are gitignored. If you see them tracked, untrack them (`git rm -r --cached atria-home`).
+- **Local notes, scratch, one-off data, and "trash" go in `_local/`** (gitignored) — move them there, do not delete them, and never commit them. Per-ticket task notes/deliverables go in `Tasks/` (also gitignored).
+- **No stray data files in the repo** (ad-hoc PDFs, CSVs, generated reports, downloads). Put them under `_local/` if you need to keep them locally.
+- Built frontend output under `atria/web/static/` is currently committed because the Dockerfile serves it via `COPY . .` with no UI build step — leave it tracked unless you also add a `npm run build` stage to the Dockerfile.

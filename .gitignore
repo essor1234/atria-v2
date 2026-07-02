@@ -150,7 +150,14 @@ Thumbs.db
 # Atria specific
 .opencli/
 .atria/
+atria-home/
 .swecli/
+
+# Local-only runtime data, notes, scratch, one-off data — never commit.
+# App-data home (cache/sessions/snapshots/scratch) is regenerated at runtime
+# and lives at ATRIA_DIR; the in-repo copy must stay untracked.
+_local/
+Tasks/
 history.txt
 tmp_sessions/
 opencode/
