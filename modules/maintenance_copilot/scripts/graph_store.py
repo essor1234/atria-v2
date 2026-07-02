@@ -58,7 +58,12 @@ class GraphStore:
         return len(ext.entities), len(ext.edges)
 
     def neighbors(self, entity_key: str, hops: int = 1) -> list[dict]:
-        """Return entities reachable from ``entity_key`` within ``hops`` hops."""
+        """Return entities reachable from ``entity_key`` within ``hops`` hops.
+
+        Note: for hops>1 the returned ``status``/``edge_type`` describe only the
+        terminal edge of the path, so a multi-hop result may traverse an unverified
+        intermediate edge — callers must not treat a multi-hop link as fully verified.
+        """
         depth = max(1, int(hops))
         cypher = (
             f"MATCH (a {{key: $key}})-[r*1..{depth}]-(b) "
@@ -83,7 +88,7 @@ class GraphStore:
         """Return node/edge counts and the number of unverified edges."""
         rows = self._run(
             "MATCH (n) WITH count(n) AS nodes "
-            "MATCH ()-[r]->() "
+            "OPTIONAL MATCH ()-[r]->() "
             "RETURN nodes, count(r) AS edges, "
             "sum(CASE WHEN r.status='unverified' THEN 1 ELSE 0 END) AS unverified_edges",
             {},

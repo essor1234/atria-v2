@@ -116,7 +116,7 @@ def _env(key: str, default: str) -> str:
     return os.environ.get(key, default)
 
 
-def _kg_chat_fn() -> Callable:
+def _kg_chat_fn() -> Callable[[list], str]:
     """Return a chat callable bound to the kg_extract role."""
     rc = RoleClient(load_config())
     return lambda messages: rc.chat("kg_extract", messages)
@@ -156,6 +156,7 @@ def _cmd_graph_build(samples: str) -> int:
     store = _build_graph_store()
     chat_fn = _kg_chat_fn()
     docs = load_corpus(samples)
+    kg_model = load_config()["kg_extract"].model
     chunks = nodes = edges = 0
     for doc in docs:
         for rec in chunk_document(doc):
@@ -164,7 +165,7 @@ def _cmd_graph_build(samples: str) -> int:
                 "source_doc": Path(rec.source_path).name,
                 "revision": rec.revision,
                 "page": rec.chunk_id,
-                "extracted_by": load_config()["kg_extract"].model,
+                "extracted_by": kg_model,
             }
             ext = extract_graph(rec.text, chat_fn, prov)
             n, e = store.upsert_extraction(ext)
@@ -264,7 +265,7 @@ def _cmd_query(text: str, k: int, ata: str | None, revision: str,
     rev: str | None = None if revision.lower() == "none" else revision
     store = _build_store()
     hits = store.query(text, k=k, ata_chapter=ata, revision=rev)
-    payload: dict = {"query": text, "hits": hits}
+    payload: dict[str, object] = {"query": text, "hits": hits}
     if with_graph and hits:
         chapter = ata or hits[0].get("ata_chapter")
         related = _build_graph_store().neighbors(chapter, hops=1) if chapter else []
@@ -323,7 +324,10 @@ def build_parser() -> argparse.ArgumentParser:
     graph_sub = p_graph.add_subparsers(dest="graph_command", required=True)
     g_build = graph_sub.add_parser("build", help="Extract + upsert the graph from the corpus.")
     g_build.add_argument("--samples", default=None)
-    g_show = graph_sub.add_parser("show", help="Show neighbors of an entity.")
+    g_show = graph_sub.add_parser(
+        "show",
+        help="Show neighbors of an entity. hops>1 summarizes the terminal edge only.",
+    )
     g_show.add_argument("key")
     g_show.add_argument("--hops", type=int, default=1)
     g_confirm = graph_sub.add_parser("confirm", help="Mark an edge engineer_confirmed.")

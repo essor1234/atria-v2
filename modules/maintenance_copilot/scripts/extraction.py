@@ -80,7 +80,10 @@ def _confidence(raw: object) -> float:
 
 
 def _stamp(props: object, provenance: dict, item: dict) -> dict:
-    """Merge model props with provenance + status + confidence."""
+    """Merge model props with provenance + status + confidence.
+
+    A non-dict ``props`` is coerced to ``{}``.
+    """
     base = dict(props) if isinstance(props, dict) else {}
     base.update(provenance)
     base["status"] = "unverified"
@@ -108,18 +111,14 @@ def parse_extraction(raw: str, provenance: dict) -> GraphExtraction:
         data = json.loads(cleaned)
     except json.JSONDecodeError as exc:
         raise ValueError(f"extraction output is not JSON: {exc}") from exc
-    if not isinstance(data, dict) or "entities" not in data or (
-        "relationships" not in data
-    ):
+    if not isinstance(data, dict) or "entities" not in data or "relationships" not in data:
         raise ValueError(
             "extraction JSON must have 'entities' and 'relationships'"
         )
 
     entities: list[Entity] = []
     for item in data["entities"]:
-        if not isinstance(item, dict) or item.get("type") not in (
-            ALLOWED_ENTITY_TYPES
-        ):
+        if not isinstance(item, dict) or item.get("type") not in ALLOWED_ENTITY_TYPES:
             continue
         if not item.get("key"):
             continue
@@ -133,9 +132,7 @@ def parse_extraction(raw: str, provenance: dict) -> GraphExtraction:
 
     edges: list[Edge] = []
     for item in data["relationships"]:
-        if not isinstance(item, dict) or item.get("type") not in (
-            ALLOWED_EDGE_TYPES
-        ):
+        if not isinstance(item, dict) or item.get("type") not in ALLOWED_EDGE_TYPES:
             continue
         if not item.get("src") or not item.get("dst"):
             continue

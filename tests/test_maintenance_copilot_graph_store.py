@@ -94,3 +94,26 @@ def test_confirm_edge_rejects_unknown_edge_type():
     # Valid edge type must still work
     n = store.confirm_edge("32-30-01", "IN_CHAPTER", "32")
     assert n == 1
+
+
+def test_stats_returns_row_when_edges_zero():
+    # Tests the row-handling branch: runner returns a row with edges=0 (as
+    # OPTIONAL MATCH in production would produce).  The OPTIONAL MATCH behavior
+    # itself (no rows → zero edges) is validated in the deferred live e2e suite.
+    _load("extraction", "mc_extraction_for_graph5")
+    graph_store = _load("graph_store", "mc_graph_store_uut5")
+    canned = [{"nodes": 3, "edges": 0, "unverified_edges": 0}]
+    runner = _FakeRunner(rows=canned)
+    store = graph_store.GraphStore(runner)
+    result = store.stats()
+    assert result == {"nodes": 3, "edges": 0, "unverified_edges": 0}
+
+
+def test_stats_empty_rows_returns_zero_dict():
+    # Tests the fallback branch: runner returns [] (empty result from Neo4j).
+    _load("extraction", "mc_extraction_for_graph6")
+    graph_store = _load("graph_store", "mc_graph_store_uut6")
+    runner = _FakeRunner(rows=[])
+    store = graph_store.GraphStore(runner)
+    result = store.stats()
+    assert result == {"nodes": 0, "edges": 0, "unverified_edges": 0}
