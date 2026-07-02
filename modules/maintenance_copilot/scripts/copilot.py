@@ -13,7 +13,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Callable, Dict, Optional
+from typing import Callable
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -32,7 +32,9 @@ def _samples_dir() -> str:
     return str(Path(__file__).resolve().parent.parent / "sample_manuals")
 
 
-def _build_store(embed_fn: Optional[Callable] = None, qdrant: Optional[object] = None) -> IndexStore:
+def _build_store(
+    embed_fn: Callable | None = None, qdrant: object | None = None
+) -> IndexStore:
     """Build an IndexStore from MC_QDRANT_URL + a RoleClient index_embed embedder.
 
     Args:
@@ -54,7 +56,7 @@ def _build_store(embed_fn: Optional[Callable] = None, qdrant: Optional[object] =
     return store
 
 
-def check_health(probes: Dict[str, Callable[[], None]]) -> Dict[str, str]:
+def check_health(probes: dict[str, Callable[[], None]]) -> dict[str, str]:
     """Run each probe; map name -> 'ok' or 'error: <message>'.
 
     Args:
@@ -65,7 +67,7 @@ def check_health(probes: Dict[str, Callable[[], None]]) -> Dict[str, str]:
         Dict mapping each probe name to ``"ok"`` or ``"error: <message>"``.
         Never raises — all exceptions are caught and recorded as errors.
     """
-    out: Dict[str, str] = {}
+    out: dict[str, str] = {}
     for name, probe in probes.items():
         try:
             probe()
@@ -75,9 +77,9 @@ def check_health(probes: Dict[str, Callable[[], None]]) -> Dict[str, str]:
     return out
 
 
-def _build_probes() -> Dict[str, Callable[[], None]]:
+def _build_probes() -> dict[str, Callable[[], None]]:
     """Build live probes against the configured sidecars."""
-    cfg: Dict[str, RoleConfig] = load_config()
+    cfg: dict[str, RoleConfig] = load_config()
     rc = RoleClient(cfg)
 
     def tei_probe() -> None:
@@ -130,7 +132,7 @@ def _cmd_ingest(samples: str) -> int:
     return 0
 
 
-def _cmd_query(text: str, k: int, ata: Optional[str], revision: str) -> int:
+def _cmd_query(text: str, k: int, ata: str | None, revision: str) -> int:
     """Retrieve top cited passages for *text*.
 
     Args:
@@ -142,7 +144,7 @@ def _cmd_query(text: str, k: int, ata: Optional[str], revision: str) -> int:
     Returns:
         ``0`` on success.
     """
-    rev: Optional[str] = None if revision.lower() == "none" else revision
+    rev: str | None = None if revision.lower() == "none" else revision
     store = _build_store()
     hits = store.query(text, k=k, ata_chapter=ata, revision=rev)
     print(json.dumps({"query": text, "hits": hits}, indent=2))
@@ -174,8 +176,8 @@ def build_parser() -> argparse.ArgumentParser:
     """Build and return the CLI argument parser.
 
     Returns:
-        Configured :class:`argparse.ArgumentParser` with the ``health``
-        subcommand registered.
+        Configured :class:`argparse.ArgumentParser` with ``health``, ``ingest``,
+        ``index``, ``query``, ``list``, and ``reset`` subcommands registered.
     """
     parser = argparse.ArgumentParser(prog="copilot", description="Maintenance Copilot CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -196,15 +198,15 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: Optional[list[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     """CLI entry point.
 
     Args:
         argv: Argument list (defaults to ``sys.argv[1:]`` when ``None``).
 
     Returns:
-        Exit code: ``0`` when every health probe is ``"ok"``, ``1`` when any
-        probe fails, ``2`` for an unknown subcommand.
+        Exit code: ``0`` on success, ``1`` when a health probe fails,
+        ``2`` for an unrecognized subcommand.
     """
     args = build_parser().parse_args(argv)
     if args.command == "health":

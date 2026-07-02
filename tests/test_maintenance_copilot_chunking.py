@@ -56,6 +56,7 @@ def test_chunk_document_builds_records_with_citation_and_offsets():
     assert recs[0].chunk_id == "amm_ata32#0"
     assert recs[0].citation == "AMM Landing Gear (Rev-42) · amm_ata32#0"
     # Offsets index back into the original text.
+    assert _sample_doc(corpus).text[recs[0].start_index:recs[0].end_index] == recs[0].text
     assert _sample_doc(corpus).text[recs[1].start_index:recs[1].end_index] == recs[1].text
     assert recs[0].ata_chapter == "32" and recs[0].revision == "Rev-42"
 

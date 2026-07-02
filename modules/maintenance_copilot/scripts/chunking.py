@@ -10,8 +10,6 @@ from __future__ import annotations
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
-
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from corpus import Document  # type: ignore[import-not-found]
@@ -40,7 +38,7 @@ def _default_chunker():
     return RecursiveChunker(chunk_size=512)
 
 
-def chunk_document(doc: Document, chunker: Optional[object] = None) -> List[ChunkRecord]:
+def chunk_document(doc: Document, chunker: object | None = None) -> list[ChunkRecord]:
     """Chunk ``doc.text`` into citation-anchored records.
 
     Args:
@@ -54,7 +52,7 @@ def chunk_document(doc: Document, chunker: Optional[object] = None) -> List[Chun
     """
     ch = chunker or _default_chunker()
     stem = Path(doc.path).stem
-    records: List[ChunkRecord] = []
+    records: list[ChunkRecord] = []
     for i, chunk in enumerate(ch.chunk(doc.text)):
         chunk_id = f"{stem}#{i}"
         records.append(

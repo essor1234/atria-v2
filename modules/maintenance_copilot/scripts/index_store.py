@@ -11,16 +11,19 @@ from __future__ import annotations
 
 import re
 import uuid
-from typing import Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Callable
 
 from qdrant_client import QdrantClient, models
+
+if TYPE_CHECKING:
+    from chunking import ChunkRecord  # type: ignore[import-not-found]
 
 COLLECTION = "manual_chunks"
 
 # Fixed namespace so uuid5(citation) is stable across processes → idempotent re-index.
 _POINT_NS = uuid.UUID("6f6b1e2a-1c1a-4f2b-9a3e-2b0c7c9d4e11")
 
-EmbedFn = Callable[[List[str]], List[List[float]]]
+EmbedFn = Callable[[list[str]], list[list[float]]]
 
 
 def _revision_key(revision: str) -> tuple[int, str]:
@@ -50,32 +53,31 @@ class IndexStore:
             vectors_config=models.VectorParams(size=dim, distance=models.Distance.COSINE),
         )
 
-    def upsert_chunks(self, records: List[object]) -> int:
+    def upsert_chunks(self, records: list["ChunkRecord"]) -> int:
         """Embed and upsert one point per record. Returns the number stored.
 
         Point ids are a stable ``uuid5`` of the citation, so re-indexing the
         same chunk (even in a new process) updates in place rather than
         duplicating.
 
-        ``records`` must be ``ChunkRecord`` instances; the parameter is typed
-        ``List[object]`` to avoid a sibling-module import at the package boundary.
+        ``records`` must be ``ChunkRecord`` instances.
         """
         if not records:
             return 0
-        vectors = self._embed([r.text for r in records])  # type: ignore[attr-defined]
+        vectors = self._embed([r.text for r in records])
         points = [
             models.PointStruct(
-                id=str(uuid.uuid5(_POINT_NS, rec.citation)),  # type: ignore[attr-defined]
+                id=str(uuid.uuid5(_POINT_NS, rec.citation)),
                 vector=vec,
                 payload={
-                    "chunk_id": rec.chunk_id,          # type: ignore[attr-defined]
-                    "text": rec.text,                  # type: ignore[attr-defined]
-                    "doc_type": rec.doc_type,          # type: ignore[attr-defined]
-                    "title": rec.title,                # type: ignore[attr-defined]
-                    "revision": rec.revision,          # type: ignore[attr-defined]
-                    "ata_chapter": rec.ata_chapter,    # type: ignore[attr-defined]
-                    "source_path": rec.source_path,    # type: ignore[attr-defined]
-                    "citation": rec.citation,          # type: ignore[attr-defined]
+                    "chunk_id": rec.chunk_id,        
+                    "text": rec.text,                
+                    "doc_type": rec.doc_type,        
+                    "title": rec.title,              
+                    "revision": rec.revision,        
+                    "ata_chapter": rec.ata_chapter,  
+                    "source_path": rec.source_path,  
+                    "citation": rec.citation,        
                 },
             )
             for rec, vec in zip(records, vectors)
@@ -83,9 +85,9 @@ class IndexStore:
         self._q.upsert(collection_name=self._collection, points=points, wait=True)
         return len(points)
 
-    def _latest_revision_by_doctype(self) -> Dict[str, str]:
+    def _latest_revision_by_doctype(self) -> dict[str, str]:
         """Scan payloads to find the max revision string per doc_type."""
-        latest: Dict[str, str] = {}
+        latest: dict[str, str] = {}
         offset = None
         while True:
             recs, offset = self._q.scroll(
@@ -104,9 +106,9 @@ class IndexStore:
         self,
         text: str,
         k: int = 5,
-        ata_chapter: Optional[str] = None,
-        revision: Optional[str] = "current",
-    ) -> List[Dict]:
+        ata_chapter: str | None = None,
+        revision: str | None = "current",
+    ) -> list[dict]:
         """Embed ``text`` and return the top-``k`` filtered hits.
 
         Args:
@@ -119,7 +121,7 @@ class IndexStore:
         Returns:
             Hit dicts with score, citation, text, and metadata.
         """
-        must: List[models.FieldCondition] = []
+        must: list[models.FieldCondition] = []
         if ata_chapter is not None:
             must.append(
                 models.FieldCondition(
@@ -135,11 +137,12 @@ class IndexStore:
         result = self._q.query_points(
             collection_name=self._collection,
             query=vector,
-            limit=k if not should_current else k * 4,  # over-fetch so post-filtering superseded hits can still yield k
+            # Over-fetch so post-filtering superseded hits can still yield k.
+            limit=k if not should_current else k * 4,
             query_filter=models.Filter(must=must) if must else None,
         )
         latest = self._latest_revision_by_doctype() if should_current else {}
-        hits: List[Dict] = []
+        hits: list[dict] = []
         for point in result.points:
             p = point.payload
             if should_current and p["revision"] != latest.get(p["doc_type"]):
@@ -159,7 +162,7 @@ class IndexStore:
                 break
         return hits
 
-    def list_indexed(self) -> Dict:
+    def list_indexed(self) -> dict:
         """Return the point count and the latest revision per doc_type."""
         count = self._q.count(collection_name=self._collection).count
         return {"count": count, "latest_revision": self._latest_revision_by_doctype()}

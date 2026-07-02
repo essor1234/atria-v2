@@ -9,8 +9,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List
-
 _REQUIRED = ("doc_type", "title", "revision", "effective_date", "ata_chapter")
 
 
@@ -27,12 +25,12 @@ class Document:
     text: str
 
 
-def _split_frontmatter(raw: str) -> tuple[Dict[str, str], str]:
+def _split_frontmatter(raw: str) -> tuple[dict[str, str], str]:
     """Return (metadata, body). Front-matter is a leading ``---`` ... ``---`` block."""
     lines = raw.splitlines()
     if not lines or lines[0].strip() != "---":
         return {}, raw
-    meta: Dict[str, str] = {}
+    meta: dict[str, str] = {}
     body_start = len(lines)
     for i in range(1, len(lines)):
         if lines[i].strip() == "---":
@@ -73,7 +71,7 @@ def parse_document(path: str) -> Document:
     )
 
 
-def load_corpus(root: str) -> List[Document]:
+def load_corpus(root: str) -> list[Document]:
     """Parse every ``.md``/``.txt`` directly under ``root``, sorted by filename."""
     paths = sorted(
         p for p in Path(root).iterdir()

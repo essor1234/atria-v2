@@ -69,6 +69,7 @@ def test_query_ata_filter_narrows_results(cli, capsys):
     capsys.readouterr()
     cli.main(["query", "door panel", "--ata", "52", "--revision", "none"])
     out = json.loads(capsys.readouterr().out)
+    assert len(out["hits"]) >= 1
     assert all(h["ata_chapter"] == "52" for h in out["hits"])
 
 
@@ -77,4 +78,19 @@ def test_reset_clears_index(cli, capsys):
     capsys.readouterr()
     rc = cli.main(["reset"])
     assert rc == 0
-    assert json.loads(capsys.readouterr().out)["reset"] is True
+    reset_out = capsys.readouterr().out
+    assert json.loads(reset_out)["reset"] is True
+    cli.main(["query", "gear", "--revision", "none"])
+    assert json.loads(capsys.readouterr().out)["hits"] == []
+
+
+def test_list_and_index_alias(cli, capsys):
+    cli.main(["ingest"])
+    capsys.readouterr()
+
+    rc = cli.main(["list"])
+    assert rc == 0
+    assert json.loads(capsys.readouterr().out)["count"] >= 1
+
+    rc = cli.main(["index"])
+    assert rc == 0

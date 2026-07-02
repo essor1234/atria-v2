@@ -44,6 +44,10 @@ def test_parse_document_missing_key_raises():
         assert "title" in str(exc.value)
     finally:
         tmp.unlink()
+        try:
+            tmp.parent.rmdir()
+        except OSError:
+            pass
 
 
 def test_load_corpus_returns_all_four_sorted():
