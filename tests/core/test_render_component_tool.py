@@ -4,7 +4,6 @@ import pytest
 from atria.core.context_engineering.tools.implementations.render_component_tool import (
     RenderComponentHandler,
 )
-from atria.web import ui_bridge
 
 
 class _Ctx:
@@ -28,7 +27,9 @@ def test_render_pushes_block(monkeypatch):
                      persist=persist)
         return "blk-123"
 
-    monkeypatch.setattr(ui_bridge, "push_block", fake_push_block)
+    monkeypatch.setattr(
+        "atria.web.ui_bridge.push_block", fake_push_block
+    )
     h = RenderComponentHandler()
     res = h.render(
         {"module": "warehouse", "block": "item_form", "props": {"x": 1}, "title": "Form"},
@@ -42,10 +43,14 @@ def test_render_pushes_block(monkeypatch):
 
 
 def test_render_block_not_found(monkeypatch):
+    from atria.web import ui_bridge
+
     def fake_push_block(*a, **k):
         raise ui_bridge.BlockNotFound("warehouse/blocks/nope.html not found")
 
-    monkeypatch.setattr(ui_bridge, "push_block", fake_push_block)
+    monkeypatch.setattr(
+        "atria.web.ui_bridge.push_block", fake_push_block
+    )
     h = RenderComponentHandler()
     res = h.render({"module": "warehouse", "block": "nope"}, _Ctx("s1"))
     assert res["success"] is False
